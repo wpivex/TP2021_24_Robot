@@ -17,6 +17,10 @@ class Robot {
     motor rightMotorC;
     // motor rightMotorD;
     // motor rightMotorE;
+
+    motor_group leftDrive;
+    motor_group rightDrive;
+
     motor fourBarLeft;
     motor fourBarRight;
     motor chainBarLeft;
