@@ -64,7 +64,7 @@ int main() {
   Competition.autonomous(autonomous);
   Competition.drivercontrol(userControl);
 
-  double** angles = getFileAngles("motion_profile.csv");
+  // double** angles = getFileAngles("motion_profile.csv");
 
   // Prevent main from exiting with an infinite loop.
   while (true) {

@@ -23,13 +23,13 @@ class Robot {
     motor leftMotorA;
     motor leftMotorB;
     motor leftMotorC;
-    // motor leftMotorD;
-    // motor leftMotorE;
+    motor leftMotorD;
+    motor leftMotorE;
     motor rightMotorA;
     motor rightMotorB;
     motor rightMotorC;
-    // motor rightMotorD;
-    // motor rightMotorE;
+    motor rightMotorD;
+    motor rightMotorE;
 
     motor_group leftDrive;
     motor_group rightDrive;
@@ -39,6 +39,9 @@ class Robot {
     motor chainBarLeft;
     motor chainBarRight;
     motor claw;
+
+    motor fourBarFake;
+    motor chainBarFake;
 
     controller* robotController;
 
