@@ -1,5 +1,18 @@
 #pragma once
 #include "vex.h"
+#include <string>
+#include <fstream>
+#include <vector>
+#include <utility> // std::pair
+#include <stdexcept> // std::runtime_error
+#include <sstream> // std::stringstream
+#include <string>
+#include <iostream>
+#include <sstream>
+#include <stdlib.h>     /* atof */
+#include <math.h>       /* sin */
+#include <stdio.h>      /* printf, fgets */
+#include <unistd.h>
 
 using namespace vex;
 

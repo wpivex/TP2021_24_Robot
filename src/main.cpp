@@ -2,6 +2,7 @@
 
 competition Competition;
 controller Controller1(controllerType::primary);
+brain Brain;
 
 Robot* mainBotP;
 
@@ -31,11 +32,39 @@ void autonomous() {
   thread auto1(mainAuto);
 }
 
+double** getFileAngles(std::string filename) {
+  int byteLen = Brain.SDcard.size(filename.c_str()) + 10; // just in case this is off for some reason
+  unsigned char* c = new unsigned char[byteLen];
+  Brain.SDcard.loadfile(filename.c_str(), c, byteLen);
+
+  int lineCount = 0;
+  for(int i=0; i<byteLen; i++) { if(i != byteLen - 1 && c[i] == 13 && c[i+1] == 10) { lineCount++; } }
+  double** angles = new double*[lineCount+1];
+  for(int i = 0; i < lineCount; ++i) { angles[i] = new double[2]; }
+
+  std::string s = "";
+  int currInd = 0;
+  for(int i=0; i<byteLen; i++) {
+    s += c[i];
+    if(i != byteLen - 1 && c[i] == 13 && c[i+1] == 10) {
+      //note that this approach needs modification if we have more than two values per line
+      int commaIndex = s.find(",");
+      angles[currInd][0] = atof(s.substr(0, commaIndex).c_str());
+      angles[currInd][1] = atof(s.substr(commaIndex + 1, s.length() - commaIndex + 1).c_str());
+      currInd++;
+      s = "";
+    }
+  }
+  return angles;
+}
+
 int main() {
   Robot mainBot = Robot(&Controller1);
   mainBotP = &mainBot;
   Competition.autonomous(autonomous);
   Competition.drivercontrol(userControl);
+
+  double** angles = getFileAngles("motion_profile.csv");
 
   // Prevent main from exiting with an infinite loop.
   while (true) {
