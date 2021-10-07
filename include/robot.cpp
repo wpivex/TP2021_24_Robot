@@ -29,17 +29,19 @@ Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), /*lef
   driveType = ARCADE;
   robotController = c; 
 
-  fourBarFake = motor(PORT20, ratio18_1, false);
+  fourBarFake = motor(PORT19, ratio18_1, false);
   chainBarFake = motor(PORT12, ratio18_1, true);
+  fourBarFake.setBrake(coast);
+  chainBarFake.setBrake(coast);
 }
 
 void Robot::teleop() {
-  robotController->Screen.clearScreen();
-  if(robotController->ButtonA.pressing()) {
-    robotController->Screen.setCursor(0, 0);
-    robotController->Screen.print("FOURBAR");
-    fourBarFake.rotateTo(45, degrees, false);
-  }
+  // robotController->Screen.clearScreen();
+  // if(robotController->ButtonA.pressing()) {
+  //   robotController->Screen.setCursor(0, 0);
+  //   robotController->Screen.print("FOURBAR");
+  //   fourBarFake.rotateTo(45, degrees, false);
+  // }
   // robotController->Screen.clearScreen();
 
   // float leftJoystick = (driveType == ARCADE) ? robotController->Axis3.position()^3 + robotController->Axis1.position()^3: robotController->Axis3.position()^3;

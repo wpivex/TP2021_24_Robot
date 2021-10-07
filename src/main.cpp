@@ -61,13 +61,42 @@ double** getFileAngles(std::string filename) {
 int main() {
   Robot mainBot = Robot(&Controller1);
   mainBotP = &mainBot;
-  Competition.autonomous(autonomous);
-  Competition.drivercontrol(userControl);
+  // Competition.autonomous(autonomous);
+  // Competition.drivercontrol(userControl);
 
-  // double** angles = getFileAngles("motion_profile.csv");
+  double** angles = getFileAngles("motion_profile.csv");
 
   // Prevent main from exiting with an infinite loop.
+  mainBot.chainBarFake.setPosition(0, degrees);
+  mainBot.fourBarFake.setPosition(0, degrees);
+  int targetIndex = 0;
+  bool isPressed = false;
   while (true) {
+    Controller1.Screen.clearScreen();
+    Controller1.Screen.setCursor(0, 0);
+    Controller1.Screen.print("%f %f", angles[targetIndex][0], angles[targetIndex][1]);
+    // angle for 4 is -1000 736
+    // angle for intermediate -1323 1362
+    // angle for 6 is -393 969
+    // angle for 3 is -1266 497
+    // angle for 2 is -942 334
+    // which is 138	334
+    // angle for 5 is -1505 -307
+    // Controller1.Screen.setCursor(1, 0);
+    // Controller1.Screen.print(mainBot.chainBarFake.position(degrees));
+
+    mainBot.fourBarFake.rotateTo(-angles[targetIndex][0]*14, degrees, false);
+    mainBot.chainBarFake.rotateTo(-angles[targetIndex][1]*10, degrees, false);
+    if(Controller1.ButtonRight.pressing()) {
+      if(!isPressed && targetIndex < 5) { targetIndex++; }
+      isPressed = true;
+    } else if(Controller1.ButtonLeft.pressing()) {
+      if(!isPressed && targetIndex != 0) { targetIndex--; }
+      isPressed = true;
+    } else {
+      isPressed = false;
+    }
+
     wait(100, msec);
   }
 }
