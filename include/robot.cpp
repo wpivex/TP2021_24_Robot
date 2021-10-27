@@ -20,19 +20,23 @@ Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), /*lef
   // rightMotorE = motor(0, ratio18_1, false);
   rightDrive = motor_group(rightMotorA, rightMotorB, rightMotorC/*, rightMotorD, rightMotorE*/);
 
-  // fourBarLeft = motor(10, ratio18_1, true);
-  // fourBarRight = motor(20, ratio18_1, false);
-  // chainBarLeft = motor(9, ratio18_1, true);
-  // chainBarRight = motor(19, ratio18_1, false);
-  // claw = motor(16, ratio18_1, true);
+  fourBarLeft = motor(10, ratio18_1, true);
+  fourBarRight = motor(8, ratio18_1, false);
+  chainBarLeft = motor(9, ratio18_1, true);
+  chainBarRight = motor(19, ratio18_1, false);
+  claw = motor(16, ratio18_1, true);
 
   driveType = ARCADE;
   robotController = c; 
 
   fourBarFake = motor(PORT19, ratio18_1, false);
   chainBarFake = motor(PORT12, ratio18_1, true);
-  fourBarFake.setBrake(coast);
-  chainBarFake.setBrake(coast);
+
+  fourBarLeft.setBrake(hold);
+  fourBarRight.setBrake(hold);
+  chainBarLeft.setBrake(hold);
+  chainBarRight.setBrake(hold);
+  claw.setBrake(hold);
 }
 
 void Robot::teleop() {
