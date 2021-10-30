@@ -34,6 +34,8 @@ class Robot {
     motor_group leftDrive;
     motor_group rightDrive;
 
+    vision camera;
+
     motor fourBarLeft;
     motor fourBarRight;
     motor chainBarLeft;

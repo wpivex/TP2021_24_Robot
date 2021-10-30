@@ -5,7 +5,7 @@
 // gear ratio is 60/36
 Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), /*leftMotorD(0), leftMotorE(0),*/ rightMotorA(0), rightMotorB(0), 
   rightMotorC(0), /*rightMotorD(0), rightMotorE(0),*/ fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0), claw(0),
-  fourBarFake(0), chainBarFake(0) {
+  fourBarFake(0), chainBarFake(0), camera(0) {
   leftMotorA = motor(PORT1, ratio18_1, false);
   leftMotorB = motor(PORT2, ratio18_1, true);
   leftMotorC = motor(PORT3, ratio18_1, true);
@@ -31,6 +31,9 @@ Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), /*lef
 
   fourBarFake = motor(PORT19, ratio18_1, false);
   chainBarFake = motor(PORT12, ratio18_1, true);
+
+  vision::signature SIG_1 (1, 1999, 2599, 2299, -3267, -2737, -3002, 2.500, 0);
+  camera = vision(PORT6, 50, SIG_1);
 
   fourBarLeft.setBrake(hold);
   fourBarRight.setBrake(hold);
