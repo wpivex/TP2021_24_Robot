@@ -1,8 +1,8 @@
 #include "../include/robot.cpp"
 
 competition Competition;
-controller Controller1(controllerType::primary);
-brain Brain;
+// controller Controller1(controllerType::primary);
+// brain Brain;
 
 Robot *mainBotP;
 
@@ -66,7 +66,7 @@ int main() {
   mainBotP = &mainBot;
 
   // Competition.autonomous(autonomous);
-  // Competition.drivercontrol(userControl);
+  Competition.drivercontrol(userControl);
 
 
   /* CSV FORMAT THAT IS BEING USED IN THIS CODE:
@@ -94,87 +94,6 @@ int main() {
 
 
   while (true) {
-    // Debug output
-    Controller1.Screen.clearScreen();
-    Controller1.Screen.setCursor(0, 0);
-    // Controller1.Screen.print("t %f %f %i %i", angles[targetIndex][0], angles[targetIndex][1], targetIndex, arrived ? 1 : 0);
-    Controller1.Screen.print("%d %d %d", targetIndex, arrived ? 1 : 0);
-
-    // Execute motor rotation towards target!
-    mainBot.fourBarFake.rotateTo(angles[targetIndex][0], degrees, baseSpeed, velocityUnits::pct, false);
-    mainBot.chainBarFake.rotateTo(angles[targetIndex][1], degrees, baseSpeed
-    *fabs((chainStart - angles[targetIndex][1])/(fourStart - angles[targetIndex][0])), velocityUnits::pct, false);
-
-    // Calculate whether motor has arrived to intended target within some margin of error
-    int delta1 = fabs(mainBot.fourBarFake.rotation(degrees) - angles[targetIndex][0]);
-    int delta2 = fabs(mainBot.fourBarFake.rotation(degrees) - angles[targetIndex][0]);
-    arrived = delta1 < MARGIN && delta2 < MARGIN;
-
-    // Code runs whenever arm reaches a node.
-    if (arrived) { 
-      if (targetIndex == finalIndex) { // Buttons only responsive if arm is not moving, and arm has rested in final destination
-        if (!isPressed && Controller1.ButtonDown.pressing()) {
-            isPressed = true;
-            finalIndex = 0;
-        } else if (!isPressed && Controller1.ButtonY.pressing()) {
-            isPressed = true;
-            finalIndex = 2;
-        } else if (!isPressed && Controller1.ButtonA.pressing()) {
-            isPressed = true;
-            finalIndex = 3;
-        } else if (!isPressed && Controller1.ButtonX.pressing()) {
-            isPressed = true;
-            finalIndex = 4;
-        } else if (!isPressed && Controller1.ButtonB.pressing()) {
-            isPressed = true;
-            finalIndex = 5;
-        } else {
-          isPressed = false;
-        }
-      }
-
-
-      /*
-      Since arm not currently moving, targetIndex is current location. If not equal to final location, it means
-      button has been just pressed, final location has been set, and we now need to update targetIndex
-      (if button pressed is already where arm is, condition will be false)
-      */
-      if (targetIndex != finalIndex) { 
-
-        // A bit of hardcoding to find next target required. Refer to graph on discord.
-
-        if (targetIndex == 0 && finalIndex > 0) targetIndex = 1; // 0 -> 1 -> anything (always goes through intermediate point)
-
-        else if (targetIndex == 1) { // starting at intermediate point
-
-          if (finalIndex == 5) targetIndex = 3; // Must go 1 -> 3 -> 5;
-          else targetIndex = finalIndex; // For any other point, 1 -> x is fine
-
-        } else if (targetIndex == 2 || targetIndex == 3 || targetIndex == 4) {
-
-          if (finalIndex == 0) targetIndex = 1; // For example, 3 -> 1 -> 0
-
-          else if (finalIndex == 5) {
-
-            if (targetIndex == 3) targetIndex = 5; // 2 -> 3 -> 5
-            else targetIndex = 3; // 3 -> 5
-
-          } else { // This means finalIndex is 1,2,3, or 4. Just go directly to it
-            targetIndex = finalIndex;
-          }
-
-        } else targetIndex = 3; // Runs if currently at 5. Can only go 5 -> 3
-
-
-        // Store starting location of arm motors for purposes of velocity calculation. 
-        // We must do this every time we change our target index, and arm is about to move to a new node
-        fourStart = mainBot.fourBarFake.position(degrees);
-        chainStart = mainBot.chainBarFake.position(degrees);
-
-      }
-      
-    }
-
     wait(100, msec);
   }
 }
