@@ -20,12 +20,24 @@ Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftM
   leftMotorE = motor(PORT5, ratio18_1, true);
   leftDrive = motor_group(leftMotorA, leftMotorB, leftMotorC, leftMotorD, leftMotorE);
 
-  rightMotorA = motor(PORT17, ratio18_1, true);
-  rightMotorB = motor(PORT11, ratio18_1, true);
-  rightMotorC = motor(PORT13, ratio18_1, false);
-  rightMotorD = motor(PORT14, ratio18_1, false);
-  rightMotorE = motor(PORT15, ratio18_1, false);
+  rightMotorA = motor(PORT13, ratio18_1, false);
+  rightMotorB = motor(PORT14, ratio18_1, false);
+  rightMotorC = motor(PORT15, ratio18_1, false);
+  rightMotorD = motor(PORT16, ratio18_1, false);
+  rightMotorE = motor(PORT17, ratio18_1, false);
   rightDrive = motor_group(rightMotorA, rightMotorB, rightMotorC, rightMotorD, rightMotorE);
+
+  leftMotorA.setMaxTorque(5, torqueUnits::Nm);
+  leftMotorB.setMaxTorque(5, torqueUnits::Nm);
+  leftMotorC.setMaxTorque(5, torqueUnits::Nm);
+  leftMotorD.setMaxTorque(5, torqueUnits::Nm);
+  leftMotorE.setMaxTorque(5, torqueUnits::Nm);
+
+  rightMotorA.setMaxTorque(5, torqueUnits::Nm);
+  rightMotorB.setMaxTorque(5, torqueUnits::Nm);
+  rightMotorC.setMaxTorque(5, torqueUnits::Nm);
+  rightMotorD.setMaxTorque(5, torqueUnits::Nm);
+  rightMotorE.setMaxTorque(5, torqueUnits::Nm);
 
   fourBarLeft = motor(10, ratio18_1, true);
   fourBarRight = motor(8, ratio18_1, false);
@@ -33,7 +45,7 @@ Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftM
   chainBarRight = motor(19, ratio18_1, false);
   claw = motor(16, ratio18_1, true);
 
-  driveType = ARCADE;
+  driveType = TANK;
   robotController = c; 
 
   fourBarFake = motor(PORT19, ratio18_1, false);
@@ -60,7 +72,7 @@ void Robot::teleop() {
 
   if (fabs(leftJoystick) > 5) {
     float percent = (driveType == ARCADE) ? (pow((robotController->Axis3.position()/100.00f), 3.00f) + pow((robotController->Axis1.position()/100.00f), 5.00f))*100.00f : leftJoystick;
-    setLeftVelocity(forward, percent);
+    setLeftVelocity(forward, percent/fabs(percent)*fmin(fabs(percent), 100)); //60 is max for now
     oldLeft = percent;
   } else {
     stopLeft();
@@ -68,13 +80,15 @@ void Robot::teleop() {
 
   if (fabs(rightJoystick) > 5) {
     float percent = (driveType == ARCADE) ? (pow((robotController->Axis3.position()/100.00f), 3.00f) - pow((robotController->Axis1.position()/100.00f), 5.00f))*100.00f : rightJoystick;
-    setRightVelocity(forward, percent);
+    setRightVelocity(forward, percent/fabs(percent)*fmin(fabs(percent), 100));
     oldRight = percent;
   } else {
     stopRight();
   }
   Controller1.Screen.setCursor(0, 0);
-  Controller1.Screen.print("%f, %f", leftMotorA.current(), rightMotorB.current());
+  float maxTorqueLeft = fmax(fmax(fmax(fmax(leftMotorA.torque(), leftMotorB.torque()), leftMotorC.torque()), leftMotorD.torque()), leftMotorE.torque());
+  float maxTorqueRight = fmax(fmax(fmax(fmax(rightMotorA.torque(), rightMotorB.torque()), rightMotorC.torque()), rightMotorD.torque()), rightMotorE.torque());
+  Controller1.Screen.print("%f, %f", leftMotorA.torque(torqueUnits::Nm), rightMotorA.efficiency());
   wait(100, msec);
 }
 
