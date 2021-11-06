@@ -22,9 +22,39 @@ bool inBounds(int x, int y,int leftBound, int rightBound, int bottomBound, int t
 }
 
 void mainAuto(void) {
-  vision::signature SIG_1 (1, 949, 1365, 1157, -4229, -3529, -3879, 7.300, 0);
+  mainBotP->camera.setBrightness(13);
+  vision::signature SIG_1 (1, 1695, 2609, 2152, -3613, -2651, -3132, 3.000, 0);
   while(true) {
     mainBotP->camera.takeSnapshot(SIG_1);
+    vision::object largestObject;
+    int largestArea = -1;
+
+    safearray<vex::vision::object, 16> *objects;
+    objects = &mainBotP->camera.objects;
+
+    for(int i=0; i<mainBotP->camera.objectCount; i++) {
+      // Get the pointer to the current object
+      vex::vision::object o = (* objects)[i];
+      int area = o.width * o.height;
+
+      // Left bound, right bound, bottom bound, top bound. Check if object within bounds and is largest than current largest object
+      if (inBounds(o.centerX,o.centerY,0,315,211, 0) && area > largestArea) {
+        largestObject = o;
+        largestArea = area;
+      }
+    }
+
+    float pMod = 25.0;
+    float baseSpeed = -100.0+pMod;
+
+    // // if object exists
+    if(largestArea != -1) {
+      // Brain.Screen.setCursor(8,1);
+      // Brain.Screen.print(((CENTER_X-mainBotP->camera.largestObject.centerX)/CENTER_X*pMod));
+      float mod = (CENTER_X-largestObject.centerX)/CENTER_X*pMod;
+      mainBotP->setLeftVelocity(forward, baseSpeed-mod);
+      mainBotP->setRightVelocity(forward, baseSpeed+mod);
+    }
     Brain.Screen.render(true,false);
     Brain.Screen.clearLine(0,color::black);
     Brain.Screen.clearLine(1,color::black);
@@ -36,46 +66,13 @@ void mainAuto(void) {
     Brain.Screen.setCursor(1,1);
     Brain.Screen.print("Largest object: %f, %f", ((double)mainBotP->camera.largestObject.centerX)/315, ((double)mainBotP->camera.largestObject.centerY)/211);
     Brain.Screen.setCursor(2,1);
-    Brain.Screen.print("Width: %f", ((double)mainBotP->camera.largestObject.width)/315);
+    Brain.Screen.print("Largest object in bounds: %f, %f", ((double)largestObject.centerX)/315, ((double)largestObject.centerY)/211);
+    // Brain.Screen.print("Largest area: %f", (double)largestArea);
     Brain.Screen.setCursor(3,1);
-    Brain.Screen.print("Height: %f", ((double)mainBotP->camera.largestObject.height)/211);
+    Brain.Screen.print("Width and Height: %f", ((double)mainBotP->camera.largestObject.width)/315, ((double)mainBotP->camera.largestObject.height)/211);
     Brain.Screen.setCursor(4,1);
     Brain.Screen.print("Count: %d", mainBotP->camera.objectCount);
-    Brain.Screen.setCursor(6,1);
-    Brain.Screen.print(mainBotP->camera.largestObject.centerX < CENTER_X? "LEFT" : "RIGHT");
-    // Brain.Screen.setCursor(3,1);
-    // Brain.Screen.print("Snapshot: %d", mainBotP->camera.takeSnapshot(SIG_1));
-    Brain.Screen.render(); //push data to the LCD all at once to prevent image flickering
-
-    vision::object *largestObject;
-    int largestArea = -1;
-
-    safearray<vex::vision::object, 16> *objects;
-    objects = &mainBotP->camera.objects;
-
-    for(int i=0; i<mainBotP->camera.objectCount; i++) {
-      // Get the pointer to the current object
-      vex::vision::object *o = &((*objects)[i]);
-      int area = o->width * o->height;
-
-      // Left bound, right bound, bottom bound, top bound. Check if object within bounds and is largest than current largest object
-      if (inBounds(o->centerX,o->centerY,100,250,20,200) && area > largestArea) {
-        largestObject = o;
-        largestArea = area;
-      }
-    }
-
-    float pMod = 25.0;
-    float baseSpeed = -100.0+pMod;
-
-    // if object exists
-    if(largestObject != nullptr) {
-      // Brain.Screen.setCursor(8,1);
-      // Brain.Screen.print(((CENTER_X-mainBotP->camera.largestObject.centerX)/CENTER_X*pMod));
-      float mod = (CENTER_X-largestObject->centerX)/CENTER_X*pMod;
-      mainBotP->setLeftVelocity(forward, baseSpeed-mod);
-      mainBotP->setRightVelocity(forward, baseSpeed+mod);
-    }
+    Brain.Screen.render();
   }
 }
 

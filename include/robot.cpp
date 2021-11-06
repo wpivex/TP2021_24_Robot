@@ -39,7 +39,7 @@ Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftM
 
   driveType = ARCADE;
   robotController = c; 
-  vision::signature SIG_1 (1, 949, 1365, 1157, -4229, -3529, -3879, 7.300, 0);
+  vision::signature SIG_1 (1, 1695, 2609, 2152, -3613, -2651, -3132, 3.000, 0);
   camera = vision(PORT6, 50, SIG_1);
 
   fourBarLeft.setBrake(hold);
