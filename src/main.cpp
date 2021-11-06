@@ -73,25 +73,6 @@ int main() {
   Elements 0-4 is the location of Intake, Intermediate point, Ring front, Ring middle.
   Ring back Element 5 is the location of Place Goal
   */
-  double **angles = getFileAngles("motion_profile.csv");
-
-  // Prevent main from exiting with an infinite loop.
-  mainBot.chainBarFake.resetPosition();
-  mainBot.fourBarFake.resetPosition();
-
-  bool isPressed = false; // Button presses register only at the first frame pressed. Also disallows concurrent presses from different buttons.
-  bool arrived = true; // Whether arm has arrived onto a node
-
-  float MARGIN = 50; // margin of error for if robot arm is in vicinity of target node
-  float baseSpeed = 30; // Base speed of arm
-
-  int finalIndex = 2; // The immediate default destination from the starting point is to Ring Front (index 2)
-  int targetIndex = finalIndex;
-
-  // Store starting location of arm motors for purposes of velocity calculation
-  float fourStart = mainBot.fourBarFake.position(degrees);
-  float chainStart = mainBot.chainBarFake.position(degrees);
-
 
   while (true) {
     wait(100, msec);

@@ -4,8 +4,7 @@
 // Motor ports Left: 1R, 2F, 3F,  20T Right: 12R, 11F, 13F
 // gear ratio is 60/36
 Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftMotorD(0), leftMotorE(0), rightMotorA(0), rightMotorB(0), 
-  rightMotorC(0), rightMotorD(0), rightMotorE(0), fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0), claw(0),
-  fourBarFake(0), chainBarFake(0), camera(0) {
+  rightMotorC(0), rightMotorD(0), rightMotorE(0), fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0), claw(0) {
   leftMotorA = motor(PORT1, ratio18_1, true);
   leftMotorB = motor(PORT2, ratio18_1, true);
   leftMotorC = motor(PORT3, ratio18_1, true);
@@ -38,11 +37,8 @@ Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftM
   chainBarRight = motor(19, ratio18_1, false);
   claw = motor(16, ratio18_1, true);
 
-  driveType = TANK;
+  driveType = ARCADE;
   robotController = c; 
-
-  fourBarFake = motor(PORT19, ratio18_1, false);
-  chainBarFake = motor(PORT12, ratio18_1, true);
 
   fourBarLeft.setBrake(hold);
   fourBarRight.setBrake(hold);
@@ -57,8 +53,6 @@ controller Controller1;
 void Robot::teleop() {
   float leftJoystick = (driveType == ARCADE) ? robotController->Axis3.position()^3 + robotController->Axis1.position()^3: robotController->Axis3.position()^3;
   float rightJoystick = (driveType == ARCADE) ? robotController->Axis3.position()^3 + robotController->Axis1.position()^3: robotController->Axis2.position()^3;
-
-  Controller1.Screen.clearScreen();
 
   float oldLeft = 0;
   float oldRight = 0;
@@ -78,10 +72,6 @@ void Robot::teleop() {
   } else {
     stopRight();
   }
-  Controller1.Screen.setCursor(0, 0);
-  float maxTorqueLeft = fmax(fmax(fmax(fmax(leftMotorA.torque(), leftMotorB.torque()), leftMotorC.torque()), leftMotorD.torque()), leftMotorE.torque());
-  float maxTorqueRight = fmax(fmax(fmax(fmax(rightMotorA.torque(), rightMotorB.torque()), rightMotorC.torque()), rightMotorD.torque()), rightMotorE.torque());
-  Controller1.Screen.print("%f, %f", leftMotorA.torque(torqueUnits::Nm), rightMotorA.efficiency());
   wait(100, msec);
 }
 
