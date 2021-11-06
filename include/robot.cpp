@@ -3,17 +3,10 @@
 
 // Motor ports Left: 1R, 2F, 3F,  20T Right: 12R, 11F, 13F
 // gear ratio is 60/36
-<<<<<<< HEAD
-Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), /*leftMotorD(0), leftMotorE(0),*/ rightMotorA(0), rightMotorB(0), 
-  rightMotorC(0), /*rightMotorD(0), rightMotorE(0),*/ fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0), claw(0),
-  fourBarFake(0), chainBarFake(0) {
-  leftMotorA = motor(PORT1, ratio18_1, false);
-=======
 Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftMotorD(0), leftMotorE(0), rightMotorA(0), rightMotorB(0), 
   rightMotorC(0), rightMotorD(0), rightMotorE(0), fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0), claw(0),
   fourBarFake(0), chainBarFake(0), camera(0) {
   leftMotorA = motor(PORT1, ratio18_1, true);
->>>>>>> b14459d (Basic drive code)
   leftMotorB = motor(PORT2, ratio18_1, true);
   leftMotorC = motor(PORT3, ratio18_1, true);
   leftMotorD = motor(PORT4, ratio18_1, true);
