@@ -1,8 +1,8 @@
 #include "../include/robot.cpp"
 
 competition Competition;
-controller Controller1(controllerType::primary);
-brain Brain;
+// controller Controller1(controllerType::primary);
+// brain Brain;
 
 Robot *mainBotP;
 
@@ -66,7 +66,7 @@ int main() {
   mainBotP = &mainBot;
 
   // Competition.autonomous(autonomous);
-  // Competition.drivercontrol(userControl);
+  Competition.drivercontrol(userControl);
 
   // Controller1.Screen.clearScreen();
   // Controller1.Screen.setCursor(0, 0);
