@@ -14,11 +14,15 @@ int mainTeleop() {
 }
 
 void userControl(void) { task controlLoop1(mainTeleop); }
-float baseSpeed = 50;
-float pMod = 20;
+
+float CENTER_X = 157.0;
+
+bool inBounds(int x, int y,int leftBound, int rightBound, int bottomBound, int topBound) {
+  return (x >= leftBound && x <= rightBound && y <= bottomBound && y >= topBound);
+}
 
 void mainAuto(void) {
-  vision::signature SIG_1 (1, 1999, 2599, 2299, -3267, -2737, -3002, 2.500, 0);
+  vision::signature SIG_1 (1, 949, 1365, 1157, -4229, -3529, -3879, 7.300, 0);
   while(true) {
     mainBotP->camera.takeSnapshot(SIG_1);
     Brain.Screen.render(true,false);
@@ -38,16 +42,39 @@ void mainAuto(void) {
     Brain.Screen.setCursor(4,1);
     Brain.Screen.print("Count: %d", mainBotP->camera.objectCount);
     Brain.Screen.setCursor(6,1);
-    Brain.Screen.print(mainBotP->camera.largestObject.centerX < 175? "LEFT" : "RIGHT");
+    Brain.Screen.print(mainBotP->camera.largestObject.centerX < CENTER_X? "LEFT" : "RIGHT");
     // Brain.Screen.setCursor(3,1);
     // Brain.Screen.print("Snapshot: %d", mainBotP->camera.takeSnapshot(SIG_1));
     Brain.Screen.render(); //push data to the LCD all at once to prevent image flickering
 
-    if(mainBotP->camera.largestObject.exists) {
+    vision::object *largestObject;
+    int largestArea = -1;
+
+    safearray<vex::vision::object, 16> *objects;
+    objects = &mainBotP->camera.objects;
+
+    for(int i=0; i<mainBotP->camera.objectCount; i++) {
+      // Get the pointer to the current object
+      vex::vision::object *o = &((*objects)[i]);
+      int area = o->width * o->height;
+
+      // Left bound, right bound, bottom bound, top bound. Check if object within bounds and is largest than current largest object
+      if (inBounds(o->centerX,o->centerY,100,250,20,200) && area > largestArea) {
+        largestObject = o;
+        largestArea = area;
+      }
+    }
+
+    float pMod = 25.0;
+    float baseSpeed = -100.0+pMod;
+
+    // if object exists
+    if(largestObject != nullptr) {
       // Brain.Screen.setCursor(8,1);
-      // Brain.Screen.print(((175.0-mainBotP->camera.largestObject.centerX)/175.0*pMod));
-      mainBotP->setLeftVelocity(forward, baseSpeed-((175.0-mainBotP->camera.largestObject.centerX)/175.0*pMod));
-      mainBotP->setRightVelocity(forward, baseSpeed+((175.0-mainBotP->camera.largestObject.centerX)/175.0*pMod));
+      // Brain.Screen.print(((CENTER_X-mainBotP->camera.largestObject.centerX)/CENTER_X*pMod));
+      float mod = (CENTER_X-largestObject->centerX)/CENTER_X*pMod;
+      mainBotP->setLeftVelocity(forward, baseSpeed-mod);
+      mainBotP->setRightVelocity(forward, baseSpeed+mod);
     }
   }
 }
