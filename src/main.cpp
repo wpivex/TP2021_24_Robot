@@ -14,11 +14,41 @@ int mainTeleop() {
 }
 
 void userControl(void) { task controlLoop1(mainTeleop); }
+float baseSpeed = 50;
+float pMod = 20;
 
 void mainAuto(void) {
-  for (int i = 0; i < 4; i++) {
-    mainBotP->driveStraight(30, 24 + 14.5);
-    mainBotP->turnToAngle(30, 90);
+  vision::signature SIG_1 (1, 1999, 2599, 2299, -3267, -2737, -3002, 2.500, 0);
+  while(true) {
+    mainBotP->camera.takeSnapshot(SIG_1);
+    Brain.Screen.render(true,false);
+    Brain.Screen.clearLine(0,color::black);
+    Brain.Screen.clearLine(1,color::black);
+    Brain.Screen.clearLine(2,color::black);
+    Brain.Screen.clearLine(3,color::black);
+    Brain.Screen.clearLine(4,color::black);
+    Brain.Screen.clearLine(6,color::black);
+    Brain.Screen.clearLine(8,color::black);
+    Brain.Screen.setCursor(1,1);
+    Brain.Screen.print("Largest object: %f, %f", ((double)mainBotP->camera.largestObject.centerX)/315, ((double)mainBotP->camera.largestObject.centerY)/211);
+    Brain.Screen.setCursor(2,1);
+    Brain.Screen.print("Width: %f", ((double)mainBotP->camera.largestObject.width)/315);
+    Brain.Screen.setCursor(3,1);
+    Brain.Screen.print("Height: %f", ((double)mainBotP->camera.largestObject.height)/211);
+    Brain.Screen.setCursor(4,1);
+    Brain.Screen.print("Count: %d", mainBotP->camera.objectCount);
+    Brain.Screen.setCursor(6,1);
+    Brain.Screen.print(mainBotP->camera.largestObject.centerX < 175? "LEFT" : "RIGHT");
+    // Brain.Screen.setCursor(3,1);
+    // Brain.Screen.print("Snapshot: %d", mainBotP->camera.takeSnapshot(SIG_1));
+    Brain.Screen.render(); //push data to the LCD all at once to prevent image flickering
+
+    if(mainBotP->camera.largestObject.exists) {
+      // Brain.Screen.setCursor(8,1);
+      // Brain.Screen.print(((175.0-mainBotP->camera.largestObject.centerX)/175.0*pMod));
+      mainBotP->setLeftVelocity(forward, baseSpeed-((175.0-mainBotP->camera.largestObject.centerX)/175.0*pMod));
+      mainBotP->setRightVelocity(forward, baseSpeed+((175.0-mainBotP->camera.largestObject.centerX)/175.0*pMod));
+    }
   }
 }
 
@@ -65,41 +95,10 @@ int main() {
   Robot mainBot = Robot(&Controller1);
   mainBotP = &mainBot;
 
-  // Competition.autonomous(autonomous);
+  Competition.autonomous(autonomous);
   Competition.drivercontrol(userControl);
 
-  // Controller1.Screen.clearScreen();
-  // Controller1.Screen.setCursor(0, 0);
-  // Controller1.Screen.print(mainBotP->camera.largestObject);
-
-  vision::signature SIG_1 (1, 1999, 2599, 2299, -3267, -2737, -3002, 2.500, 0);
-
   while (true) {
-    // Controller1.Screen.clearScreen();
-    // Controller1.Screen.setCursor(0, 0);
-    // Controller1.Screen.print(mainBotP->camera.getMode());
-    mainBotP->camera.takeSnapshot(SIG_1);
-    Brain.Screen.render(true,false);
-    Brain.Screen.clearLine(0,color::black);
-    Brain.Screen.clearLine(1,color::black);
-    Brain.Screen.clearLine(2,color::black);
-    Brain.Screen.clearLine(3,color::black);
-    Brain.Screen.clearLine(4,color::black);
-    Brain.Screen.clearLine(6,color::black);
-    Brain.Screen.setCursor(1,1);
-    Brain.Screen.print("Largest object: %f, %f", ((double)mainBotP->camera.largestObject.centerX)/315, ((double)mainBotP->camera.largestObject.centerY)/211);
-    Brain.Screen.setCursor(2,1);
-    Brain.Screen.print("Width: %f", ((double)mainBotP->camera.largestObject.width)/315);
-    Brain.Screen.setCursor(3,1);
-    Brain.Screen.print("Height: %f", ((double)mainBotP->camera.largestObject.height)/211);
-    Brain.Screen.setCursor(4,1);
-    Brain.Screen.print("Count: %d", mainBotP->camera.objectCount);
-    Brain.Screen.setCursor(6,1);
-    Brain.Screen.print(mainBotP->camera.largestObject.centerX < 175? "LEFT" : "RIGHT");
-    // Brain.Screen.setCursor(3,1);
-    // Brain.Screen.print("Snapshot: %d", mainBotP->camera.takeSnapshot(SIG_1));
-    Brain.Screen.render(); //push data to the LCD all at once to prevent image flickering
-
     wait(100, msec);
   }
 }

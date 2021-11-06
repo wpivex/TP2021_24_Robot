@@ -42,9 +42,6 @@ class Robot {
     motor chainBarRight;
     motor claw;
 
-    motor fourBarFake;
-    motor chainBarFake;
-
     controller* robotController;
 
     void driveStraight(float percent, float dist);

@@ -5,7 +5,7 @@
 // gear ratio is 60/36
 Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftMotorD(0), leftMotorE(0), rightMotorA(0), rightMotorB(0), 
   rightMotorC(0), rightMotorD(0), rightMotorE(0), fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0), claw(0), camera(0) {
-  leftMotorA = motor(PORT1, ratio18_1, true);
+  leftMotorA = motor(PORT1, ratio18_1, true); 
   leftMotorB = motor(PORT2, ratio18_1, true);
   leftMotorC = motor(PORT3, ratio18_1, true);
   leftMotorD = motor(PORT4, ratio18_1, true);
