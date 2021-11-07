@@ -19,7 +19,7 @@ using namespace vex;
 class Robot {
   public:
     // four drivebase motors will not be accessible for a while
-    Robot(controller* c);
+    Robot(controller* c, double **angles);
     motor leftMotorA;
     motor leftMotorB;
     motor leftMotorC;
@@ -48,6 +48,8 @@ class Robot {
     void driveStraight(float percent, float dist, float accPercent);
     void driveTimed(float percent, float driveTime);
     void turnToAngle(float percent, float turnAngle);
+    void driveCurved(directionType d, float dist, int delta);
+    float distanceToDegrees(float dist);
     void openClaw();
     void closeClaw();
     void liftFourBar(float percentHeight);
@@ -55,7 +57,7 @@ class Robot {
 
     void userControl( void );
     void teleop( void );
-    void init();
+    void initArm();
     void setLeftVelocity(directionType d, double percent);
     void setRightVelocity(directionType d, double percent);
     void stopLeft();
@@ -63,4 +65,19 @@ class Robot {
 
     enum DriveType { ARCADE, TANK };
     DriveType driveType;
+
+  private:
+
+    double** angles;
+
+    void driveTeleop();
+    void armMovement(bool isTeleop);
+
+    // State variables for arm teleop code
+    bool isPressed;
+    int finalIndex, targetIndex;
+    float fourStart, chainStart;
+
+
+
 };

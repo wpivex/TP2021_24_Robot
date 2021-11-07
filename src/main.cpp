@@ -1,3 +1,8 @@
+// ---- START VEXCODE CONFIGURED DEVICES ----
+// Robot Configuration:
+// [Name]               [Type]        [Port(s)]
+// Vision6              vision        6               
+// ---- END VEXCODE CONFIGURED DEVICES ----
 #include "../include/robot.cpp"
 
 competition Competition;
@@ -9,6 +14,7 @@ Robot *mainBotP;
 int mainTeleop() {
   while (true) {
     mainBotP->teleop();
+    wait(100, msec);
   }
   return 0;
 }
@@ -21,10 +27,18 @@ bool inBounds(int x, int y,int leftBound, int rightBound, int bottomBound, int t
   return (x >= leftBound && x <= rightBound && y <= bottomBound && y >= topBound);
 }
 
-void mainAuto(void) {
+void goForwardVision(int forwardDistance) {
+
   mainBotP->camera.setBrightness(13);
-  vision::signature SIG_1 (1, 1695, 2609, 2152, -3613, -2651, -3132, 3.000, 0);
-  while(true) {
+  vision::signature SIG_1 (1, 1525, 1915, 1720, -3519, -2841, -3180, 5.400, 0);
+
+  mainBotP->leftMotorA.resetPosition();
+  mainBotP->rightMotorA.resetPosition();
+
+  float totalDist = mainBotP->distanceToDegrees(forwardDistance);
+  float dist = 0;
+
+  while(dist < totalDist) {
     mainBotP->camera.takeSnapshot(SIG_1);
     vision::object largestObject;
     int largestArea = -1;
@@ -32,13 +46,15 @@ void mainAuto(void) {
     safearray<vex::vision::object, 16> *objects;
     objects = &mainBotP->camera.objects;
 
+    // Find the largest object from vision within the specified bounds
     for(int i=0; i<mainBotP->camera.objectCount; i++) {
+
       // Get the pointer to the current object
       vex::vision::object o = (* objects)[i];
       int area = o.width * o.height;
 
       // Left bound, right bound, bottom bound, top bound. Check if object within bounds and is largest than current largest object
-      if (inBounds(o.centerX,o.centerY,0,315,211, 0) && area > largestArea) {
+      if (inBounds(o.centerX,o.centerY,0,236,211, 0) && area > largestArea) {
         largestObject = o;
         largestArea = area;
       }
@@ -47,14 +63,19 @@ void mainAuto(void) {
     float pMod = 25.0;
     float baseSpeed = -100.0+pMod;
 
+    float mod;
+
     // // if object exists
-    if(largestArea != -1) {
+    if(true || largestArea != -1) {
       // Brain.Screen.setCursor(8,1);
       // Brain.Screen.print(((CENTER_X-mainBotP->camera.largestObject.centerX)/CENTER_X*pMod));
-      float mod = (CENTER_X-largestObject.centerX)/CENTER_X*pMod;
-      mainBotP->setLeftVelocity(forward, baseSpeed-mod);
-      mainBotP->setRightVelocity(forward, baseSpeed+mod);
+      mod = (CENTER_X-mainBotP->camera.largestObject.centerX)/CENTER_X*pMod;
+    } else {
+      mod = 0; // emergency code. if nothing detected just move forwards straight.
     }
+    mainBotP->setLeftVelocity(forward, baseSpeed+mod);
+    mainBotP->setRightVelocity(forward, baseSpeed-mod);
+    
     Brain.Screen.render(true,false);
     Brain.Screen.clearLine(0,color::black);
     Brain.Screen.clearLine(1,color::black);
@@ -73,7 +94,42 @@ void mainAuto(void) {
     Brain.Screen.setCursor(4,1);
     Brain.Screen.print("Count: %d", mainBotP->camera.objectCount);
     Brain.Screen.render();
+
+    Controller1.Screen.clearScreen();
+    Controller1.Screen.setCursor(1,1);
+    Controller1.Screen.print(mainBotP->camera.largestObject.centerX);
+    //Controller1.Screen.print((*objects).getLength());
+
+    wait(100, msec);
+
+    dist = fabs((mainBotP->leftMotorA.position(degrees) + mainBotP->leftMotorB.position(degrees)) / 2.0);
   }
+
+  mainBotP->stopLeft();
+  mainBotP->stopRight();
+
+
+
+}
+
+void mainAuto(void) {
+
+  Brain.Screen.render(true,false);
+  Brain.Screen.clearLine(0,color::black);
+  Brain.Screen.clearLine(1,color::black);
+  Brain.Screen.clearLine(2,color::black);
+  Brain.Screen.clearLine(3,color::black);
+  Brain.Screen.clearLine(4,color::black);
+  Brain.Screen.clearLine(6,color::black);
+  Brain.Screen.clearLine(8,color::black);
+  Brain.Screen.setCursor(1,1);
+  Brain.Screen.print("Test");
+  Brain.Screen.render();
+  
+  mainBotP->driveCurved(reverse, 34, 45);
+  //wait(1000,msec);
+  goForwardVision(25);
+
 }
 
 int tetherAuto(void) { return 0; }
@@ -114,15 +170,33 @@ double **getFileAngles(std::string filename) {
   return angles;
 }
 
-// ARM CODE VERSION 2: BUTTONS MAPPED TO ALL STATES
+void testArmValues() {
+
+  while (true) {
+
+    Controller1.Screen.clearScreen();
+    Controller1.Screen.setCursor(0, 0);
+    Controller1.Screen.print("%i %i", (int) mainBotP->fourBarLeft.position(degrees), (int) mainBotP->chainBarLeft.position(degrees));
+
+  }
+  
+
+}
+
 int main() {
-  Robot mainBot = Robot(&Controller1);
+  Robot mainBot = Robot(&Controller1, getFileAngles("motion_profile.csv"));
   mainBotP = &mainBot;
 
-  Competition.autonomous(autonomous);
-  Competition.drivercontrol(userControl);
+  // Reset location of arm
+  mainBotP->initArm();
+
+  //Competition.autonomous(autonomous);
+  //Competition.drivercontrol(userControl);
+
+  testArmValues();
 
   while (true) {
     wait(100, msec);
   }
 }
+
