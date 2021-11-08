@@ -58,6 +58,7 @@ class Robot {
     void userControl( void );
     void teleop( void );
     void initArm();
+    void moveArmToPosition(int pos);
     void setLeftVelocity(directionType d, double percent);
     void setRightVelocity(directionType d, double percent);
     void stopLeft();
@@ -75,6 +76,7 @@ class Robot {
 
     // State variables for arm teleop code
     bool isPressed;
+    bool arrived;
     int finalIndex, targetIndex;
     float fourStart, chainStart;
 

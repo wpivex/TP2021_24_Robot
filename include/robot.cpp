@@ -42,10 +42,10 @@ Robot::Robot(controller* c, double **anglesList) : leftMotorA(0), leftMotorB(0),
   vision::signature SIG_1 (1, 1695, 2609, 2152, -3613, -2651, -3132, 3.000, 0);
   camera = vision(PORT6, 50, SIG_1);
 
-  fourBarLeft.setBrake(coast);
-  fourBarRight.setBrake(coast);
-  chainBarLeft.setBrake(coast);
-  chainBarRight.setBrake(coast);
+  fourBarLeft.setBrake(hold);
+  fourBarRight.setBrake(hold);
+  chainBarLeft.setBrake(hold);
+  chainBarRight.setBrake(hold);
   claw.setBrake(hold);
 
   // Initialize arm csv file
@@ -91,6 +91,7 @@ void Robot::initArm() {
   fourBarRight.resetPosition();
 
   isPressed = false; // Button presses register only at the first frame pressed. Also disallows concurrent presses from different buttons.
+  arrived = true;
 
   finalIndex = 2; // The immediate default destination from the starting point is to Ring Front (index 2)
   targetIndex = finalIndex;
@@ -104,26 +105,6 @@ void Robot::initArm() {
 // Run every tick
 void Robot::armMovement(bool isTeleop) {
 
-  float MARGIN = 50; // margin of error for if robot arm is in vicinity of target node
-  float BASE_SPEED = 30; // Base speed of arm
-
-  // Debug output
-  Controller1.Screen.clearScreen();
-  Controller1.Screen.setCursor(0, 0);
-  // Controller1.Screen.print("t %f %f %i %i", angles[targetIndex][0], angles[targetIndex][1], targetIndex, arrived ? 1 : 0);
-  Controller1.Screen.print(targetIndex);
-
-  // Execute motor rotation towards target!
-  int chainBarVelocity = BASE_SPEED * fabs((chainStart - angles[targetIndex][1])/(fourStart - angles[targetIndex][0]));
-  fourBarLeft.rotateTo(angles[targetIndex][0], degrees, BASE_SPEED, velocityUnits::pct, false);
-  fourBarRight.rotateTo(angles[targetIndex][0], degrees, BASE_SPEED, velocityUnits::pct, false);
-  chainBarLeft.rotateTo(angles[targetIndex][1], degrees, chainBarVelocity , velocityUnits::pct, false);
-  chainBarRight.rotateTo(angles[targetIndex][1], degrees, chainBarVelocity , velocityUnits::pct, false);
-
-  // Calculate whether motor has arrived to intended target within some margin of error
-  int delta1 = fabs(fourBarLeft.rotation(degrees) - angles[targetIndex][0]);
-  int delta2 = fabs(chainBarLeft.rotation(degrees) - angles[targetIndex][0]);
-  int arrived = delta1 < MARGIN && delta2 < MARGIN;
 
   // Code runs whenever arm reaches a node.
   if (arrived) { 
@@ -191,12 +172,49 @@ void Robot::armMovement(bool isTeleop) {
     
   }
 
+  float MARGIN = 50; // margin of error for if robot arm is in vicinity of target node
+  float BASE_SPEED = 30; // Base speed of arm
+
+  // Debug output
+  Controller1.Screen.clearScreen();
+  Controller1.Screen.setCursor(0, 0);
+  // Controller1.Screen.print("t %f %f %i %i", angles[targetIndex][0], angles[targetIndex][1], targetIndex, arrived ? 1 : 0);
+  Controller1.Screen.print(targetIndex);
+
+  // Execute motor rotation towards target!
+  int chainBarVelocity = BASE_SPEED * fabs((chainStart - angles[targetIndex][1])/(fourStart - angles[targetIndex][0]));
+  fourBarLeft.rotateTo(angles[targetIndex][0], degrees, BASE_SPEED, velocityUnits::pct, false);
+  fourBarRight.rotateTo(angles[targetIndex][0], degrees, BASE_SPEED, velocityUnits::pct, false);
+  chainBarLeft.rotateTo(angles[targetIndex][1], degrees, chainBarVelocity , velocityUnits::pct, false);
+  chainBarRight.rotateTo(angles[targetIndex][1], degrees, chainBarVelocity , velocityUnits::pct, false);
+
+  // Calculate whether motor has arrived to intended target within some margin of error
+  int delta1 = fabs(fourBarLeft.rotation(degrees) - angles[targetIndex][0]);
+  int delta2 = fabs(chainBarLeft.rotation(degrees) - angles[targetIndex][0]);
+  arrived = delta1 < MARGIN && delta2 < MARGIN;
+
+
+
 }
 
 // Run every tick
 void Robot::teleop() {
   driveTeleop();
   armMovement(true);
+}
+
+// Blocking method to move arm to location
+void Robot::moveArmToPosition(int pos) {
+
+  arrived = true;
+  finalIndex = pos;
+
+  while (!arrived && targetIndex != finalIndex) {
+    armMovement(false);
+  }
+
+
+
 }
 
 // dist in inches

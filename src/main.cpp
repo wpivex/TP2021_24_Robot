@@ -172,6 +172,11 @@ double **getFileAngles(std::string filename) {
 
 void testArmValues() {
 
+  mainBotP->fourBarLeft.setBrake(coast);
+  mainBotP->fourBarRight.setBrake(coast);
+  mainBotP->chainBarLeft.setBrake(coast);
+  mainBotP->chainBarRight.setBrake(coast);
+
   while (true) {
 
     Controller1.Screen.clearScreen();
