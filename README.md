@@ -19,8 +19,8 @@
 **Todo for teleop arm:**
 - Refine teleop arm with speed, position, and fine tuning arm state locations
 - Test auton arm
-**
-Todo for vision:**
+
+**Todo for vision:**
 - We probably should tilt the vision sensor downwards anyways. It works, but it will be more reliable and less prone to distractions if it is
 - We should calculate dx, or change in centerX. This value should not exceed some threshold (meaning taht the robot has now locked onto a different object) and instead will revert to visionless drive straight
 - We should still try to test/fix my bounded vision detection. If it works, it will completely eliminate any possibility of veering to the wrong thing
