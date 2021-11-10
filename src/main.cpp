@@ -107,9 +107,6 @@ void goForwardVision(int forwardDistance) {
 
   mainBotP->stopLeft();
   mainBotP->stopRight();
-
-
-
 }
 
 void mainAuto(void) {
@@ -178,18 +175,15 @@ void testArmValues() {
   mainBotP->chainBarRight.setBrake(coast);
 
   while (true) {
-
     Controller1.Screen.clearScreen();
     Controller1.Screen.setCursor(0, 0);
     Controller1.Screen.print("%i %i", (int) mainBotP->fourBarLeft.position(degrees), (int) mainBotP->chainBarLeft.position(degrees));
-
   }
-  
-
 }
 
 int main() {
-  Robot mainBot = Robot(&Controller1, getFileAngles("motion_profile.csv"));
+
+  Robot mainBot = Robot(&Controller1); 
   mainBotP = &mainBot;
 
   // Reset location of arm

@@ -3,7 +3,7 @@
 
 // Motor ports Left: 1R, 2F, 3F,  20T Right: 12R, 11F, 13F
 // gear ratio is 60/36
-Robot::Robot(controller* c, double **anglesList) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftMotorD(0), leftMotorE(0), rightMotorA(0), rightMotorB(0), 
+Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftMotorD(0), leftMotorE(0), rightMotorA(0), rightMotorB(0), 
   rightMotorC(0), rightMotorD(0), rightMotorE(0), fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0), claw(0), camera(0) {
   leftMotorA = motor(PORT1, ratio18_1, true); 
   leftMotorB = motor(PORT2, ratio18_1, true);
@@ -47,11 +47,6 @@ Robot::Robot(controller* c, double **anglesList) : leftMotorA(0), leftMotorB(0),
   chainBarLeft.setBrake(hold);
   chainBarRight.setBrake(hold);
   claw.setBrake(hold);
-
-  // Initialize arm csv file
-  angles = anglesList;
-
-
 }
 
 brain Brain;
@@ -79,11 +74,9 @@ void Robot::driveTeleop() {
   } else {
     stopRight();
   }
-  
 }
 
 void Robot::initArm() {
-
   // Reset position of motors
   chainBarLeft.resetPosition();
   fourBarLeft.resetPosition();
@@ -104,8 +97,6 @@ void Robot::initArm() {
 
 // Run every tick
 void Robot::armMovement(bool isTeleop) {
-
-
   // Code runs whenever arm reaches a node.
   if (arrived) { 
     // Getting inputs only work if in teleop mode. For auton, finalIndex will be set by function calls
@@ -130,46 +121,32 @@ void Robot::armMovement(bool isTeleop) {
       }
     }
 
-
     /*
     Since arm not currently moving, targetIndex is current location. If not equal to final location, it means
     button has been just pressed, final location has been set, and we now need to update targetIndex
     (if button pressed is already where arm is, condition will be false)
     */
     if (targetIndex != finalIndex) { 
-
       // A bit of hardcoding to find next target required. Refer to graph on discord.
-
       if (targetIndex == 0 && finalIndex > 0) targetIndex = 1; // 0 -> 1 -> anything (always goes through intermediate point)
-
       else if (targetIndex == 1) { // starting at intermediate point
-
         if (finalIndex == 5) targetIndex = 3; // Must go 1 -> 3 -> 5;
         else targetIndex = finalIndex; // For any other point, 1 -> x is fine
-
       } else if (targetIndex == 2 || targetIndex == 3 || targetIndex == 4) {
-
         if (finalIndex == 0) targetIndex = 1; // For example, 3 -> 1 -> 0
-
         else if (finalIndex == 5) {
-
           if (targetIndex == 3) targetIndex = 5; // 2 -> 3 -> 5
           else targetIndex = 3; // 3 -> 5
-
         } else { // This means finalIndex is 1,2,3, or 4. Just go directly to it
           targetIndex = finalIndex;
         }
-
       } else targetIndex = 3; // Runs if currently at 5. Can only go 5 -> 3
-
 
       // Store starting location of arm motors for purposes of velocity calculation. 
       // We must do this every time we change our target index, and arm is about to move to a new node
       fourStart = fourBarLeft.position(degrees);
       chainStart = chainBarLeft.position(degrees);
-
     }
-    
   }
 
   float MARGIN = 50; // margin of error for if robot arm is in vicinity of target node
@@ -192,9 +169,6 @@ void Robot::armMovement(bool isTeleop) {
   int delta1 = fabs(fourBarLeft.rotation(degrees) - angles[targetIndex][0]);
   int delta2 = fabs(chainBarLeft.rotation(degrees) - angles[targetIndex][0]);
   arrived = delta1 < MARGIN && delta2 < MARGIN;
-
-
-
 }
 
 // Run every tick
@@ -212,9 +186,6 @@ void Robot::moveArmToPosition(int pos) {
   while (!arrived && targetIndex != finalIndex) {
     armMovement(false);
   }
-
-
-
 }
 
 // dist in inches
@@ -298,13 +269,8 @@ void Robot::driveCurved(directionType d, float dist, int delta) {
     Controller1.Screen.print(currPos);
 
   }
-  
   //stopLeft();
   //stopRight();
-
-
-
-
 }
 
 void Robot::openClaw() {}

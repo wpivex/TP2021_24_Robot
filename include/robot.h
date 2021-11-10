@@ -19,7 +19,7 @@ using namespace vex;
 class Robot {
   public:
     // four drivebase motors will not be accessible for a while
-    Robot(controller* c, double **angles);
+    Robot(controller* c);
     motor leftMotorA;
     motor leftMotorB;
     motor leftMotorC;
@@ -69,7 +69,12 @@ class Robot {
 
   private:
 
-    double** angles;
+    double angles[6][2] = {{0,1},
+                          {0,1}, 
+                          {0,1}, 
+                          {0,1},
+                          {0,1},
+                          {0,1}};
 
     void driveTeleop();
     void armMovement(bool isTeleop);
