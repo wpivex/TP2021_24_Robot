@@ -19,22 +19,10 @@ Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftM
   rightMotorE = motor(PORT17, ratio18_1, false);
   rightDrive = motor_group(rightMotorA, rightMotorB, rightMotorC, rightMotorD, rightMotorE);
 
-  leftMotorA.setMaxTorque(5, torqueUnits::Nm);
-  leftMotorB.setMaxTorque(5, torqueUnits::Nm);
-  leftMotorC.setMaxTorque(5, torqueUnits::Nm);
-  leftMotorD.setMaxTorque(5, torqueUnits::Nm);
-  leftMotorE.setMaxTorque(5, torqueUnits::Nm);
-
-  rightMotorA.setMaxTorque(5, torqueUnits::Nm);
-  rightMotorB.setMaxTorque(5, torqueUnits::Nm);
-  rightMotorC.setMaxTorque(5, torqueUnits::Nm);
-  rightMotorD.setMaxTorque(5, torqueUnits::Nm);
-  rightMotorE.setMaxTorque(5, torqueUnits::Nm);
-
-  fourBarLeft = motor(10, ratio18_1, true);
-  fourBarRight = motor(8, ratio18_1, false);
-  chainBarLeft = motor(9, ratio18_1, true);
-  chainBarRight = motor(19, ratio18_1, false);
+  fourBarLeft = motor(PORT10, ratio18_1, true);
+  fourBarRight = motor(PORT8, ratio18_1, false);
+  chainBarLeft = motor(PORT19, ratio18_1, true);
+  chainBarRight = motor(PORT7, ratio18_1, false);
   claw = motor(16, ratio18_1, true);
 
   driveType = ARCADE;
@@ -48,9 +36,6 @@ Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftM
   chainBarRight.setBrake(hold);
   claw.setBrake(hold);
 }
-
-brain Brain;
-controller Controller1;
 
 void Robot::driveTeleop() {
   float leftJoystick = (driveType == ARCADE) ? robotController->Axis3.position()^3 + robotController->Axis1.position()^3: robotController->Axis3.position()^3;
@@ -92,7 +77,6 @@ void Robot::initArm() {
   // Store starting location of arm motors for purposes of velocity calculation
   fourStart = fourBarLeft.position(degrees);
   chainStart = chainBarLeft.position(degrees);
-  
 }
 
 // Run every tick
@@ -101,19 +85,19 @@ void Robot::armMovement(bool isTeleop) {
   if (arrived) { 
     // Getting inputs only work if in teleop mode. For auton, finalIndex will be set by function calls
     if (isTeleop && targetIndex == finalIndex) { // Buttons only responsive if arm is not moving, and arm has rested in final destination
-      if (!isPressed && Controller1.ButtonDown.pressing()) {
+      if (!isPressed && Robot::robotController->ButtonDown.pressing()) {
           isPressed = true;
           finalIndex = 0;
-      } else if (!isPressed && Controller1.ButtonY.pressing()) {
+      } else if (!isPressed && Robot::robotController->ButtonY.pressing()) {
           isPressed = true;
           finalIndex = 2;
-      } else if (!isPressed && Controller1.ButtonA.pressing()) {
+      } else if (!isPressed && Robot::robotController->ButtonA.pressing()) {
           isPressed = true;
           finalIndex = 3;
-      } else if (!isPressed && Controller1.ButtonX.pressing()) {
+      } else if (!isPressed && Robot::robotController->ButtonX.pressing()) {
           isPressed = true;
           finalIndex = 4;
-      } else if (!isPressed && Controller1.ButtonB.pressing()) {
+      } else if (!isPressed && Robot::robotController->ButtonB.pressing()) {
           isPressed = true;
           finalIndex = 5;
       } else {
@@ -149,14 +133,11 @@ void Robot::armMovement(bool isTeleop) {
     }
   }
 
-  float MARGIN = 50; // margin of error for if robot arm is in vicinity of target node
+  float MARGIN = 10; // margin of error for if robot arm is in vicinity of target node
   float BASE_SPEED = 30; // Base speed of arm
 
-  // Debug output
-  Controller1.Screen.clearScreen();
-  Controller1.Screen.setCursor(0, 0);
-  // Controller1.Screen.print("t %f %f %i %i", angles[targetIndex][0], angles[targetIndex][1], targetIndex, arrived ? 1 : 0);
-  Controller1.Screen.print(targetIndex);
+  
+  //Robot::robotController->Screen.print(targetIndex);
 
   // Execute motor rotation towards target!
   int chainBarVelocity = BASE_SPEED * fabs((chainStart - angles[targetIndex][1])/(fourStart - angles[targetIndex][0]));
@@ -167,8 +148,13 @@ void Robot::armMovement(bool isTeleop) {
 
   // Calculate whether motor has arrived to intended target within some margin of error
   int delta1 = fabs(fourBarLeft.rotation(degrees) - angles[targetIndex][0]);
-  int delta2 = fabs(chainBarLeft.rotation(degrees) - angles[targetIndex][0]);
+  int delta2 = fabs(chainBarLeft.rotation(degrees) - angles[targetIndex][1]);
   arrived = delta1 < MARGIN && delta2 < MARGIN;
+
+  // Debug output
+  Robot::robotController->Screen.clearScreen();
+  Robot::robotController->Screen.setCursor(0, 0);
+  Robot::robotController->Screen.print("t %d %d %d %d %d", (int)angles[targetIndex][0], (int)angles[targetIndex][1], targetIndex, delta1, delta2);
 }
 
 // Run every tick
@@ -265,8 +251,8 @@ void Robot::driveCurved(directionType d, float dist, int delta) {
     float currLeft = leftMotorA.position(degrees);
     float currRight = rightMotorA.position(degrees);
     currPos = fabs((currLeft + currRight) / 2.0);
-    Controller1.Screen.clearScreen();
-    Controller1.Screen.print(currPos);
+    Robot::robotController->Screen.clearScreen();
+    Robot::robotController->Screen.print(currPos);
 
   }
   //stopLeft();

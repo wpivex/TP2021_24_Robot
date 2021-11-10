@@ -6,14 +6,14 @@
 #include "../include/robot.cpp"
 
 competition Competition;
-// controller Controller1(controllerType::primary);
-// brain Brain;
+controller Controller1(controllerType::primary);
+brain Brain;
 
-Robot *mainBotP;
+Robot mainBot = nullptr;
 
 int mainTeleop() {
   while (true) {
-    mainBotP->teleop();
+    mainBot.teleop();
     wait(100, msec);
   }
   return 0;
@@ -29,25 +29,25 @@ bool inBounds(int x, int y,int leftBound, int rightBound, int bottomBound, int t
 
 void goForwardVision(int forwardDistance) {
 
-  mainBotP->camera.setBrightness(13);
+  mainBot.camera.setBrightness(13);
   vision::signature SIG_1 (1, 1525, 1915, 1720, -3519, -2841, -3180, 5.400, 0);
 
-  mainBotP->leftMotorA.resetPosition();
-  mainBotP->rightMotorA.resetPosition();
+  mainBot.leftMotorA.resetPosition();
+  mainBot.rightMotorA.resetPosition();
 
-  float totalDist = mainBotP->distanceToDegrees(forwardDistance);
+  float totalDist = mainBot.distanceToDegrees(forwardDistance);
   float dist = 0;
 
   while(dist < totalDist) {
-    mainBotP->camera.takeSnapshot(SIG_1);
+    mainBot.camera.takeSnapshot(SIG_1);
     vision::object largestObject;
     int largestArea = -1;
 
     safearray<vex::vision::object, 16> *objects;
-    objects = &mainBotP->camera.objects;
+    objects = &mainBot.camera.objects;
 
     // Find the largest object from vision within the specified bounds
-    for(int i=0; i<mainBotP->camera.objectCount; i++) {
+    for(int i=0; i<mainBot.camera.objectCount; i++) {
 
       // Get the pointer to the current object
       vex::vision::object o = (* objects)[i];
@@ -68,13 +68,13 @@ void goForwardVision(int forwardDistance) {
     // // if object exists
     if(true || largestArea != -1) {
       // Brain.Screen.setCursor(8,1);
-      // Brain.Screen.print(((CENTER_X-mainBotP->camera.largestObject.centerX)/CENTER_X*pMod));
-      mod = (CENTER_X-mainBotP->camera.largestObject.centerX)/CENTER_X*pMod;
+      // Brain.Screen.print(((CENTER_X-mainBot.camera.largestObject.centerX)/CENTER_X*pMod));
+      mod = (CENTER_X-mainBot.camera.largestObject.centerX)/CENTER_X*pMod;
     } else {
       mod = 0; // emergency code. if nothing detected just move forwards straight.
     }
-    mainBotP->setLeftVelocity(forward, baseSpeed+mod);
-    mainBotP->setRightVelocity(forward, baseSpeed-mod);
+    mainBot.setLeftVelocity(forward, baseSpeed+mod);
+    mainBot.setRightVelocity(forward, baseSpeed-mod);
     
     Brain.Screen.render(true,false);
     Brain.Screen.clearLine(0,color::black);
@@ -85,28 +85,28 @@ void goForwardVision(int forwardDistance) {
     Brain.Screen.clearLine(6,color::black);
     Brain.Screen.clearLine(8,color::black);
     Brain.Screen.setCursor(1,1);
-    Brain.Screen.print("Largest object: %f, %f", ((double)mainBotP->camera.largestObject.centerX)/315, ((double)mainBotP->camera.largestObject.centerY)/211);
+    Brain.Screen.print("Largest object: %f, %f", ((double)mainBot.camera.largestObject.centerX)/315, ((double)mainBot.camera.largestObject.centerY)/211);
     Brain.Screen.setCursor(2,1);
     Brain.Screen.print("Largest object in bounds: %f, %f", ((double)largestObject.centerX)/315, ((double)largestObject.centerY)/211);
     // Brain.Screen.print("Largest area: %f", (double)largestArea);
     Brain.Screen.setCursor(3,1);
-    Brain.Screen.print("Width and Height: %f", ((double)mainBotP->camera.largestObject.width)/315, ((double)mainBotP->camera.largestObject.height)/211);
+    Brain.Screen.print("Width and Height: %f", ((double)mainBot.camera.largestObject.width)/315, ((double)mainBot.camera.largestObject.height)/211);
     Brain.Screen.setCursor(4,1);
-    Brain.Screen.print("Count: %d", mainBotP->camera.objectCount);
+    Brain.Screen.print("Count: %d", mainBot.camera.objectCount);
     Brain.Screen.render();
 
     Controller1.Screen.clearScreen();
     Controller1.Screen.setCursor(1,1);
-    Controller1.Screen.print(mainBotP->camera.largestObject.centerX);
+    Controller1.Screen.print(mainBot.camera.largestObject.centerX);
     //Controller1.Screen.print((*objects).getLength());
 
     wait(100, msec);
 
-    dist = fabs((mainBotP->leftMotorA.position(degrees) + mainBotP->leftMotorB.position(degrees)) / 2.0);
+    dist = fabs((mainBot.leftMotorA.position(degrees) + mainBot.leftMotorB.position(degrees)) / 2.0);
   }
 
-  mainBotP->stopLeft();
-  mainBotP->stopRight();
+  mainBot.stopLeft();
+  mainBot.stopRight();
 }
 
 void mainAuto(void) {
@@ -123,7 +123,7 @@ void mainAuto(void) {
   Brain.Screen.print("Test");
   Brain.Screen.render();
   
-  mainBotP->driveCurved(reverse, 34, 45);
+  mainBot.driveCurved(reverse, 34, 45);
   //wait(1000,msec);
   goForwardVision(25);
 
@@ -133,68 +133,42 @@ int tetherAuto(void) { return 0; }
 
 void autonomous() { thread auto1(mainAuto); }
 
-double **getFileAngles(std::string filename) {
-  int byteLen = Brain.SDcard.size(filename.c_str()) +
-                10; // just in case this is off for some reason
-  unsigned char *c = new unsigned char[byteLen];
-  Brain.SDcard.loadfile(filename.c_str(), c, byteLen);
-
-  int lineCount = 0;
-  for (int i = 0; i < byteLen; i++) {
-    if (i != byteLen - 1 && c[i] == 13 && c[i + 1] == 10) {
-      lineCount++;
-    }
-  }
-  double **angles = new double *[lineCount + 1];
-  for (int i = 0; i < lineCount; ++i) {
-    angles[i] = new double[2];
-  }
-
-  std::string s = "";
-  int currInd = 0;
-  for (int i = 0; i < byteLen; i++) {
-    s += c[i];
-    if (i != byteLen - 1 && c[i] == 13 && c[i + 1] == 10) {
-      // note that this approach needs modification if we have more than two
-      // values per line
-      int commaIndex = s.find(",");
-      angles[currInd][0] = atof(s.substr(0, commaIndex).c_str());
-      angles[currInd][1] = atof(s.substr(commaIndex + 1, s.length() - commaIndex + 1).c_str());
-      currInd++;
-      s = "";
-    }
-  }
-  return angles;
-}
-
 void testArmValues() {
 
-  mainBotP->fourBarLeft.setBrake(coast);
-  mainBotP->fourBarRight.setBrake(coast);
-  mainBotP->chainBarLeft.setBrake(coast);
-  mainBotP->chainBarRight.setBrake(coast);
+  mainBot.fourBarLeft.setBrake(coast);
+  mainBot.fourBarRight.setBrake(coast);
+  mainBot.chainBarLeft.setBrake(coast);
+  mainBot.chainBarRight.setBrake(coast);
 
   while (true) {
-    Controller1.Screen.clearScreen();
-    Controller1.Screen.setCursor(0, 0);
-    Controller1.Screen.print("%i %i", (int) mainBotP->fourBarLeft.position(degrees), (int) mainBotP->chainBarLeft.position(degrees));
+    Brain.Screen.clearScreen();
+    Brain.Screen.setCursor(1, 1);
+    Brain.Screen.print("%f", mainBot.fourBarRight.position(degrees));
+    // Brain.Screen.setCursor(2, 1);
+    // Brain.Screen.print((int) mainBot.chainBarRight.position(degrees));
+    wait(100, msec);
   }
 }
 
 int main() {
-
-  Robot mainBot = Robot(&Controller1); 
-  mainBotP = &mainBot;
+  mainBot = Robot(&Controller1); 
 
   // Reset location of arm
-  mainBotP->initArm();
+  mainBot.initArm();
+  mainBot.fourBarLeft.setBrake(coast);
+  mainBot.fourBarRight.setBrake(coast);
+  mainBot.chainBarLeft.setBrake(coast);
+  mainBot.chainBarRight.setBrake(coast);
 
   //Competition.autonomous(autonomous);
-  //Competition.drivercontrol(userControl);
+  Competition.drivercontrol(userControl);
 
-  testArmValues();
+  // testArmValues();
 
   while (true) {
+    // Brain.Screen.clearScreen();
+    // Brain.Screen.setCursor(1, 1);
+    // Brain.Screen.print("%d %d", (int)mainBot.chainBarLeft.position(degrees), (int)mainBot.fourBarLeft.position(degrees));
     wait(100, msec);
   }
 }

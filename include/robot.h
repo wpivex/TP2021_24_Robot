@@ -69,12 +69,13 @@ class Robot {
 
   private:
 
-    double angles[6][2] = {{0,1},
-                          {0,1}, 
-                          {0,1}, 
-                          {0,1},
-                          {0,1},
-                          {0,1}};
+    // fourbar, chainbar
+    double angles[6][2] = {{422, 821}, //intaking (0)
+                          {1311, 1247}, //intermediate (1)
+                          {1060, 428}, //ring front (2)
+                          {1271, 327}, //ring middle (3)
+                          {1446, -26}, //right back (4)
+                          {500, 220}}; //place goal (5)
 
     void driveTeleop();
     void armMovement(bool isTeleop);
