@@ -4,7 +4,7 @@
 // Motor ports Left: 1R, 2F, 3F,  20T Right: 12R, 11F, 13F
 // gear ratio is 60/36
 Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftMotorD(0), leftMotorE(0), rightMotorA(0), rightMotorB(0), 
-  rightMotorC(0), rightMotorD(0), rightMotorE(0), fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0), claw(0), camera(0) {
+  rightMotorC(0), rightMotorD(0), rightMotorE(0), fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0), claw(0), frontCamera(0), backCamera(0) {
   leftMotorA = motor(PORT1, ratio18_1, true); 
   leftMotorB = motor(PORT2, ratio18_1, true);
   leftMotorC = motor(PORT3, ratio18_1, true);
@@ -28,7 +28,8 @@ Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftM
   driveType = ARCADE;
   robotController = c; 
   vision::signature SIG_1 (1, 1695, 2609, 2152, -3613, -2651, -3132, 3.000, 0);
-  camera = vision(PORT6, 50, SIG_1);
+  frontCamera = vision(PORT20, 50, SIG_1);
+  backCamera = vision(PORT6, 50, SIG_1);
 
   fourBarLeft.setBrake(hold);
   fourBarRight.setBrake(hold);
@@ -160,7 +161,7 @@ void Robot::armMovement(bool isTeleop) {
 // Run every tick
 void Robot::teleop() {
   driveTeleop();
-  armMovement(true);
+  // armMovement(true);
 }
 
 // Blocking method to move arm to location
@@ -176,7 +177,7 @@ void Robot::moveArmToPosition(int pos) {
 
 // dist in inches
 float Robot::distanceToDegrees(float dist) {
-  return dist * 360 / 60 * 36 / 2 / M_PI / (3.25 / 2);
+  return dist * 360 / 2 / M_PI / (4 / 2) * 15 / 14; // 4 in diameter wheels
 }
 
 void Robot::driveStraight(float percent, float dist) {
@@ -212,22 +213,22 @@ void Robot::driveTimed(float percent, float driveTime) {
 }
 
 //12.375 in wheelbase
-void Robot::turnToAngle(float percent, float turnAngle) {
+void Robot::turnToAngle(float percent, float turnAngle, bool PID) {
   leftMotorA.resetPosition();
   rightMotorA.resetPosition();
   // currPos is the current average encoder position, travelDist is the total encoder distance to be traversed, 
   // and targetDist is the target encoder position
   float currPos = (fabs(leftMotorA.position(degrees)) + fabs(rightMotorA.position(degrees))) / 2;
-  float travelDist = distanceToDegrees(turnAngle / 360 * 2 * M_PI * (12.375 / 2));
+  float travelDist = distanceToDegrees(turnAngle / 360 * 2 * M_PI * (15.125 / 2));
   float targetDist = currPos + travelDist;
   
   while (currPos < targetDist) {
-    setLeftVelocity(turnAngle > 0 ? forward : reverse, 5 + (percent - 5) * ((targetDist - currPos) / travelDist));
-    setRightVelocity(turnAngle > 0 ? reverse : forward, 5 + (percent - 5) * ((targetDist - currPos) / travelDist));
+    setLeftVelocity(turnAngle > 0 ? forward : reverse, 5 + (percent - 5) * (PID? ((targetDist - currPos) / travelDist) : 1));
+    setRightVelocity(turnAngle > 0 ? reverse : forward, 5 + (percent - 5) * (PID? ((targetDist - currPos) / travelDist) : 1));
     currPos = (fabs(leftMotorA.position(degrees)) + fabs(rightMotorA.position(degrees))) / 2;
   }
-  leftDrive.stop();
-  rightDrive.stop();
+  stopLeft();
+  stopRight();
 }
 
 // delta ranges from -100 (hard left) and 100 (hard right). 0 is straight
@@ -259,10 +260,123 @@ void Robot::driveCurved(directionType d, float dist, int delta) {
   //stopRight();
 }
 
+float CENTER_X = 157.0;
+
+bool inBounds(int x, int y,int leftBound, int rightBound, int bottomBound, int topBound) {
+  return (x >= leftBound && x <= rightBound && y <= bottomBound && y >= topBound);
+}
+
+void Robot::goForwardVision(int forwardDistance) {
+
+  backCamera.setBrightness(13);
+  vision::signature SIG_1 (1, 1525, 1915, 1720, -3519, -2841, -3180, 5.400, 0);
+
+  leftMotorA.resetPosition();
+  rightMotorA.resetPosition();
+
+  float totalDist = distanceToDegrees(forwardDistance);
+  float dist = 0;
+
+  while(dist < totalDist) {
+    backCamera.takeSnapshot(SIG_1);
+    vision::object largestObject;
+    int largestArea = -1;
+
+    safearray<vex::vision::object, 16> *objects;
+    objects = &backCamera.objects;
+
+    // Find the largest object from vision within the specified bounds
+    for(int i=0; i<backCamera.objectCount; i++) {
+
+      // Get the pointer to the current object
+      vex::vision::object o = (* objects)[i];
+      int area = o.width * o.height;
+
+      // Left bound, right bound, bottom bound, top bound. Check if object within bounds and is largest than current largest object
+      if (inBounds(o.centerX,o.centerY,0,236,211, 0) && area > largestArea) {
+        largestObject = o;
+        largestArea = area;
+      }
+    }
+
+    float pMod = 25.0;
+    float baseSpeed = -100.0+pMod;
+
+    float mod;
+
+    // // if object exists
+    if(true || largestArea != -1) {
+      // Brain.Screen.setCursor(8,1);
+      // Brain.Screen.print(((CENTER_X-mainBot.backCamera.largestObject.centerX)/CENTER_X*pMod));
+      mod = (CENTER_X-backCamera.largestObject.centerX)/CENTER_X*pMod;
+    } else {
+      mod = 0; // emergency code. if nothing detected just move forwards straight.
+    }
+    setLeftVelocity(forward, baseSpeed+mod);
+    setRightVelocity(forward, baseSpeed-mod);
+    
+    // Brain.Screen.render(true,false);
+    // Brain.Screen.clearLine(0,color::black);
+    // Brain.Screen.clearLine(1,color::black);
+    // Brain.Screen.clearLine(2,color::black);
+    // Brain.Screen.clearLine(3,color::black);
+    // Brain.Screen.clearLine(4,color::black);
+    // Brain.Screen.clearLine(6,color::black);
+    // Brain.Screen.clearLine(8,color::black);
+    // Brain.Screen.setCursor(1,1);
+    // Brain.Screen.print("Largest object: %f, %f", ((double)backCamera.largestObject.centerX)/315, ((double)backCamera.largestObject.centerY)/211);
+    // Brain.Screen.setCursor(2,1);
+    // Brain.Screen.print("Largest object in bounds: %f, %f", ((double)largestObject.centerX)/315, ((double)largestObject.centerY)/211);
+    // // Brain.Screen.print("Largest area: %f", (double)largestArea);
+    // Brain.Screen.setCursor(3,1);
+    // Brain.Screen.print("Width and Height: %f", ((double)backCamera.largestObject.width)/315, ((double)backCamera.largestObject.height)/211);
+    // Brain.Screen.setCursor(4,1);
+    // Brain.Screen.print("Count: %d", backCamera.objectCount);
+    // Brain.Screen.render();
+
+    robotController->Screen.clearScreen();
+    robotController->Screen.setCursor(1,1);
+    robotController->Screen.print(backCamera.largestObject.centerX);
+    //Controller1.Screen.print((*objects).getLength());
+
+    wait(100, msec);
+
+    dist = fabs((leftMotorA.position(degrees) + leftMotorB.position(degrees)) / 2.0);
+  }
+
+  stopLeft();
+  stopRight();
+}
+
+void Robot::turnAndAlignVision(bool clockwise) {
+
+  frontCamera.setBrightness(13);
+  vision::signature SIG_1 (1, 1525, 1915, 1720, -3519, -2841, -3180, 5.400, 0);
+
+  leftMotorA.resetPosition();
+  rightMotorA.resetPosition();
+
+  bool aligned = false;
+  float baseSpeed = 30;
+
+  while(!aligned) {
+    frontCamera.takeSnapshot(SIG_1);
+
+    float mod = frontCamera.largestObject.exists? (CENTER_X-frontCamera.largestObject.centerX)/CENTER_X : (clockwise? -1 : 1);
+    
+    setLeftVelocity(reverse, baseSpeed*mod);
+    setRightVelocity(forward, baseSpeed*mod);
+    // if(mod < 0.1) { /*you're done*/ }
+
+    wait(100, msec);
+  }
+
+  stopLeft();
+  stopRight();
+}
+
 void Robot::openClaw() {}
 void Robot::closeClaw() {}
-void Robot::liftFourBar(float percentHeight) {}
-void Robot::lowerFourBar(float percentHeight) {}
 
 void Robot::setLeftVelocity(directionType d, double percent) {
   leftMotorA.spin(d, percent, pct);

@@ -34,7 +34,8 @@ class Robot {
     motor_group leftDrive;
     motor_group rightDrive;
 
-    vision camera;
+    vision backCamera;
+    vision frontCamera;
 
     motor fourBarLeft;
     motor fourBarRight;
@@ -47,13 +48,13 @@ class Robot {
     void driveStraight(float percent, float dist);
     void driveStraight(float percent, float dist, float accPercent);
     void driveTimed(float percent, float driveTime);
-    void turnToAngle(float percent, float turnAngle);
+    void turnToAngle(float percent, float turnAngle, bool PID);
     void driveCurved(directionType d, float dist, int delta);
+    void goForwardVision(int forwardDistance);
+    void turnAndAlignVision(bool clockwise);
     float distanceToDegrees(float dist);
     void openClaw();
     void closeClaw();
-    void liftFourBar(float percentHeight);
-    void lowerFourBar(float percentHeight);
 
     void userControl( void );
     void teleop( void );
@@ -85,7 +86,4 @@ class Robot {
     bool arrived;
     int finalIndex, targetIndex;
     float fourStart, chainStart;
-
-
-
 };
