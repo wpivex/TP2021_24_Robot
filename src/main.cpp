@@ -35,11 +35,14 @@ void mainAuto(void) {
   Brain.Screen.print("Test");
   Brain.Screen.render();
   
-  mainBot.driveCurved(reverse, 34, 45);
-  // //wait(1000,msec);
-  mainBot.goForwardVision(25);
+  mainBot.driveCurved(reverse, 30, 43);
+  // wait(1000,msec);
+  mainBot.goForwardVision(true, 15);
   mainBot.turnToAngle(100, -30, false);
   mainBot.turnAndAlignVision(false);
+  mainBot.goForwardVision(false, 20);
+  mainBot.turnToAngle(100, 90, false); //really turn with vision
+  // mainBot.turnAndAlignVision(true);
 }
 
 int tetherAuto(void) { return 0; }

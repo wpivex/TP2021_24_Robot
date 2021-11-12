@@ -50,7 +50,7 @@ class Robot {
     void driveTimed(float percent, float driveTime);
     void turnToAngle(float percent, float turnAngle, bool PID);
     void driveCurved(directionType d, float dist, int delta);
-    void goForwardVision(int forwardDistance);
+    void goForwardVision(bool back, int forwardDistance);
     void turnAndAlignVision(bool clockwise);
     float distanceToDegrees(float dist);
     void openClaw();
