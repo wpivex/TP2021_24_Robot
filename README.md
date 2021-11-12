@@ -16,16 +16,21 @@
 - Finish and test teleop arm code
 - Make CSV obsolete and hardcode arm lookup table
 
+**November 11:**
+- Tweak initial blind curve towards goal
+- Tweak PID turning
+- Implement vision turning
+- Add turn to left goal, collect goal, then turn to base for auton
+- Identify problematic robot design in exceeding 36" horizontal limit
+
 **Todo for teleop arm:**
 - Refine teleop arm with speed, position, and fine tuning arm state locations
 - Test auton arm
 
-**Todo for vision:**
-- We probably should tilt the vision sensor downwards anyways. It works, but it will be more reliable and less prone to distractions if it is
-- We should calculate dx, or change in centerX. This value should not exceed some threshold (meaning taht the robot has now locked onto a different object) and instead will revert to visionless drive straight
-- We should still try to test/fix my bounded vision detection. If it works, it will completely eliminate any possibility of veering to the wrong thing
+**Todo for auton:**
+- Concurrent hardcoded + vision turning with raising teleop arm
+- - Write and polish rest of autonomous code
 
 **General goals:**
 - Optimize initial push to center goal for speed
-- Write auton code for robot to turn and pick up next goal
 - Write auton code for 15" robot
