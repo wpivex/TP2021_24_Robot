@@ -27,7 +27,7 @@ Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftM
 
   driveType = ARCADE;
   robotController = c; 
-  vision::signature SIG_1 (1, 1695, 2609, 2152, -3613, -2651, -3132, 3.000, 0);
+  vision::signature SIG_1 (1, 1897, 2275, 2086, -3439, -3007, -3223, 7.200, 0);
   frontCamera = vision(PORT20, 50, SIG_1);
   backCamera = vision(PORT6, 50, SIG_1);
 
@@ -268,91 +268,42 @@ bool inBounds(int x, int y,int leftBound, int rightBound, int bottomBound, int t
 
 void Robot::goForwardVision(bool back, int forwardDistance) {
 
-  vision camera = back? backCamera : frontCamera;
-  camera.setBrightness(13);
-  vision::signature SIG_1 (1, 1525, 1915, 1720, -3519, -2841, -3180, 5.400, 0);
-
+  vision *camera = back? &backCamera : &frontCamera;
+  backCamera.setBrightness(13);
+  vision::signature SIG_1 (1, 1897, 2275, 2086, -3439, -3007, -3223, 7.200, 0);
+  
   leftMotorA.resetPosition();
   rightMotorA.resetPosition();
 
   float totalDist = distanceToDegrees(forwardDistance);
   float dist = 0;
+  float pMod = 25.0;
+  float baseSpeed = 100.0-pMod;
 
   while(dist < totalDist) {
-    camera.takeSnapshot(SIG_1);
-    vision::object largestObject;
-    int largestArea = -1;
+    camera->takeSnapshot(SIG_1);
 
-    safearray<vex::vision::object, 16> *objects;
-    objects = &camera.objects;
-
-    // Find the largest object from vision within the specified bounds
-    for(int i=0; i<camera.objectCount; i++) {
-
-      // Get the pointer to the current object
-      vex::vision::object o = (* objects)[i];
-      int area = o.width * o.height;
-
-      // Left bound, right bound, bottom bound, top bound. Check if object within bounds and is largest than current largest object
-      if (inBounds(o.centerX,o.centerY,0,236,211, 0) && area > largestArea) {
-        largestObject = o;
-        largestArea = area;
-      }
-    }
-
-    float pMod = 25.0;
-    float baseSpeed = -100.0+pMod;
-
-    float mod;
-
-    // // if object exists
-    if(true || largestArea != -1) {
-      // Brain.Screen.setCursor(8,1);
-      // Brain.Screen.print(((CENTER_X-mainBot.camera.largestObject.centerX)/CENTER_X*pMod));
-      mod = (CENTER_X-camera.largestObject.centerX)/CENTER_X*pMod;
-    } else {
-      mod = 0; // emergency code. if nothing detected just move forwards straight.
-    }
-    setLeftVelocity(back? forward : reverse, baseSpeed-mod*(back?-1:1));
-    setRightVelocity(back? forward : reverse, baseSpeed+mod*(back?1:-1)) ;
+    float mod = camera->largestObject.exists? (CENTER_X-camera->largestObject.centerX)/CENTER_X*pMod : 0;
     
-    // Brain.Screen.render(true,false);
-    // Brain.Screen.clearLine(0,color::black);
-    // Brain.Screen.clearLine(1,color::black);
-    // Brain.Screen.clearLine(2,color::black);
-    // Brain.Screen.clearLine(3,color::black);
-    // Brain.Screen.clearLine(4,color::black);
-    // Brain.Screen.clearLine(6,color::black);
-    // Brain.Screen.clearLine(8,color::black);
-    // Brain.Screen.setCursor(1,1);
-    // Brain.Screen.print("Largest object: %f, %f", ((double)camera.largestObject.centerX)/315, ((double)camera.largestObject.centerY)/211);
-    // Brain.Screen.setCursor(2,1);
-    // Brain.Screen.print("Largest object in bounds: %f, %f", ((double)largestObject.centerX)/315, ((double)largestObject.centerY)/211);
-    // // Brain.Screen.print("Largest area: %f", (double)largestArea);
-    // Brain.Screen.setCursor(3,1);
-    // Brain.Screen.print("Width and Height: %f", ((double)camera.largestObject.width)/315, ((double)camera.largestObject.height)/211);
-    // Brain.Screen.setCursor(4,1);
-    // Brain.Screen.print("Count: %d", camera.objectCount);
-    // Brain.Screen.render();
+    setLeftVelocity(back? reverse : forward, baseSpeed-mod*(back?1:-1));
+    setRightVelocity(back? reverse : forward, baseSpeed+mod*(back?1:-1));
 
     robotController->Screen.clearScreen();
     robotController->Screen.setCursor(1,1);
-    robotController->Screen.print(camera.largestObject.centerX);
-    //Controller1.Screen.print((*objects).getLength());
+    robotController->Screen.print(camera->largestObject.centerX);
 
     wait(100, msec);
-
     dist = fabs((leftMotorA.position(degrees) + leftMotorB.position(degrees)) / 2.0);
   }
 
-  stopLeft();
-  stopRight();
+  // stopLeft();
+  // stopRight();
 }
 
 void Robot::turnAndAlignVision(bool clockwise) {
 
   frontCamera.setBrightness(13);
-  vision::signature SIG_1 (1, 1525, 1915, 1720, -3519, -2841, -3180, 5.400, 0);
+  vision::signature SIG_1 (1, 1897, 2275, 2086, -3439, -3007, -3223, 7.200, 0);
 
   leftMotorA.resetPosition();
   rightMotorA.resetPosition();

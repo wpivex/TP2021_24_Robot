@@ -37,7 +37,7 @@ void mainAuto(void) {
   
   mainBot.driveCurved(reverse, 30, 43);
   // wait(1000,msec);
-  mainBot.goForwardVision(true, 15);
+  mainBot.goForwardVision(true, 25);
   mainBot.turnToAngle(100, -30, false);
   mainBot.turnAndAlignVision(false);
   mainBot.goForwardVision(false, 20);
