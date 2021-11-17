@@ -23,6 +23,8 @@ void userControl(void) { task controlLoop1(mainTeleop); }
 
 void mainAuto(void) {
 
+
+  
   Brain.Screen.render(true,false);
   Brain.Screen.clearLine(0,color::black);
   Brain.Screen.clearLine(1,color::black);
@@ -35,14 +37,45 @@ void mainAuto(void) {
   Brain.Screen.print("Test");
   Brain.Screen.render();
   
-  mainBot.driveCurved(reverse, 30, 43);
-  // wait(1000,msec);
-  mainBot.goForwardVision(true, 25);
-  mainBot.turnToAngle(100, -30, false);
-  mainBot.turnAndAlignVision(false);
+  mainBot.driveCurved(reverse, 25, 43);
+  mainBot.goForwardVision(true, 20);
+
+  
+  // Concurrently raise arm and turn robot (first blind then vision) concurrently, so use non-blocking method calls
+  bool armFinished = true;
+  bool turnFinished = false;
+  bool blindTurnFinished = false;
+
+  mainBot.setArmDestination(2);
+  int targetDist = mainBot.getTurnAngle(30);
+
+  int i = 0;
+  while (true) {
+    //armFinished = mainBot.armMovement(false, 100);
+    if (!blindTurnFinished) {
+
+      blindTurnFinished = mainBot.turnToAngleNonblocking(100, targetDist, false, reverse);
+      i++;
+    } else {
+        //turnFinished = mainBot.turnAndAlignVisionNonblocking(false);
+        turnFinished = true;
+    }
+
+    if (armFinished && turnFinished) break;
+    wait(100,msec);
+    
+  }
+
+  mainBot.stopLeft();
+  mainBot.stopRight();
+  wait(1000, msec);
+
+
   mainBot.goForwardVision(false, 20);
-  mainBot.turnToAngle(100, 90, false); //really turn with vision
-  // mainBot.turnAndAlignVision(true);
+  mainBot.turnToAngle(100, 90, false, forward); //really turn with vision
+  mainBot.turnAndAlignVision(true);
+
+  
 }
 
 int tetherAuto(void) { return 0; }

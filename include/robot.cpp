@@ -25,11 +25,13 @@ Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftM
   chainBarRight = motor(PORT7, ratio18_1, false);
   claw = motor(16, ratio18_1, true);
 
+  SIG_1 = new vision::signature(1, 1897, 2275, 2086, -3439, -3007, -3223, 7.200, 0);
+
+
   driveType = ARCADE;
   robotController = c; 
-  vision::signature SIG_1 (1, 1897, 2275, 2086, -3439, -3007, -3223, 7.200, 0);
-  frontCamera = vision(PORT20, 50, SIG_1);
-  backCamera = vision(PORT6, 50, SIG_1);
+  frontCamera = vision(PORT20, 50, *SIG_1);
+  backCamera = vision(PORT6, 50, *SIG_1);
 
   fourBarLeft.setBrake(hold);
   fourBarRight.setBrake(hold);
@@ -80,8 +82,9 @@ void Robot::initArm() {
   chainStart = chainBarLeft.position(degrees);
 }
 
-// Run every tick
-void Robot::armMovement(bool isTeleop) {
+// Run every tick. Call setArmDestination() before this
+// Return true when arm has reached set destination
+bool Robot::armMovement(bool isTeleop, float BASE_SPEED) {
   // Code runs whenever arm reaches a node.
   if (arrived) { 
     // Getting inputs only work if in teleop mode. For auton, finalIndex will be set by function calls
@@ -135,7 +138,7 @@ void Robot::armMovement(bool isTeleop) {
   }
 
   float MARGIN = 10; // margin of error for if robot arm is in vicinity of target node
-  float BASE_SPEED = 30; // Base speed of arm
+  //float BASE_SPEED = 30; // Base speed of arm
 
   
   //Robot::robotController->Screen.print(targetIndex);
@@ -156,6 +159,9 @@ void Robot::armMovement(bool isTeleop) {
   Robot::robotController->Screen.clearScreen();
   Robot::robotController->Screen.setCursor(0, 0);
   Robot::robotController->Screen.print("t %d %d %d %d %d", (int)angles[targetIndex][0], (int)angles[targetIndex][1], targetIndex, delta1, delta2);
+
+  return arrived && targetIndex == finalIndex;
+
 }
 
 // Run every tick
@@ -163,15 +169,22 @@ void Robot::teleop() {
   driveTeleop();
   // armMovement(true);
 }
-
-// Blocking method to move arm to location
-void Robot::moveArmToPosition(int pos) {
-
+// Non-blocking, no-action method that updates final destination. Call armMovement() afterwards
+void Robot::setArmDestination(int pos) {
   arrived = true;
   finalIndex = pos;
+}
 
-  while (!arrived && targetIndex != finalIndex) {
-    armMovement(false);
+// Blocking method to move arm to location
+void Robot::moveArmToPosition(int pos, float BASE_SPEED) {
+
+  setArmDestination(pos);
+
+  while (false) {
+    if (armMovement(false, BASE_SPEED)) {
+      break;
+    }
+    wait(100,msec);
   }
 }
 
@@ -213,22 +226,49 @@ void Robot::driveTimed(float percent, float driveTime) {
 }
 
 //12.375 in wheelbase
-void Robot::turnToAngle(float percent, float turnAngle, bool PID) {
-  leftMotorA.resetPosition();
-  rightMotorA.resetPosition();
-  // currPos is the current average encoder position, travelDist is the total encoder distance to be traversed, 
-  // and targetDist is the target encoder position
-  float currPos = (fabs(leftMotorA.position(degrees)) + fabs(rightMotorA.position(degrees))) / 2;
-  float travelDist = distanceToDegrees(turnAngle / 360 * 2 * M_PI * (15.125 / 2));
-  float targetDist = currPos + travelDist;
+void Robot::turnToAngle(float percent, float turnAngle, bool PID, directionType direction) {
+
+  int targetDist = getTurnAngle(turnAngle);
   
-  while (currPos < targetDist) {
-    setLeftVelocity(turnAngle > 0 ? forward : reverse, 5 + (percent - 5) * (PID? ((targetDist - currPos) / travelDist) : 1));
-    setRightVelocity(turnAngle > 0 ? reverse : forward, 5 + (percent - 5) * (PID? ((targetDist - currPos) / travelDist) : 1));
-    currPos = (fabs(leftMotorA.position(degrees)) + fabs(rightMotorA.position(degrees))) / 2;
+  while (true) {
+    if(turnToAngleNonblocking(percent, targetDist, PID, direction)) break;
+    wait(100, msec);
   }
   stopLeft();
   stopRight();
+}
+
+
+int Robot::getTurnAngle(float turnAngle) {
+
+  leftMotorA.resetPosition();
+  rightMotorA.resetPosition();
+
+  // currPos is the current average encoder position, travelDist is the total encoder distance to be traversed, 
+  // and targetDist is the target encoder position
+  float targetDist = fabs(distanceToDegrees(turnAngle / 360 * 2 * M_PI * (15.125 / 2)));
+
+  return targetDist;
+
+}
+
+// Call this method every tick. Must reset encoders of left and right motor A
+// Return true if execution completed
+bool Robot::turnToAngleNonblocking(float percent, float targetDist, bool PID, directionType direction) {
+  
+
+  float currPos = (fabs(leftMotorA.position(degrees)) + fabs(rightMotorA.position(degrees))) / 2;
+
+  if (currPos < targetDist) {
+
+    setLeftVelocity(direction, 5 + (percent - 5) * (PID? ((targetDist - currPos) / targetDist) : 1));
+    setRightVelocity(direction == forward ? reverse : forward, 5 + (percent - 5) * (PID? ((targetDist - currPos) / targetDist) : 1));
+    return false;
+
+  } else {
+    return true;
+  }
+
 }
 
 // delta ranges from -100 (hard left) and 100 (hard right). 0 is straight
@@ -255,6 +295,8 @@ void Robot::driveCurved(directionType d, float dist, int delta) {
     Robot::robotController->Screen.clearScreen();
     Robot::robotController->Screen.print(currPos);
 
+    wait(100, msec);
+
   }
   //stopLeft();
   //stopRight();
@@ -270,7 +312,6 @@ void Robot::goForwardVision(bool back, int forwardDistance) {
 
   vision *camera = back? &backCamera : &frontCamera;
   backCamera.setBrightness(13);
-  vision::signature SIG_1 (1, 1897, 2275, 2086, -3439, -3007, -3223, 7.200, 0);
   
   leftMotorA.resetPosition();
   rightMotorA.resetPosition();
@@ -281,7 +322,7 @@ void Robot::goForwardVision(bool back, int forwardDistance) {
   float baseSpeed = 100.0-pMod;
 
   while(dist < totalDist) {
-    camera->takeSnapshot(SIG_1);
+    camera->takeSnapshot(*SIG_1);
 
     float mod = camera->largestObject.exists? (CENTER_X-camera->largestObject.centerX)/CENTER_X*pMod : 0;
     
@@ -302,23 +343,14 @@ void Robot::goForwardVision(bool back, int forwardDistance) {
 
 void Robot::turnAndAlignVision(bool clockwise) {
 
-  frontCamera.setBrightness(13);
-  vision::signature SIG_1 (1, 1897, 2275, 2086, -3439, -3007, -3223, 7.200, 0);
-
   leftMotorA.resetPosition();
   rightMotorA.resetPosition();
 
-  bool aligned = false;
-  float baseSpeed = 30;
 
-  while(!aligned) {
-    frontCamera.takeSnapshot(SIG_1);
-
-    float mod = frontCamera.largestObject.exists? (CENTER_X-frontCamera.largestObject.centerX)/CENTER_X : (clockwise? -1 : 1);
+  while(true) {
     
-    setLeftVelocity(reverse, baseSpeed*mod);
-    setRightVelocity(forward, baseSpeed*mod);
-    if(mod < 0.1) {
+    // If completed, exit
+    if(turnAndAlignVisionNonblocking(clockwise)) {
       return;
     }
     wait(100, msec);
@@ -327,6 +359,26 @@ void Robot::turnAndAlignVision(bool clockwise) {
   stopLeft();
   stopRight();
 }
+
+bool Robot::turnAndAlignVisionNonblocking(bool clockwise) {
+
+  // hopefully this is a constant-time call, if not will have to refactor
+  frontCamera.setBrightness(13);
+  float baseSpeed = 30;
+
+  frontCamera.takeSnapshot(*SIG_1);
+
+  float mod = frontCamera.largestObject.exists? (CENTER_X-frontCamera.largestObject.centerX)/CENTER_X : (clockwise? -1 : 1);
+
+  if (mod < 0.1) return true;
+    
+  setLeftVelocity(reverse, baseSpeed*mod);
+  setRightVelocity(forward, baseSpeed*mod);
+
+  return false;
+
+}
+
 
 void Robot::openClaw() {}
 void Robot::closeClaw() {}

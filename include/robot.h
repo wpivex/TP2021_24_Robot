@@ -45,13 +45,18 @@ class Robot {
 
     controller* robotController;
 
+    vision::signature* SIG_1;
+
     void driveStraight(float percent, float dist);
     void driveStraight(float percent, float dist, float accPercent);
     void driveTimed(float percent, float driveTime);
-    void turnToAngle(float percent, float turnAngle, bool PID);
+    int getTurnAngle(float turnAngle);
+    void turnToAngle(float percent, float turnAngle, bool PID, directionType direction);
+    bool turnToAngleNonblocking(float percent, float targetDist, bool PID, directionType direction);
     void driveCurved(directionType d, float dist, int delta);
     void goForwardVision(bool back, int forwardDistance);
     void turnAndAlignVision(bool clockwise);
+    bool turnAndAlignVisionNonblocking(bool clockwise);
     float distanceToDegrees(float dist);
     void openClaw();
     void closeClaw();
@@ -59,7 +64,9 @@ class Robot {
     void userControl( void );
     void teleop( void );
     void initArm();
-    void moveArmToPosition(int pos);
+    void setArmDestination(int pos);
+    bool armMovement(bool isTeleop, float BASESPEED);
+    void moveArmToPosition(int pos, float BASESPEED);
     void setLeftVelocity(directionType d, double percent);
     void setRightVelocity(directionType d, double percent);
     void stopLeft();
@@ -79,7 +86,7 @@ class Robot {
                           {500, 220}}; //place goal (5)
 
     void driveTeleop();
-    void armMovement(bool isTeleop);
+    
 
     // State variables for arm teleop code
     bool isPressed;

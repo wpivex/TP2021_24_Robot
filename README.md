@@ -23,14 +23,7 @@
 - Add turn to left goal, collect goal, then turn to base for auton
 - Identify problematic robot design in exceeding 36" horizontal limit
 
-**Todo for teleop arm:**
-- Refine teleop arm with speed, position, and fine tuning arm state locations
+**November 16**:
+- Refactor blind turn and vision turn for blocking and nonblocking options
 - Test auton arm
-
-**Todo for auton:**
-- Concurrent hardcoded + vision turning with raising teleop arm
-- - Write and polish rest of autonomous code
-
-**General goals:**
-- Optimize initial push to center goal for speed
-- Write auton code for 15" robot
+- Make progress on concurrency between robot turn and arm raise
