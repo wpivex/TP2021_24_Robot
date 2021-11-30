@@ -25,7 +25,7 @@ Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftM
   chainBarRight = motor(PORT7, ratio18_1, false);
   claw = motor(16, ratio18_1, true);
 
-  SIG_1 = new vision::signature(1, 1897, 2275, 2086, -3439, -3007, -3223, 7.200, 0);
+  SIG_1 = new vision::signature(1, 1733, 2235, 1984, -3505, -2921, -3213, 3.000, 0);
 
 
   driveType = ARCADE;
@@ -41,27 +41,55 @@ Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftM
 }
 
 void Robot::driveTeleop() {
-  float leftJoystick = (driveType == ARCADE) ? robotController->Axis3.position()^3 + robotController->Axis1.position()^3: robotController->Axis3.position()^3;
-  float rightJoystick = (driveType == ARCADE) ? robotController->Axis3.position()^3 + robotController->Axis1.position()^3: robotController->Axis2.position()^3;
+  float leftVert = (float) robotController->Axis3.position();
+  float rightVert = (float) robotController->Axis2.position();
+  float rightHoriz = (pow((float) robotController->Axis1.position()/100.0, 3)*100.0);
 
-  float oldLeft = 0;
-  float oldRight = 0;
-
-  if (fabs(leftJoystick) > 5) {
-    float percent = (driveType == ARCADE) ? (pow((robotController->Axis3.position()/100.00f), 3.00f) + pow((robotController->Axis1.position()/100.00f), 5.00f))*100.00f : leftJoystick;
-    setLeftVelocity(forward, percent/fabs(percent)*fmin(fabs(percent), 100)); //60 is max for now
-    oldLeft = percent;
-  } else {
-    stopLeft();
+  if(driveType == ARCADE) {
+    float left;
+    float right;
+    if(rightHoriz < 0) {
+      left = leftVert + rightHoriz;
+      right = leftVert - rightHoriz;
+    } else {
+      left = leftVert + rightHoriz;
+      right = leftVert - rightHoriz;
+    }
+    
+    // if(fabs(leftVert) < 5.0) {
+    //   robotController->Screen.setCursor(1, 1);
+    //   robotController->Screen.print("POINT TURN");
+    //   setLeftVelocity(forward, rightHoriz/fabs(rightHoriz)*fmin(fabs(rightHoriz), 100));
+    //   setRightVelocity(reverse, rightHoriz/fabs(rightHoriz)*fmin(fabs(rightHoriz), 100));
+    // } else {
+      setLeftVelocity(forward, left/fabs(left)*fmin(fabs(left), 100));
+      setRightVelocity(forward, right/fabs(right)*fmin(fabs(right), 100));
+    // }
+    
   }
 
-  if (fabs(rightJoystick) > 5) {
-    float percent = (driveType == ARCADE) ? (pow((robotController->Axis3.position()/100.00f), 3.00f) - pow((robotController->Axis1.position()/100.00f), 5.00f))*100.00f : rightJoystick;
-    setRightVelocity(forward, percent/fabs(percent)*fmin(fabs(percent), 100));
-    oldRight = percent;
-  } else {
-    stopRight();
-  }
+
+  // float leftJoystick = (driveType == ARCADE) ? leftVert^3 + rightHoriz^3: leftVert^3;
+  // float rightJoystick = (driveType == ARCADE) ? leftVert^3 + rightHoriz^3: rightVert^3;
+
+  // float oldLeft = 0;
+  // float oldRight = 0;
+
+  // if (fabs(leftJoystick) > 5) {
+  //   float percent = (driveType == ARCADE) ? (pow((leftVert/100.00f), 3.00f) + pow((rightHoriz/100.00f), 5.00f))*100.00f : leftJoystick;
+  //   setLeftVelocity(forward, percent/fabs(percent)*fmin(fabs(percent), 100)); //60 is max for now
+  //   oldLeft = percent;
+  // } else {
+  //   stopLeft();
+  // }
+
+  // if (fabs(rightJoystick) > 5) {
+  //   float percent = (driveType == ARCADE) ? (pow((leftVert/100.00f), 3.00f) - pow((rightHoriz/100.00f), 5.00f))*100.00f : rightJoystick;
+  //   setRightVelocity(forward, percent/fabs(percent)*fmin(fabs(percent), 100));
+  //   oldRight = percent;
+  // } else {
+  //   stopRight();
+  // }
 }
 
 void Robot::initArm() {
@@ -156,9 +184,9 @@ bool Robot::armMovement(bool isTeleop, float BASE_SPEED) {
   arrived = delta1 < MARGIN && delta2 < MARGIN;
 
   // Debug output
-  Robot::robotController->Screen.clearScreen();
-  Robot::robotController->Screen.setCursor(0, 0);
-  Robot::robotController->Screen.print("t %d %d %d %d %d", (int)angles[targetIndex][0], (int)angles[targetIndex][1], targetIndex, delta1, delta2);
+  // Robot::robotController->Screen.clearScreen();
+  // Robot::robotController->Screen.setCursor(0, 0);
+  // Robot::robotController->Screen.print("t %d %d %d %d %d", (int)angles[targetIndex][0], (int)angles[targetIndex][1], targetIndex, delta1, delta2);
 
   return arrived && targetIndex == finalIndex;
 
@@ -167,7 +195,8 @@ bool Robot::armMovement(bool isTeleop, float BASE_SPEED) {
 // Run every tick
 void Robot::teleop() {
   driveTeleop();
-  // armMovement(true);
+  armMovement(true, 50);
+  wait(50, msec);
 }
 // Non-blocking, no-action method that updates final destination. Call armMovement() afterwards
 void Robot::setArmDestination(int pos) {
@@ -308,30 +337,28 @@ bool inBounds(int x, int y,int leftBound, int rightBound, int bottomBound, int t
   return (x >= leftBound && x <= rightBound && y <= bottomBound && y >= topBound);
 }
 
-void Robot::goForwardVision(bool back, int forwardDistance) {
+void Robot::goForwardVision(bool back, float speed, int forwardDistance) {
 
   vision *camera = back? &backCamera : &frontCamera;
-  backCamera.setBrightness(13);
+  backCamera.setBrightness(29);
   
   leftMotorA.resetPosition();
   rightMotorA.resetPosition();
 
   float totalDist = distanceToDegrees(forwardDistance);
   float dist = 0;
-  float pMod = 25.0;
-  float baseSpeed = 100.0-pMod;
+  float pMod = 15.0;
+  float baseSpeed = speed + pMod > 100? 100 - pMod : speed;
 
-  while(dist < totalDist) {
+  while(dist < totalDist || forwardDistance == -1) {
     camera->takeSnapshot(*SIG_1);
 
     float mod = camera->largestObject.exists? (CENTER_X-camera->largestObject.centerX)/CENTER_X*pMod : 0;
     
-    setLeftVelocity(back? reverse : forward, baseSpeed-mod*(back?1:-1));
-    setRightVelocity(back? reverse : forward, baseSpeed+mod*(back?1:-1));
-
-    robotController->Screen.clearScreen();
-    robotController->Screen.setCursor(1,1);
-    robotController->Screen.print(camera->largestObject.centerX);
+    if(camera->largestObject.exists) {
+      setLeftVelocity(back? reverse : forward, baseSpeed-mod*(back?1:-1));
+      setRightVelocity(back? reverse : forward, baseSpeed+mod*(back?1:-1));
+    }
 
     wait(100, msec);
     dist = fabs((leftMotorA.position(degrees) + leftMotorB.position(degrees)) / 2.0);

@@ -54,7 +54,7 @@ class Robot {
     void turnToAngle(float percent, float turnAngle, bool PID, directionType direction);
     bool turnToAngleNonblocking(float percent, float targetDist, bool PID, directionType direction);
     void driveCurved(directionType d, float dist, int delta);
-    void goForwardVision(bool back, int forwardDistance);
+    void goForwardVision(bool back, float speed, int forwardDistance);
     void turnAndAlignVision(bool clockwise);
     bool turnAndAlignVisionNonblocking(bool clockwise);
     float distanceToDegrees(float dist);
