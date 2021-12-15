@@ -3,9 +3,9 @@
 
 // Motor ports Left: 1R, 2F, 3F,  20T Right: 12R, 11F, 13F
 // gear ratio is 60/36
-Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftMotorD(0), leftMotorE(0), rightMotorA(0), rightMotorB(0), 
+Robot::Robot(controller* c, brain* b) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftMotorD(0), leftMotorE(0), rightMotorA(0), rightMotorB(0), 
   rightMotorC(0), rightMotorD(0), rightMotorE(0), fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0), claw(0), frontCamera(0), 
-  backCamera(0) {
+  backCamera(0), piston(b->ThreeWirePort.A) {
   leftMotorA = motor(PORT1, ratio18_1, true); 
   leftMotorB = motor(PORT2, ratio18_1, true);
   leftMotorC = motor(PORT3, ratio18_1, true);
@@ -13,11 +13,11 @@ Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftM
   leftMotorE = motor(PORT5, ratio18_1, true);
   leftDrive = motor_group(leftMotorA, leftMotorB, leftMotorC, leftMotorD, leftMotorE);
 
-  rightMotorA = motor(PORT13, ratio18_1, false);
-  rightMotorB = motor(PORT14, ratio18_1, false);
-  rightMotorC = motor(PORT15, ratio18_1, false);
-  rightMotorD = motor(PORT16, ratio18_1, false);
-  rightMotorE = motor(PORT17, ratio18_1, false);
+  rightMotorA = motor(PORT11, ratio18_1, false);
+  rightMotorB = motor(PORT12, ratio18_1, false);
+  rightMotorC = motor(PORT13, ratio18_1, false);
+  rightMotorD = motor(PORT14, ratio18_1, false);
+  rightMotorE = motor(PORT15, ratio18_1, false);
   rightDrive = motor_group(rightMotorA, rightMotorB, rightMotorC, rightMotorD, rightMotorE);
 
   fourBarLeft = motor(PORT10, ratio18_1, true);
@@ -34,8 +34,10 @@ Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftM
 
   driveType = ARCADE;
   robotController = c; 
+  brainn = b;
   frontCamera = vision(PORT20, 50, *SIG_1);
   backCamera = vision(PORT6, 50, *SIG_1);
+
 
   fourBarLeft.setBrake(hold);
   fourBarRight.setBrake(hold);
@@ -171,8 +173,27 @@ bool Robot::armMovement(bool isTeleop, float BASE_SPEED) {
 // Run every tick
 void Robot::teleop() {
   driveTeleop();
+  pneumaticsTeleop();
   // armMovement(true);
 }
+
+void Robot::pneumaticsTeleop() {
+
+  robotController->Screen.clearScreen();
+    robotController->Screen.setCursor(1,1);
+
+    if (robotController->ButtonA.pressing()) {
+      piston.open();
+      robotController->Screen.print("open");
+  
+    } else {
+      piston.close();
+      robotController->Screen.print("close");
+    }
+
+}
+
+
 // Non-blocking, no-action method that updates final destination. Call armMovement() afterwards
 void Robot::setArmDestination(int pos) {
   arrived = true;

@@ -19,7 +19,7 @@ using namespace vex;
 class Robot {
   public:
     // four drivebase motors will not be accessible for a while
-    Robot(controller* c);
+    Robot(controller* c, brain* b);
     motor leftMotorA;
     motor leftMotorB;
     motor leftMotorC;
@@ -43,8 +43,11 @@ class Robot {
     motor chainBarRight;
     motor claw;
 
+    pneumatics piston;
+
 
     controller* robotController;
+    brain* brainn;
 
     vision::signature* SIG_1;
 
@@ -88,6 +91,7 @@ class Robot {
                           {500, 220}}; //place goal (5)
 
     void driveTeleop();
+    void pneumaticsTeleop();
     
 
     // State variables for arm teleop code
