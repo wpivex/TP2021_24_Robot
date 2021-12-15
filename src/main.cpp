@@ -2,6 +2,7 @@
 // Robot Configuration:
 // [Name]               [Type]        [Port(s)]
 // Vision6              vision        6               
+// DigitalInE           digital_in    E               
 // ---- END VEXCODE CONFIGURED DEVICES ----
 #include "../include/robot.cpp"
 
@@ -102,6 +103,8 @@ void testArmValues() {
 int main() {
   mainBot = Robot(&Controller1); 
 
+  /*
+
   // Reset location of arm
   mainBot.initArm();
 
@@ -110,11 +113,40 @@ int main() {
 
   // testArmValues();
 
+  */
+
+  digital_out a = digital_out(Brain.ThreeWirePort.A);
+  digital_in b = digital_in(Brain.ThreeWirePort.B);
+  
+  long duration;
+  int dist;
+
+
+  int i = 0;
+
   while (true) {
-    // Brain.Screen.clearScreen();
-    // Brain.Screen.setCursor(1, 1);
-    // Brain.Screen.print("%d %d", (int)mainBot.chainBarLeft.position(degrees), (int)mainBot.fourBarLeft.position(degrees));
-    wait(100, msec);
+
+    
+    a.set(false);
+    wait(0.002,msec);
+    a.set(true);
+    wait(0.010,msec);
+    a.set(false);
+    
+    duration = b.value();
+    // Calculating the distance
+    dist = duration * 0.034 / 2.0 / 2.54; // Speed of sound wave divided by 2 (go and back)
+
+    i++;
+    if (i == 1000) {
+      i = 0;
+      Brain.Screen.clearScreen();
+      Brain.Screen.setCursor(1, 1);
+      Brain.Screen.print("a: %d b: %d", a.value(), b.value());
+    }
+    
+    
+
+
   }
 }
-

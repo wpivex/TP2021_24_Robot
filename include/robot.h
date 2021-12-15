@@ -43,6 +43,7 @@ class Robot {
     motor chainBarRight;
     motor claw;
 
+
     controller* robotController;
 
     vision::signature* SIG_1;
@@ -69,6 +70,7 @@ class Robot {
     void moveArmToPosition(int pos, float BASESPEED);
     void setLeftVelocity(directionType d, double percent);
     void setRightVelocity(directionType d, double percent);
+    void goUltrasoundDistance(float dist);
     void stopLeft();
     void stopRight();
 
