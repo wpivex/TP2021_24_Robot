@@ -4,7 +4,8 @@
 // Motor ports Left: 1R, 2F, 3F,  20T Right: 12R, 11F, 13F
 // gear ratio is 60/36
 Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftMotorD(0), leftMotorE(0), rightMotorA(0), rightMotorB(0), 
-  rightMotorC(0), rightMotorD(0), rightMotorE(0), fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0), claw(0), frontCamera(0), backCamera(0) {
+  rightMotorC(0), rightMotorD(0), rightMotorE(0), fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0), claw(0), frontCamera(0), 
+  backCamera(0) {
   leftMotorA = motor(PORT1, ratio18_1, true); 
   leftMotorB = motor(PORT2, ratio18_1, true);
   leftMotorC = motor(PORT3, ratio18_1, true);
@@ -12,11 +13,11 @@ Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftM
   leftMotorE = motor(PORT5, ratio18_1, true);
   leftDrive = motor_group(leftMotorA, leftMotorB, leftMotorC, leftMotorD, leftMotorE);
 
-  rightMotorA = motor(PORT13, ratio18_1, false);
-  rightMotorB = motor(PORT14, ratio18_1, false);
-  rightMotorC = motor(PORT15, ratio18_1, false);
-  rightMotorD = motor(PORT16, ratio18_1, false);
-  rightMotorE = motor(PORT17, ratio18_1, false);
+  rightMotorA = motor(PORT11, ratio18_1, false);
+  rightMotorB = motor(PORT12, ratio18_1, false);
+  rightMotorC = motor(PORT13, ratio18_1, false);
+  rightMotorD = motor(PORT14, ratio18_1, false);
+  rightMotorE = motor(PORT15, ratio18_1, false);
   rightDrive = motor_group(rightMotorA, rightMotorB, rightMotorC, rightMotorD, rightMotorE);
 
   fourBarLeft = motor(PORT10, ratio18_1, true);
@@ -25,8 +26,7 @@ Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftM
   chainBarRight = motor(PORT7, ratio18_1, false);
   claw = motor(16, ratio18_1, true);
 
-  SIG_1 = new vision::signature(1, 1733, 2235, 1984, -3505, -2921, -3213, 3.000, 0);
-
+  SIG_1 = new vision::signature(1, 1757, 2979, 2368, -3019, -2351, -2685, 2.100, 0);
 
   driveType = ARCADE;
   robotController = c; 
@@ -192,10 +192,31 @@ bool Robot::armMovement(bool isTeleop, float BASE_SPEED) {
 
 }
 
+void Robot::goalClamp() {
+  if (Robot::robotController->ButtonL1.pressing()) {
+    time_t now = std::time(nullptr);
+    if(now - lastLeftPress > 0.5) {
+      frontGoal.set(!frontGoal.value());
+      lastLeftPress = now;
+    }
+  }
+  if (Robot::robotController->ButtonR1.pressing()) {
+    time_t now = std::time(nullptr);
+    if(now - lastRightPress > 0.5) {
+      backGoal.set(!backGoal.value());
+      lastRightPress = now;
+    }
+  }
+}
+
 // Run every tick
 void Robot::teleop() {
   driveTeleop();
-  armMovement(true, 50);
+  // armMovement(true, 50);
+  goalClamp();
+  // time_t now = std::time(nullptr);
+  // robotController->Screen.clearScreen();
+  // robotController->Screen.print(now - lastLeftPress);
   wait(50, msec);
 }
 // Non-blocking, no-action method that updates final destination. Call armMovement() afterwards
@@ -340,7 +361,7 @@ bool inBounds(int x, int y,int leftBound, int rightBound, int bottomBound, int t
 void Robot::goForwardVision(bool back, float speed, int forwardDistance) {
 
   vision *camera = back? &backCamera : &frontCamera;
-  backCamera.setBrightness(29);
+  backCamera.setBrightness(19);
   
   leftMotorA.resetPosition();
   rightMotorA.resetPosition();

@@ -15,6 +15,7 @@
 #include <unistd.h>
 
 using namespace vex;
+brain Brain;
 
 class Robot {
   public:
@@ -43,6 +44,9 @@ class Robot {
     motor chainBarRight;
     motor claw;
 
+    digital_out frontGoal = digital_out(Brain.ThreeWirePort.A);
+    digital_out backGoal = digital_out(Brain.ThreeWirePort.B);
+
     controller* robotController;
 
     vision::signature* SIG_1;
@@ -60,6 +64,7 @@ class Robot {
     float distanceToDegrees(float dist);
     void openClaw();
     void closeClaw();
+    void goalClamp();
 
     void userControl( void );
     void teleop( void );
@@ -93,4 +98,8 @@ class Robot {
     bool arrived;
     int finalIndex, targetIndex;
     float fourStart, chainStart;
+
+    // State variables for goal clamp
+    time_t lastLeftPress = std::time(nullptr);
+    time_t lastRightPress = std::time(nullptr);
 };

@@ -7,9 +7,8 @@
 
 competition Competition;
 controller Controller1(controllerType::primary);
-brain Brain;
 
-Robot mainBot = nullptr;
+Robot mainBot = Robot(&Controller1);
 
 int mainTeleop() {
   while (true) {
@@ -46,23 +45,14 @@ void testArmValues() {
   }
 }
 
-digital_out piston = digital_out(Brain.ThreeWirePort.A);
-
 int main() {
-  mainBot = Robot(&Controller1); 
-
   // Reset location of arm
   mainBot.initArm();
 
   Competition.autonomous(autonomous);
   Competition.drivercontrol(userControl);
 
-  // testArmValues();
-
   while (true) {
-    // Brain.Screen.clearScreen();
-    // Brain.Screen.setCursor(1, 1);
-    // Brain.Screen.print("%d %d", (int)mainBot.chainBarLeft.position(degrees), (int)mainBot.fourBarLeft.position(degrees));
     wait(100, msec);
   }
 }
