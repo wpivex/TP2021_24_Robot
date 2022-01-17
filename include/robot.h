@@ -65,6 +65,8 @@ class Robot {
     void openClaw();
     void closeClaw();
     void goalClamp();
+    void setFrontClamp(bool intaking);
+    void setBackClamp(bool intaking);
 
     void userControl( void );
     void teleop( void );

@@ -209,6 +209,14 @@ void Robot::goalClamp() {
   }
 }
 
+void Robot::setFrontClamp(bool intaking) {
+  frontGoal.set(intaking);
+}
+
+void Robot::setBackClamp(bool intaking) {
+  backGoal.set(intaking);
+}
+
 // Run every tick
 void Robot::teleop() {
   driveTeleop();
