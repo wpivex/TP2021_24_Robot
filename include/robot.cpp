@@ -26,12 +26,15 @@ Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftM
   chainBarRight = motor(PORT7, ratio18_1, false);
   claw = motor(16, ratio18_1, true);
 
-  SIG_1 = new vision::signature(1, 1757, 2979, 2368, -3019, -2351, -2685, 2.100, 0);
+  SIG_1 = new vision::signature(1, 1897, 2275, 2086, -3439, -3007, -3223, 7.200, 0);
+
 
   driveType = ARCADE;
   robotController = c; 
+  brainn = b;
   frontCamera = vision(PORT20, 50, *SIG_1);
   backCamera = vision(PORT6, 50, *SIG_1);
+
 
   fourBarLeft.setBrake(hold);
   fourBarRight.setBrake(hold);
@@ -222,11 +225,26 @@ void Robot::teleop() {
   driveTeleop();
   // armMovement(true, 50);
   goalClamp();
-  // time_t now = std::time(nullptr);
-  // robotController->Screen.clearScreen();
-  // robotController->Screen.print(now - lastLeftPress);
   wait(50, msec);
 }
+
+void Robot::pneumaticsTeleop() {
+
+  robotController->Screen.clearScreen();
+    robotController->Screen.setCursor(1,1);
+
+    if (robotController->ButtonA.pressing()) {
+      piston.open();
+      robotController->Screen.print("open");
+  
+    } else {
+      piston.close();
+      robotController->Screen.print("close");
+    }
+
+}
+
+
 // Non-blocking, no-action method that updates final destination. Call armMovement() afterwards
 void Robot::setArmDestination(int pos) {
   arrived = true;
@@ -250,6 +268,44 @@ void Robot::moveArmToPosition(int pos, float BASE_SPEED) {
 float Robot::distanceToDegrees(float dist) {
   return dist * 360 / 2 / M_PI / (4 / 2) * 15 / 14; // 4 in diameter wheels
 }
+
+/*
+
+// Move robot until the ultrasound reaches a certain distance, with the robot oriented so that it is parallel to the wall
+// distance from wall in inches
+// Keep moving forward until distToWall is <= wallDist, and the orientation is 0 within some margin
+void Robot::goUltrasoundDistance(float wallDist) {
+
+  float direction = 1000;
+  float distToWall = 1000;
+
+  float TURN_SCALAR = 1;
+  float FORWARD_SCALAR = 1;
+
+  float TURN_MARGIN = 1;
+  float DIST_MARGIN = 1;
+
+  while (fabs(direction) > TURN_MARGIN && distToWall > wallDist + DIST_MARGIN) {
+
+    float right = rightDistSensor.distance(inches);
+    float left = leftDistSensor.distance(inches);
+
+    // negative direction means robot is turned to the left, positive means robot is turned to the right
+    direction = right - left;
+    distToWall = (right + left) / 2.0; // average distance to wall in inches
+    float distDelta = distToWall - wallDist; // the amount (in inches) to the wall left to go
+
+    setLeftVelocity(forward, (0 - direction)*TURN_SCALAR + distDelta * FORWARD_SCALAR);
+    setRightVelocity(forward, direction*TURN_SCALAR + distDelta * FORWARD_SCALAR);
+
+    wait(100, msec);
+  }
+
+  leftDrive.stop();
+  rightDrive.stop();
+
+}
+*/
 
 void Robot::driveStraight(float percent, float dist) {
   leftMotorA.resetPosition();

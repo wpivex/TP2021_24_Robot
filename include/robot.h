@@ -48,6 +48,7 @@ class Robot {
     digital_out backGoal = digital_out(Brain.ThreeWirePort.B);
 
     controller* robotController;
+    brain* brainn;
 
     vision::signature* SIG_1;
 
@@ -76,6 +77,7 @@ class Robot {
     void moveArmToPosition(int pos, float BASESPEED);
     void setLeftVelocity(directionType d, double percent);
     void setRightVelocity(directionType d, double percent);
+    void goUltrasoundDistance(float dist);
     void stopLeft();
     void stopRight();
 
@@ -93,6 +95,7 @@ class Robot {
                           {500, 220}}; //place goal (5)
 
     void driveTeleop();
+    void pneumaticsTeleop();
     
 
     // State variables for arm teleop code

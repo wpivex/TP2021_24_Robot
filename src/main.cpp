@@ -2,6 +2,7 @@
 // Robot Configuration:
 // [Name]               [Type]        [Port(s)]
 // Vision6              vision        6               
+// DigitalInE           digital_in    E               
 // ---- END VEXCODE CONFIGURED DEVICES ----
 #include "../include/robot.cpp"
 
@@ -21,7 +22,38 @@ int mainTeleop() {
 void userControl(void) { task controlLoop1(mainTeleop); }
 
 void mainAuto(void) {
-  mainBot.goForwardVision(true, 20, -1);
+  mainBot.driveCurved(reverse, 25, 43);
+  mainBot.goForwardVision(true, 20);
+  
+  // Concurrently raise arm and turn robot (first blind then vision) concurrently, so use non-blocking method calls
+  bool armFinished = true;
+  bool turnFinished = false;
+  bool blindTurnFinished = false;
+
+  mainBot.setArmDestination(2);
+  int targetDist = mainBot.getTurnAngle(30);
+
+  int i = 0;
+  while (true) {
+    //armFinished = mainBot.armMovement(false, 100);
+    if (!blindTurnFinished) {
+      blindTurnFinished = mainBot.turnToAngleNonblocking(100, targetDist, false, reverse);
+      i++;
+    } else {
+        //turnFinished = mainBot.turnAndAlignVisionNonblocking(false);
+        turnFinished = true;
+    }
+    if (armFinished && turnFinished) break;
+    wait(100,msec);
+  }
+
+  mainBot.stopLeft();
+  mainBot.stopRight();
+  wait(1000, msec);
+
+  mainBot.goForwardVision(false, 20);
+  mainBot.turnToAngle(100, 90, false, forward); //really turn with vision
+  mainBot.turnAndAlignVision(true);
 }
 
 int tetherAuto(void) { return 0; }
@@ -29,7 +61,6 @@ int tetherAuto(void) { return 0; }
 void autonomous() { thread auto1(mainAuto); }
 
 void testArmValues() {
-
   mainBot.fourBarLeft.setBrake(coast);
   mainBot.fourBarRight.setBrake(coast);
   mainBot.chainBarLeft.setBrake(coast);
@@ -47,7 +78,7 @@ void testArmValues() {
 
 int main() {
   // Reset location of arm
-  mainBot.initArm();
+  //mainBot.initArm();
 
   Competition.autonomous(autonomous);
   Competition.drivercontrol(userControl);
@@ -56,4 +87,3 @@ int main() {
     wait(100, msec);
   }
 }
-
