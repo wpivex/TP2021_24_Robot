@@ -58,41 +58,10 @@ void Robot::driveTeleop() {
       left = leftVert + rightHoriz;
       right = leftVert - rightHoriz;
     }
-    
-    // if(fabs(leftVert) < 5.0) {
-    //   robotController->Screen.setCursor(1, 1);
-    //   robotController->Screen.print("POINT TURN");
-    //   setLeftVelocity(forward, rightHoriz/fabs(rightHoriz)*fmin(fabs(rightHoriz), 100));
-    //   setRightVelocity(reverse, rightHoriz/fabs(rightHoriz)*fmin(fabs(rightHoriz), 100));
-    // } else {
-      setLeftVelocity(forward, left/fabs(left)*fmin(fabs(left), 100));
-      setRightVelocity(forward, right/fabs(right)*fmin(fabs(right), 100));
-    // }
-    
+
+    setLeftVelocity(forward, left/fabs(left)*fmin(fabs(left), 100));
+    setRightVelocity(forward, right/fabs(right)*fmin(fabs(right), 100));    
   }
-
-
-  // float leftJoystick = (driveType == ARCADE) ? leftVert^3 + rightHoriz^3: leftVert^3;
-  // float rightJoystick = (driveType == ARCADE) ? leftVert^3 + rightHoriz^3: rightVert^3;
-
-  // float oldLeft = 0;
-  // float oldRight = 0;
-
-  // if (fabs(leftJoystick) > 5) {
-  //   float percent = (driveType == ARCADE) ? (pow((leftVert/100.00f), 3.00f) + pow((rightHoriz/100.00f), 5.00f))*100.00f : leftJoystick;
-  //   setLeftVelocity(forward, percent/fabs(percent)*fmin(fabs(percent), 100)); //60 is max for now
-  //   oldLeft = percent;
-  // } else {
-  //   stopLeft();
-  // }
-
-  // if (fabs(rightJoystick) > 5) {
-  //   float percent = (driveType == ARCADE) ? (pow((leftVert/100.00f), 3.00f) - pow((rightHoriz/100.00f), 5.00f))*100.00f : rightJoystick;
-  //   setRightVelocity(forward, percent/fabs(percent)*fmin(fabs(percent), 100));
-  //   oldRight = percent;
-  // } else {
-  //   stopRight();
-  // }
 }
 
 void Robot::initArm() {
@@ -171,9 +140,6 @@ bool Robot::armMovement(bool isTeleop, float BASE_SPEED) {
   float MARGIN = 10; // margin of error for if robot arm is in vicinity of target node
   //float BASE_SPEED = 30; // Base speed of arm
 
-  
-  //Robot::robotController->Screen.print(targetIndex);
-
   // Execute motor rotation towards target!
   int chainBarVelocity = BASE_SPEED * fabs((chainStart - angles[targetIndex][1])/(fourStart - angles[targetIndex][0]));
   fourBarLeft.rotateTo(angles[targetIndex][0], degrees, BASE_SPEED, velocityUnits::pct, false);
@@ -186,13 +152,7 @@ bool Robot::armMovement(bool isTeleop, float BASE_SPEED) {
   int delta2 = fabs(chainBarLeft.rotation(degrees) - angles[targetIndex][1]);
   arrived = delta1 < MARGIN && delta2 < MARGIN;
 
-  // Debug output
-  // Robot::robotController->Screen.clearScreen();
-  // Robot::robotController->Screen.setCursor(0, 0);
-  // Robot::robotController->Screen.print("t %d %d %d %d %d", (int)angles[targetIndex][0], (int)angles[targetIndex][1], targetIndex, delta1, delta2);
-
   return arrived && targetIndex == finalIndex;
-
 }
 
 void Robot::goalClamp() {
@@ -227,23 +187,6 @@ void Robot::teleop() {
   goalClamp();
   wait(50, msec);
 }
-
-void Robot::pneumaticsTeleop() {
-
-  robotController->Screen.clearScreen();
-    robotController->Screen.setCursor(1,1);
-
-    if (robotController->ButtonA.pressing()) {
-      piston.open();
-      robotController->Screen.print("open");
-  
-    } else {
-      piston.close();
-      robotController->Screen.print("close");
-    }
-
-}
-
 
 // Non-blocking, no-action method that updates final destination. Call armMovement() afterwards
 void Robot::setArmDestination(int pos) {
@@ -354,7 +297,6 @@ void Robot::turnToAngle(float percent, float turnAngle, bool PID, directionType 
 
 
 int Robot::getTurnAngle(float turnAngle) {
-
   leftMotorA.resetPosition();
   rightMotorA.resetPosition();
 
@@ -363,31 +305,24 @@ int Robot::getTurnAngle(float turnAngle) {
   float targetDist = fabs(distanceToDegrees(turnAngle / 360 * 2 * M_PI * (15.125 / 2)));
 
   return targetDist;
-
 }
 
 // Call this method every tick. Must reset encoders of left and right motor A
 // Return true if execution completed
 bool Robot::turnToAngleNonblocking(float percent, float targetDist, bool PID, directionType direction) {
-  
-
   float currPos = (fabs(leftMotorA.position(degrees)) + fabs(rightMotorA.position(degrees))) / 2;
 
   if (currPos < targetDist) {
-
     setLeftVelocity(direction, 5 + (percent - 5) * (PID? ((targetDist - currPos) / targetDist) : 1));
     setRightVelocity(direction == forward ? reverse : forward, 5 + (percent - 5) * (PID? ((targetDist - currPos) / targetDist) : 1));
     return false;
-
   } else {
     return true;
   }
-
 }
 
 // delta ranges from -100 (hard left) and 100 (hard right). 0 is straight
 void Robot::driveCurved(directionType d, float dist, int delta) {
-
   int baseSpeed = 100-abs(delta)/2.0;
   int velLeft = baseSpeed + delta/2.0;
   int velRight = baseSpeed - delta/2.0;
@@ -410,7 +345,6 @@ void Robot::driveCurved(directionType d, float dist, int delta) {
     Robot::robotController->Screen.print(currPos);
 
     wait(100, msec);
-
   }
   //stopLeft();
   //stopRight();
@@ -423,7 +357,6 @@ bool inBounds(int x, int y,int leftBound, int rightBound, int bottomBound, int t
 }
 
 void Robot::goForwardVision(bool back, float speed, int forwardDistance) {
-
   vision *camera = back? &backCamera : &frontCamera;
   backCamera.setBrightness(19);
   
@@ -448,19 +381,15 @@ void Robot::goForwardVision(bool back, float speed, int forwardDistance) {
     wait(100, msec);
     dist = fabs((leftMotorA.position(degrees) + leftMotorB.position(degrees)) / 2.0);
   }
-
   // stopLeft();
   // stopRight();
 }
 
 void Robot::turnAndAlignVision(bool clockwise) {
-
   leftMotorA.resetPosition();
   rightMotorA.resetPosition();
 
-
   while(true) {
-    
     // If completed, exit
     if(turnAndAlignVisionNonblocking(clockwise)) {
       return;
@@ -473,7 +402,6 @@ void Robot::turnAndAlignVision(bool clockwise) {
 }
 
 bool Robot::turnAndAlignVisionNonblocking(bool clockwise) {
-
   // hopefully this is a constant-time call, if not will have to refactor
   frontCamera.setBrightness(13);
   float baseSpeed = 30;
@@ -488,7 +416,6 @@ bool Robot::turnAndAlignVisionNonblocking(bool clockwise) {
   setRightVelocity(forward, baseSpeed*mod);
 
   return false;
-
 }
 
 

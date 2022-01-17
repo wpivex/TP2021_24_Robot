@@ -48,7 +48,6 @@ class Robot {
     digital_out backGoal = digital_out(Brain.ThreeWirePort.B);
 
     controller* robotController;
-    brain* brainn;
 
     vision::signature* SIG_1;
 
