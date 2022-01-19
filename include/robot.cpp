@@ -31,7 +31,6 @@ Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftM
 
   driveType = ARCADE;
   robotController = c; 
-  brainn = b;
   frontCamera = vision(PORT20, 50, *SIG_1);
   backCamera = vision(PORT6, 50, *SIG_1);
 
@@ -356,7 +355,7 @@ bool inBounds(int x, int y,int leftBound, int rightBound, int bottomBound, int t
   return (x >= leftBound && x <= rightBound && y <= bottomBound && y >= topBound);
 }
 
-void Robot::goForwardVision(bool back, float speed, int forwardDistance) {
+void Robot::goForwardVision(bool back, float speed, int forwardDistance, bool stopAtEnd) {
   vision *camera = back? &backCamera : &frontCamera;
   backCamera.setBrightness(19);
   
@@ -381,8 +380,10 @@ void Robot::goForwardVision(bool back, float speed, int forwardDistance) {
     wait(100, msec);
     dist = fabs((leftMotorA.position(degrees) + leftMotorB.position(degrees)) / 2.0);
   }
-  // stopLeft();
-  // stopRight();
+  if(stopAtEnd) {
+    stopLeft();
+    stopRight();
+  }
 }
 
 void Robot::turnAndAlignVision(bool clockwise) {

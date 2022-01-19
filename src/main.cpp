@@ -22,8 +22,10 @@ int mainTeleop() {
 void userControl(void) { task controlLoop1(mainTeleop); }
 
 void mainAuto(void) {
+  mainBot.setBackClamp(true);
   mainBot.driveCurved(reverse, 25, 43);
-  mainBot.goForwardVision(true, 20);
+  mainBot.goForwardVision(true, 100, 20, false);
+  mainBot.setBackClamp(false);
   
   // Concurrently raise arm and turn robot (first blind then vision) concurrently, so use non-blocking method calls
   bool armFinished = true;
@@ -51,7 +53,7 @@ void mainAuto(void) {
   mainBot.stopRight();
   wait(1000, msec);
 
-  mainBot.goForwardVision(false, 20);
+  mainBot.goForwardVision(false, 100, 20);
   mainBot.turnToAngle(100, 90, false, forward); //really turn with vision
   mainBot.turnAndAlignVision(true);
 }
