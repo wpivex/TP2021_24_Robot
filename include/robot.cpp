@@ -20,10 +20,10 @@ Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftM
   rightMotorE = motor(PORT15, ratio18_1, false);
   rightDrive = motor_group(rightMotorA, rightMotorB, rightMotorC, rightMotorD, rightMotorE);
 
-  fourBarLeft = motor(PORT20, ratio18_1, true);
-  fourBarRight = motor(PORT17, ratio18_1, false);
-  chainBarLeft = motor(PORT10, ratio18_1, true);
-  chainBarRight = motor(PORT17, ratio18_1, false);
+  fourBarLeft = motor(PORT20, ratio18_1, false);
+  fourBarRight = motor(PORT17, ratio18_1, true);
+  chainBarLeft = motor(PORT10, ratio18_1, false);
+  chainBarRight = motor(PORT19, ratio18_1, true);
   claw = motor(PORT19, ratio18_1, true);
 
   SIG_1 = new vision::signature(1, 1897, 2275, 2086, -3439, -3007, -3223, 7.200, 0);

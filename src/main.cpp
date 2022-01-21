@@ -37,13 +37,13 @@ void mainAuto(void) {
 
   int i = 0;
   while (true) {
-    //armFinished = mainBot.armMovement(false, 100);
+    armFinished = mainBot.armMovement(false, 100);
     if (!blindTurnFinished) {
       blindTurnFinished = mainBot.turnToAngleNonblocking(100, targetDist, false, reverse);
       i++;
     } else {
         turnFinished = mainBot.turnAndAlignVisionNonblocking(false);
-        // turnFinished = true;
+        turnFinished = true;
     }
     if (armFinished && turnFinished) break;
     wait(100,msec);
@@ -56,8 +56,8 @@ void mainAuto(void) {
   mainBot.setFrontClamp(true);
   mainBot.goForwardVision(false, 100, 20);
   mainBot.setFrontClamp(false);
-  // mainBot.turnToAngle(100, 90, false, forward);
-  // mainBot.turnAndAlignVision(true);
+  mainBot.turnToAngle(100, 90, false, forward);
+  mainBot.turnAndAlignVision(true);
 }
 
 int tetherAuto(void) { return 0; }
@@ -82,7 +82,7 @@ void testArmValues() {
 
 int main() {
   // Reset location of arm
-  //mainBot.initArm();
+  mainBot.initArm();
 
   Competition.autonomous(autonomous);
   Competition.drivercontrol(userControl);
