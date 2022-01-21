@@ -26,7 +26,7 @@ Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftM
   chainBarRight = motor(PORT19, ratio18_1, true);
   claw = motor(PORT19, ratio18_1, true);
 
-  SIG_1 = new vision::signature(1, 1897, 2275, 2086, -3439, -3007, -3223, 7.200, 0);
+  SIG_1 = new vision::signature(1, 1897, 2275, 2086, -3439, -3007, -3223, 11, 0);
 
   driveType = ARCADE;
   robotController = c; 
@@ -196,7 +196,7 @@ void Robot::moveArmToPosition(int pos, float BASE_SPEED) {
 
   setArmDestination(pos);
 
-  while (false) {
+  while (true) {
     if (armMovement(false, BASE_SPEED)) {
       break;
     }
@@ -259,8 +259,10 @@ void Robot::driveStraight(float percent, float dist) {
   float targetDist = currPos + travelDist;
   
   while (currPos < targetDist) {
-    setLeftVelocity(dist > 0 ? forward : reverse, 5 + (percent - 5) * ((targetDist - currPos) / travelDist));
-    setRightVelocity(dist > 0 ? forward : reverse, 5 + (percent - 5) * ((targetDist - currPos) / travelDist) - ((currRight - currLeft) / travelDist * 10));
+    // setLeftVelocity(dist > 0 ? forward : reverse, 5 + (percent - 5) * ((targetDist - currPos) / travelDist));
+    // setRightVelocity(dist > 0 ? forward : reverse, 5 + (percent - 5) * ((targetDist - currPos) / travelDist) - ((currRight - currLeft) / travelDist * 10));
+    setLeftVelocity(dist > 0 ? forward : reverse, percent);
+    setRightVelocity(dist > 0 ? forward : reverse, percent);
     currLeft = leftMotorA.position(degrees);
     currRight = rightMotorA.position(degrees);
     currPos = (currLeft + currRight) / 2;
@@ -362,7 +364,7 @@ void Robot::goForwardVision(bool back, float speed, int forwardDistance) {
 
   float totalDist = distanceToDegrees(forwardDistance);
   float dist = 0;
-  float pMod = 15.0;
+  float pMod = 30.0;
   float baseSpeed = speed + pMod > 100? 100 - pMod : speed;
 
   while(dist < totalDist || forwardDistance == -1) {
@@ -404,13 +406,14 @@ bool Robot::turnAndAlignVisionNonblocking(bool clockwise) {
 
   frontCamera.takeSnapshot(*SIG_1);
 
-  float mod = frontCamera.largestObject.exists? (CENTER_X-frontCamera.largestObject.centerX)/CENTER_X : 0;
-
-  robotController->Screen.clearScreen();
-  robotController->Screen.print(mod);
-  //if (fabs(mod) < 0.05) return true;
+  float mod = frontCamera.largestObject.exists? (CENTER_X-frontCamera.largestObject.centerX)/CENTER_X : (clockwise? 1 : -1);
+  if (fabs(mod) < 0.05) {
+    stopLeft();
+    stopRight();
+    return true;
+  }
   
-  float speed = 40 * cbrt(mod);
+  float speed = 15 * (mod > 0? 1 : -1);// + 15 * cbrt(mod);
   setLeftVelocity(reverse, speed);
   setRightVelocity(forward, speed);
 
