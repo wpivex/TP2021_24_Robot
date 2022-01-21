@@ -401,7 +401,6 @@ void Robot::turnAndAlignVision(bool clockwise) {
 bool Robot::turnAndAlignVisionNonblocking(bool clockwise) {
   // hopefully this is a constant-time call, if not will have to refactor
   frontCamera.setBrightness(13);
-  float baseSpeed = 45;
 
   frontCamera.takeSnapshot(*SIG_1);
 
@@ -409,10 +408,11 @@ bool Robot::turnAndAlignVisionNonblocking(bool clockwise) {
 
   robotController->Screen.clearScreen();
   robotController->Screen.print(mod);
-  // if (fabs(mod) < 0.1) return true;
-    
-  setLeftVelocity(reverse, baseSpeed);
-  setRightVelocity(forward, baseSpeed);
+  //if (fabs(mod) < 0.05) return true;
+  
+  float speed = 40 * cbrt(mod);
+  setLeftVelocity(reverse, speed);
+  setRightVelocity(forward, speed);
 
   return false;
 }
