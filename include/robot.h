@@ -49,7 +49,7 @@ class Robot {
 
     controller* robotController;
 
-    vision::signature* SIG_1;
+    vision::signature* YELLOW_SIG;
 
     void driveStraight(float percent, float dist);
     void driveStraight(float percent, float dist, float accPercent);
@@ -58,7 +58,7 @@ class Robot {
     void turnToAngle(float percent, float turnAngle, bool PID, directionType direction);
     bool turnToAngleNonblocking(float percent, float targetDist, bool PID, directionType direction);
     void driveCurved(directionType d, float dist, int delta);
-    void goForwardVision(bool back, float speed, int forwardDistance);
+    void goForwardVision(bool back, float speed, int forwardDistance, float pMod);
     void turnAndAlignVision(bool clockwise);
     bool turnAndAlignVisionNonblocking(bool clockwise);
     float distanceToDegrees(float dist);

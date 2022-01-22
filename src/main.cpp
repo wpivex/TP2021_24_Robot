@@ -12,6 +12,8 @@ controller Controller1(controllerType::primary);
 Robot mainBot = Robot(&Controller1);
 
 int mainTeleop() {
+  mainBot.setBackClamp(false);
+  mainBot.setFrontClamp(false);
   while (true) {
     mainBot.teleop();
     wait(100, msec);
@@ -24,7 +26,7 @@ void userControl(void) { task controlLoop1(mainTeleop); }
 void mainAuto(void) {
   mainBot.setBackClamp(true);
   mainBot.driveCurved(reverse, 20, 57);
-  mainBot.goForwardVision(true, 100, 60);
+  mainBot.goForwardVision(true, 100, 40, 40);
   mainBot.setBackClamp(false);
   
   // Concurrently raise arm and turn robot (first blind then vision) concurrently, so use non-blocking method calls
@@ -32,12 +34,15 @@ void mainAuto(void) {
   bool blindTurnFinished = false;
 
   mainBot.setArmDestination(2);
-  int targetDist = mainBot.getTurnAngle(43);
+  int targetDist = mainBot.getTurnAngle(65);
 
   while (true) {
     armFinished = mainBot.armMovement(false, 100);
     if (!blindTurnFinished) {
       blindTurnFinished = mainBot.turnToAngleNonblocking(100, targetDist, false, reverse);
+    } else {
+      mainBot.stopLeft();
+      mainBot.stopRight();
     }
    
     if (armFinished && blindTurnFinished) break;
@@ -45,8 +50,7 @@ void mainAuto(void) {
   }
 
   mainBot.setFrontClamp(true);
-  mainBot.goForwardVision(false, 100, 20);
-  // mainBot.driveStraight(100, 20);
+  mainBot.goForwardVision(false, 100, 40, 40);
   mainBot.setFrontClamp(false);
   // mainBot.turnToAngle(100, 90, false, forward);
   // mainBot.turnAndAlignVision(true);
@@ -73,14 +77,14 @@ void testArmValues() {
 }
 
 int main() {
+  mainBot.setBackClamp(false);
+  mainBot.setFrontClamp(false);
+
   // Reset location of arm
   mainBot.initArm();
 
   Competition.autonomous(autonomous);
   Competition.drivercontrol(userControl);
-
-  mainBot.setBackClamp(false);
-  mainBot.setFrontClamp(false);
 
   while (true) {
     wait(100, msec);

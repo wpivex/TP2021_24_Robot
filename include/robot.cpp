@@ -26,12 +26,12 @@ Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftM
   chainBarRight = motor(PORT19, ratio18_1, true);
   claw = motor(PORT19, ratio18_1, true);
 
-  SIG_1 = new vision::signature(1, 1897, 2275, 2086, -3439, -3007, -3223, 11, 0);
+  YELLOW_SIG = new vision::signature(1, 1897, 2275, 2086, -3439, -3007, -3223, 11, 0);
 
   driveType = ARCADE;
   robotController = c; 
-  frontCamera = vision(PORT9, 50, *SIG_1);
-  backCamera = vision(PORT8, 50, *SIG_1);
+  frontCamera = vision(PORT9, 50, *YELLOW_SIG);
+  backCamera = vision(PORT8, 50, *YELLOW_SIG);
 
   fourBarLeft.setBrake(hold);
   fourBarRight.setBrake(hold);
@@ -170,11 +170,11 @@ void Robot::goalClamp() {
 }
 
 void Robot::setFrontClamp(bool intaking) {
-  frontGoal.set(!intaking);
+  frontGoal.set(intaking);
 }
 
 void Robot::setBackClamp(bool intaking) {
-  backGoal.set(!intaking);
+  backGoal.set(intaking);
 }
 
 // Run every tick
@@ -355,20 +355,19 @@ bool inBounds(int x, int y,int leftBound, int rightBound, int bottomBound, int t
   return (x >= leftBound && x <= rightBound && y <= bottomBound && y >= topBound);
 }
 
-void Robot::goForwardVision(bool back, float speed, int forwardDistance) {
+void Robot::goForwardVision(bool back, float speed, int forwardDistance, float pMod) {
   vision *camera = back? &backCamera : &frontCamera;
-  backCamera.setBrightness(19);
+  camera->setBrightness(19);
   
   leftMotorA.resetPosition();
   rightMotorA.resetPosition();
 
   float totalDist = distanceToDegrees(forwardDistance);
   float dist = 0;
-  float pMod = 30.0;
   float baseSpeed = speed + pMod > 100? 100 - pMod : speed;
 
   while(dist < totalDist || forwardDistance == -1) {
-    camera->takeSnapshot(*SIG_1);
+    camera->takeSnapshot(*YELLOW_SIG);
 
     float mod = camera->largestObject.exists? (CENTER_X-camera->largestObject.centerX)/CENTER_X*pMod : 0;
     
@@ -378,7 +377,7 @@ void Robot::goForwardVision(bool back, float speed, int forwardDistance) {
     }
 
     wait(100, msec);
-    dist = fabs((leftMotorA.position(degrees) + leftMotorB.position(degrees)) / 2.0);
+    dist = fabs((leftMotorA.position(degrees) + rightMotorA.position(degrees)) / 2.0);
   }
   stopLeft();
   stopRight();
@@ -404,7 +403,7 @@ bool Robot::turnAndAlignVisionNonblocking(bool clockwise) {
   // hopefully this is a constant-time call, if not will have to refactor
   frontCamera.setBrightness(13);
 
-  frontCamera.takeSnapshot(*SIG_1);
+  frontCamera.takeSnapshot(*YELLOW_SIG);
 
   float mod = frontCamera.largestObject.exists? (CENTER_X-frontCamera.largestObject.centerX)/CENTER_X : (clockwise? 1 : -1);
   if (fabs(mod) < 0.05) {
