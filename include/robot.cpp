@@ -23,10 +23,12 @@ Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftM
   fourBarLeft = motor(PORT20, ratio18_1, false);
   fourBarRight = motor(PORT17, ratio18_1, true);
   chainBarLeft = motor(PORT10, ratio18_1, false);
-  chainBarRight = motor(PORT19, ratio18_1, true);
-  claw = motor(PORT19, ratio18_1, true);
+  chainBarRight = motor(PORT18, ratio18_1, true);
+  claw = motor(PORT19, ratio18_1, false);
 
   YELLOW_SIG = new vision::signature(1, 1897, 2275, 2086, -3439, -3007, -3223, 11, 0);
+  RED_SIG = new vision::signature (1, 6351, 10581, 8466, -1267, -537, -902, 3.300, 0);
+  BLUE_SIG = new vision::signature (1, -2951, -1513, -2232, 6753, 10255, 8504, 2.500, 0);
 
   driveType = ARCADE;
   robotController = c; 
@@ -57,16 +59,17 @@ void Robot::driveTeleop() {
     }
 
     setLeftVelocity(forward, left/fabs(left)*fmin(fabs(left), 100));
-    setRightVelocity(forward, right/fabs(right)*fmin(fabs(right), 100));    
+    setRightVelocity(forward, right/fabs(right)*fmin(fabs(right), 100));      
   }
 }
 
-void Robot::initArm() {
+void Robot::initArmAndClaw() {
   // Reset position of motors
   chainBarLeft.resetPosition();
   fourBarLeft.resetPosition();
   chainBarRight.resetPosition();
   fourBarRight.resetPosition();
+  claw.resetPosition();
 
   isPressed = false; // Button presses register only at the first frame pressed. Also disallows concurrent presses from different buttons.
   arrived = true;
@@ -113,11 +116,15 @@ bool Robot::armMovement(bool isTeleop, float BASE_SPEED) {
     */
     if (targetIndex != finalIndex) { 
       // A bit of hardcoding to find next target required. Refer to graph on discord.
-      if (targetIndex == 0 && finalIndex > 0) targetIndex = 1; // 0 -> 1 -> anything (always goes through intermediate point)
+
+      if (targetIndex == 0 && finalIndex > 0) targetIndex = 6; // 0 -> 6 -> 1 -> anything (always goes through intermediate point)
+      else if (targetIndex == 6) targetIndex = (finalIndex == 0 ? 0 : 1);
       else if (targetIndex == 1) { // starting at intermediate point
         if (finalIndex == 5) targetIndex = 3; // Must go 1 -> 3 -> 5;
+        else if (finalIndex == 0) targetIndex = 6;
         else targetIndex = finalIndex; // For any other point, 1 -> x is fine
-      } else if (targetIndex == 2 || targetIndex == 3 || targetIndex == 4) {
+      }
+      else if (targetIndex == 2 || targetIndex == 3 || targetIndex == 4) {
         if (finalIndex == 0) targetIndex = 1; // For example, 3 -> 1 -> 0
         else if (finalIndex == 5) {
           if (targetIndex == 3) targetIndex = 5; // 2 -> 3 -> 5
@@ -125,7 +132,9 @@ bool Robot::armMovement(bool isTeleop, float BASE_SPEED) {
         } else { // This means finalIndex is 1,2,3, or 4. Just go directly to it
           targetIndex = finalIndex;
         }
-      } else targetIndex = 3; // Runs if currently at 5. Can only go 5 -> 3
+      }
+      else if (targetIndex == 5 && finalIndex == 0) targetIndex = 1;
+      else targetIndex = 3; // Runs if currently at 5. Can only go 5 -> 3
 
       // Store starting location of arm motors for purposes of velocity calculation. 
       // We must do this every time we change our target index, and arm is about to move to a new node
@@ -133,6 +142,10 @@ bool Robot::armMovement(bool isTeleop, float BASE_SPEED) {
       chainStart = chainBarLeft.position(degrees);
     }
   }
+
+  Brain.Screen.clearScreen();
+  Brain.Screen.setCursor(1, 1);
+  Brain.Screen.print("%d %d %d", targetIndex, finalIndex, arrived ? 1 : 0);
 
   float MARGIN = 10; // margin of error for if robot arm is in vicinity of target node
   //float BASE_SPEED = 30; // Base speed of arm
@@ -169,6 +182,17 @@ void Robot::goalClamp() {
   }
 }
 
+void Robot::clawMovement() {
+  if (Robot::robotController->ButtonUp.pressing()) {
+    time_t now = std::time(nullptr);
+    if(now - lastClawPress > 0.5) {
+      claw.rotateTo(isClawOpen? 1000 : MAX_CLAW, deg);
+      isClawOpen = !isClawOpen;
+      lastClawPress = now;
+    }
+  }
+}
+
 void Robot::setFrontClamp(bool intaking) {
   frontGoal.set(intaking);
 }
@@ -181,6 +205,7 @@ void Robot::setBackClamp(bool intaking) {
 void Robot::teleop() {
   driveTeleop();
   // armMovement(true, 50);
+  clawMovement();
   goalClamp();
   wait(50, msec);
 }
@@ -355,9 +380,10 @@ bool inBounds(int x, int y,int leftBound, int rightBound, int bottomBound, int t
   return (x >= leftBound && x <= rightBound && y <= bottomBound && y >= topBound);
 }
 
-void Robot::goForwardVision(bool back, float speed, int forwardDistance, float pMod) {
+void Robot::goForwardVision(bool back, float speed, int forwardDistance, float pMod, int color) {
   vision *camera = back? &backCamera : &frontCamera;
-  camera->setBrightness(19);
+  int brightness = color == 0? 13 : (color == 1? 22 : 40);
+  camera->setBrightness(brightness);
   
   leftMotorA.resetPosition();
   rightMotorA.resetPosition();
@@ -367,7 +393,7 @@ void Robot::goForwardVision(bool back, float speed, int forwardDistance, float p
   float baseSpeed = speed + pMod > 100? 100 - pMod : speed;
 
   while(dist < totalDist || forwardDistance == -1) {
-    camera->takeSnapshot(*YELLOW_SIG);
+    camera->takeSnapshot(color == 0? *YELLOW_SIG : (color == 1? *RED_SIG : *BLUE_SIG));
 
     float mod = camera->largestObject.exists? (CENTER_X-camera->largestObject.centerX)/CENTER_X*pMod : 0;
     
@@ -383,13 +409,13 @@ void Robot::goForwardVision(bool back, float speed, int forwardDistance, float p
   stopRight();
 }
 
-void Robot::turnAndAlignVision(bool clockwise) {
+void Robot::turnAndAlignVision(bool clockwise, int color) {
   leftMotorA.resetPosition();
   rightMotorA.resetPosition();
 
   while(true) {
     // If completed, exit
-    if(turnAndAlignVisionNonblocking(clockwise)) {
+    if(turnAndAlignVisionNonblocking(clockwise, color)) {
       return;
     }
     wait(100, msec);
@@ -399,11 +425,13 @@ void Robot::turnAndAlignVision(bool clockwise) {
   stopRight();
 }
 
-bool Robot::turnAndAlignVisionNonblocking(bool clockwise) {
+//Brightness: 13 for yellow, 22 for red, 40 for blue
+bool Robot::turnAndAlignVisionNonblocking(bool clockwise, int color) {
   // hopefully this is a constant-time call, if not will have to refactor
-  frontCamera.setBrightness(13);
+  int brightness = color == 0? 13 : (color == 1? 22 : 40);
+  frontCamera.setBrightness(brightness);
 
-  frontCamera.takeSnapshot(*YELLOW_SIG);
+  frontCamera.takeSnapshot(color == 0? *YELLOW_SIG : (color == 1? *RED_SIG : *BLUE_SIG));
 
   float mod = frontCamera.largestObject.exists? (CENTER_X-frontCamera.largestObject.centerX)/CENTER_X : (clockwise? 1 : -1);
   if (fabs(mod) < 0.05) {
@@ -419,9 +447,44 @@ bool Robot::turnAndAlignVisionNonblocking(bool clockwise) {
   return false;
 }
 
+void Robot::blindAndVisionTurn(float blindAngle, int color) {
+ // Concurrently raise arm and turn robot (first blind then vision) concurrently, so use non-blocking method calls
+  bool armFinished = false;
+  bool turnFinished = true;
+  bool blindTurnFinished = false;
 
-void Robot::openClaw() {}
-void Robot::closeClaw() {}
+  setArmDestination(2);
+  int targetDist = getTurnAngle(blindAngle);
+
+  while (true) {
+    if(!armFinished) {
+      armFinished = armMovement(false, 100);
+    }
+
+    if (!blindTurnFinished) {
+      blindTurnFinished = turnToAngleNonblocking(100, targetDist, false, reverse);
+    } else if(!turnFinished) {
+      turnFinished = turnAndAlignVisionNonblocking(false, color);
+    } else {
+      stopLeft();
+      stopRight();
+    }
+   
+    if (armFinished && turnFinished) break;
+    wait(100,msec);
+  }
+}
+
+
+void Robot::openClaw() {
+  claw.rotateTo(MAX_CLAW, deg);
+  isClawOpen = true;
+}
+
+void Robot::closeClaw() {
+  claw.rotateTo(1000, deg);
+  isClawOpen = false;
+}
 
 void Robot::setLeftVelocity(directionType d, double percent) {
   leftMotorA.spin(d, percent, pct);

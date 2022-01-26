@@ -24,36 +24,38 @@ int mainTeleop() {
 void userControl(void) { task controlLoop1(mainTeleop); }
 
 void mainAuto(void) {
+  int color = 2; //red is 1, blue is 2
+  // mainBot.moveArmToPosition(0, 50);
+  // mainBot.openClaw();
+  // wait(2000, msec);
+  // mainBot.closeClaw();
+  // mainBot.moveArmToPosition(2, 50);
   mainBot.setBackClamp(true);
-  mainBot.driveCurved(reverse, 20, 57);
-  mainBot.goForwardVision(true, 100, 40, 40);
+  mainBot.driveCurved(reverse, 20, 55);
+  mainBot.goForwardVision(true, 100, 40, 40, 0);
   mainBot.setBackClamp(false);
   
-  // Concurrently raise arm and turn robot (first blind then vision) concurrently, so use non-blocking method calls
-  bool armFinished = true;
-  bool blindTurnFinished = false;
-
-  mainBot.setArmDestination(2);
-  int targetDist = mainBot.getTurnAngle(65);
-
-  while (true) {
-    armFinished = mainBot.armMovement(false, 100);
-    if (!blindTurnFinished) {
-      blindTurnFinished = mainBot.turnToAngleNonblocking(100, targetDist, false, reverse);
-    } else {
-      mainBot.stopLeft();
-      mainBot.stopRight();
-    }
-   
-    if (armFinished && blindTurnFinished) break;
-    wait(100,msec);
-  }
+  mainBot.blindAndVisionTurn(80, 0);
 
   mainBot.setFrontClamp(true);
-  mainBot.goForwardVision(false, 100, 40, 40);
+  mainBot.goForwardVision(false, 100, 30, 40, 0);
   mainBot.setFrontClamp(false);
-  // mainBot.turnToAngle(100, 90, false, forward);
-  // mainBot.turnAndAlignVision(true);
+
+  wait(2000, msec);
+
+  mainBot.turnToAngle(100, -80, false, forward);
+
+  wait(2000, msec);
+
+  mainBot.turnAndAlignVision(true, color);
+
+  wait(2000, msec);
+
+  mainBot.goForwardVision(false, 20, 40, 40, color);
+  mainBot.moveArmToPosition(0, 50);
+  mainBot.openClaw();
+  mainBot.driveStraight(20, 12);
+  mainBot.closeClaw();
 }
 
 int tetherAuto(void) { return 0; }
@@ -70,23 +72,27 @@ void testArmValues() {
     Brain.Screen.clearScreen();
     Brain.Screen.setCursor(1, 1);
     Brain.Screen.print("%f", mainBot.fourBarRight.position(degrees));
-    // Brain.Screen.setCursor(2, 1);
-    // Brain.Screen.print((int) mainBot.chainBarRight.position(degrees));
+    Brain.Screen.setCursor(2, 1);
+    Brain.Screen.print("%f", mainBot.chainBarRight.position(degrees));
     wait(100, msec);
   }
 }
 
 int main() {
-  mainBot.setBackClamp(false);
-  mainBot.setFrontClamp(false);
+  // mainBot.setBackClamp(false);
+  // mainBot.setFrontClamp(false);
 
-  // Reset location of arm
-  mainBot.initArm();
+  // // Reset location of arm
+  // mainBot.initArmAndClaw();
 
-  Competition.autonomous(autonomous);
-  Competition.drivercontrol(userControl);
+  // Competition.autonomous(autonomous);
+  // Competition.drivercontrol(userControl);
 
   while (true) {
+    float leftVert = Controller1.Axis3.position();
+    float rightVert = Controller1.Axis2.position();
+    mainBot.setLeftVelocity(forward, leftVert*100);
+    mainBot.setRightVelocity(forward, rightVert*100);   
     wait(100, msec);
   }
 }

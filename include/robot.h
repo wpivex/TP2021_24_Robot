@@ -50,6 +50,8 @@ class Robot {
     controller* robotController;
 
     vision::signature* YELLOW_SIG;
+    vision::signature* RED_SIG;
+    vision::signature* BLUE_SIG;
 
     void driveStraight(float percent, float dist);
     void driveStraight(float percent, float dist, float accPercent);
@@ -58,9 +60,10 @@ class Robot {
     void turnToAngle(float percent, float turnAngle, bool PID, directionType direction);
     bool turnToAngleNonblocking(float percent, float targetDist, bool PID, directionType direction);
     void driveCurved(directionType d, float dist, int delta);
-    void goForwardVision(bool back, float speed, int forwardDistance, float pMod);
-    void turnAndAlignVision(bool clockwise);
-    bool turnAndAlignVisionNonblocking(bool clockwise);
+    void goForwardVision(bool back, float speed, int forwardDistance, float pMod, int color);
+    void turnAndAlignVision(bool clockwise, int brightness);
+    bool turnAndAlignVisionNonblocking(bool clockwise, int color);
+    void blindAndVisionTurn(float blindAngle, int color);
     float distanceToDegrees(float dist);
     void openClaw();
     void closeClaw();
@@ -70,7 +73,7 @@ class Robot {
 
     void userControl( void );
     void teleop( void );
-    void initArm();
+    void initArmAndClaw();
     void setArmDestination(int pos);
     bool armMovement(bool isTeleop, float BASESPEED);
     void moveArmToPosition(int pos, float BASESPEED);
@@ -86,15 +89,17 @@ class Robot {
   private:
 
     // fourbar, chainbar
-    double angles[6][2] = {{422, 821}, //intaking (0)
-                          {1311, 1247}, //intermediate (1)
+    double angles[7][2] = {{394.8, 1082.8}, //intaking (0)
+                          {1114, 671.2}, //intermediate 1 (1) (farther into robot)
                           {1060, 428}, //ring front (2)
                           {1271, 327}, //ring middle (3)
                           {1446, -26}, //right back (4)
-                          {500, 220}}; //place goal (5)
+                          {500, 220}, //place goal (5)
+                          {1177.2, 1378}}; //intermediate 2 (6) (farther out of robot)
 
     void driveTeleop();
     void pneumaticsTeleop();
+    void clawMovement();
     
 
     // State variables for arm teleop code
@@ -103,7 +108,12 @@ class Robot {
     int finalIndex, targetIndex;
     float fourStart, chainStart;
 
+    // State variables for claw
+    float MAX_CLAW = -520;
+    bool isClawOpen = false;
+
     // State variables for goal clamp
     time_t lastLeftPress = std::time(nullptr);
     time_t lastRightPress = std::time(nullptr);
+    time_t lastClawPress = std::time(nullptr);
 };
