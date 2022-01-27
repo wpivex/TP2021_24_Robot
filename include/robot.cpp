@@ -26,9 +26,9 @@ Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftM
   chainBarRight = motor(PORT18, ratio18_1, true);
   claw = motor(PORT19, ratio18_1, false);
 
-  YELLOW_SIG = new vision::signature(1, 1897, 2275, 2086, -3439, -3007, -3223, 11, 0);
+  YELLOW_SIG = new vision::signature (1, 1897, 2275, 2086, -3439, -3007, -3223, 11, 0);
   RED_SIG = new vision::signature (1, 6351, 10581, 8466, -1267, -537, -902, 3.300, 0);
-  BLUE_SIG = new vision::signature (1, -2951, -1513, -2232, 6753, 10255, 8504, 2.500, 0);
+  BLUE_SIG = new vision::signature (1, -2505, -1535, -2020, 6483, 9831, 8157, 2.500, 0);
 
   driveType = ARCADE;
   robotController = c; 
@@ -60,6 +60,9 @@ void Robot::driveTeleop() {
 
     setLeftVelocity(forward, left/fabs(left)*fmin(fabs(left), 100));
     setRightVelocity(forward, right/fabs(right)*fmin(fabs(right), 100));      
+  } else {
+    setLeftVelocity(forward, leftVert * 100);
+    setRightVelocity(forward,  rightVert * 100);      
   }
 }
 
@@ -381,6 +384,8 @@ bool inBounds(int x, int y,int leftBound, int rightBound, int bottomBound, int t
 }
 
 void Robot::goForwardVision(bool back, float speed, int forwardDistance, float pMod, int color) {
+  frontCamera = vision(PORT9, 50, color == 0? *YELLOW_SIG : (color == 1? *RED_SIG : *BLUE_SIG));
+  frontCamera = vision(PORT9, 50, color == 0? *YELLOW_SIG : (color == 1? *RED_SIG : *BLUE_SIG));
   vision *camera = back? &backCamera : &frontCamera;
   int brightness = color == 0? 13 : (color == 1? 22 : 40);
   camera->setBrightness(brightness);
@@ -412,6 +417,7 @@ void Robot::goForwardVision(bool back, float speed, int forwardDistance, float p
 void Robot::turnAndAlignVision(bool clockwise, int color) {
   leftMotorA.resetPosition();
   rightMotorA.resetPosition();
+  frontCamera = vision(PORT9, 50, color == 0? *YELLOW_SIG : (color == 1? *RED_SIG : *BLUE_SIG));
 
   while(true) {
     // If completed, exit
@@ -430,10 +436,11 @@ bool Robot::turnAndAlignVisionNonblocking(bool clockwise, int color) {
   // hopefully this is a constant-time call, if not will have to refactor
   int brightness = color == 0? 13 : (color == 1? 22 : 40);
   frontCamera.setBrightness(brightness);
+  // frontCamera.setSignature(color == 0? *YELLOW_SIG : (color == 1? *RED_SIG : *BLUE_SIG));
 
   frontCamera.takeSnapshot(color == 0? *YELLOW_SIG : (color == 1? *RED_SIG : *BLUE_SIG));
 
-  float mod = frontCamera.largestObject.exists? (CENTER_X-frontCamera.largestObject.centerX)/CENTER_X : (clockwise? 1 : -1);
+  float mod = frontCamera.largestObject.exists? (CENTER_X-frontCamera.largestObject.centerX)/CENTER_X : (clockwise? -1 : 1);
   if (fabs(mod) < 0.05) {
     stopLeft();
     stopRight();
@@ -450,7 +457,7 @@ bool Robot::turnAndAlignVisionNonblocking(bool clockwise, int color) {
 void Robot::blindAndVisionTurn(float blindAngle, int color) {
  // Concurrently raise arm and turn robot (first blind then vision) concurrently, so use non-blocking method calls
   bool armFinished = false;
-  bool turnFinished = true;
+  bool turnFinished = false;
   bool blindTurnFinished = false;
 
   setArmDestination(2);
