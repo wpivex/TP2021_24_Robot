@@ -207,7 +207,7 @@ void Robot::setBackClamp(bool intaking) {
 // Run every tick
 void Robot::teleop() {
   driveTeleop();
-  // armMovement(true, 50);
+  armMovement(true, 50);
   clawMovement();
   goalClamp();
   wait(50, msec);
