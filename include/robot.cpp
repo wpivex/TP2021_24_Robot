@@ -51,11 +51,11 @@ void Robot::driveTeleop() {
     float left;
     float right;
     if(rightHoriz < 0) {
-      left = leftVert + rightHoriz;
-      right = leftVert - rightHoriz;
+      left = leftVert + pow(rightHoriz, 3);
+      right = leftVert - pow(rightHoriz, 3);
     } else {
-      left = leftVert + rightHoriz;
-      right = leftVert - rightHoriz;
+      left = leftVert + pow(rightHoriz, 3);
+      right = leftVert - pow(rightHoriz, 3);
     }
 
     setLeftVelocity(forward, left/fabs(left)*fmin(fabs(left), 100));
@@ -78,6 +78,7 @@ void Robot::initArmAndClaw() {
   arrived = true;
 
   finalIndex = 2; // The immediate default destination from the starting point is to Ring Front (index 2)
+  prevIndex = 2;
   targetIndex = finalIndex;
 
   // Store starting location of arm motors for purposes of velocity calculation
@@ -90,6 +91,11 @@ void Robot::initArmAndClaw() {
 bool Robot::armMovement(bool isTeleop, float BASE_SPEED) {
   // Code runs whenever arm reaches a node.
   if (arrived) { 
+
+    // When arrived, prevIndex is finalIndex. But once a button is pressed, prevIndex stays the same number while finalIndex changes
+    prevIndex = finalIndex;
+    armTimeout = vex::timer::system();
+
     // Getting inputs only work if in teleop mode. For auton, finalIndex will be set by function calls
     if (isTeleop && targetIndex == finalIndex) { // Buttons only responsive if arm is not moving, and arm has rested in final destination
       if (!isPressed && Robot::robotController->ButtonDown.pressing()) {
@@ -144,11 +150,17 @@ bool Robot::armMovement(bool isTeleop, float BASE_SPEED) {
       fourStart = fourBarLeft.position(degrees);
       chainStart = chainBarLeft.position(degrees);
     }
+  } else {
+    // not arrived
+
+    if (vex::timer::system() - armTimeout > ARM_TIMEOUT_MS) {
+      targetIndex = prevIndex;
+    }
   }
 
   Brain.Screen.clearScreen();
   Brain.Screen.setCursor(1, 1);
-  Brain.Screen.print("%d %d %d", targetIndex, finalIndex, arrived ? 1 : 0);
+  Brain.Screen.print("%d %d %d %d", targetIndex, finalIndex, arrived ? 1 : 0, vex::timer::system() - armTimeout);
 
   float MARGIN = 10; // margin of error for if robot arm is in vicinity of target node
   //float BASE_SPEED = 30; // Base speed of arm
@@ -170,29 +182,33 @@ bool Robot::armMovement(bool isTeleop, float BASE_SPEED) {
 
 void Robot::goalClamp() {
   if (Robot::robotController->ButtonL1.pressing()) {
-    time_t now = std::time(nullptr);
-    if(now - lastLeftPress > 0.5) {
+    if(!frontWasPressed) {
       frontGoal.set(!frontGoal.value());
-      lastLeftPress = now;
     }
+    frontWasPressed = true;
+  } else {
+    frontWasPressed = false;
   }
+
   if (Robot::robotController->ButtonR1.pressing()) {
-    time_t now = std::time(nullptr);
-    if(now - lastRightPress > 0.5) {
+    if(!backWasPressed) {
       backGoal.set(!backGoal.value());
-      lastRightPress = now;
     }
+    backWasPressed = true;
+  } else {
+    backWasPressed = false;
   }
 }
 
 void Robot::clawMovement() {
   if (Robot::robotController->ButtonUp.pressing()) {
-    time_t now = std::time(nullptr);
-    if(now - lastClawPress > 0.5) {
-      claw.rotateTo(isClawOpen? 1000 : MAX_CLAW, deg);
+    if(!clawWasPressed) {
+      claw.rotateTo(isClawOpen? 500 : MAX_CLAW, deg, 100, velocityUnits::pct, false);
       isClawOpen = !isClawOpen;
-      lastClawPress = now;
     }
+    clawWasPressed = true;
+  } else {
+    clawWasPressed = false;
   }
 }
 
@@ -207,7 +223,7 @@ void Robot::setBackClamp(bool intaking) {
 // Run every tick
 void Robot::teleop() {
   driveTeleop();
-  // armMovement(true, 50);
+  armMovement(true, 100);
   clawMovement();
   goalClamp();
   wait(50, msec);
@@ -280,23 +296,22 @@ void Robot::driveStraight(float percent, float dist) {
   rightMotorA.resetPosition();
   // currPos is the current average encoder position, travelDist is the total encoder distance to be traversed, 
   // targetDist is the target encoder position, and currLeft/Right are the current left and right encoder positions
-  float currLeft = leftMotorA.position(degrees);
-  float currRight = rightMotorA.position(degrees);
+  float currLeft = 0;
+  float currRight = 0;
   float currPos = (currLeft + currRight) / 2;
-  float travelDist = distanceToDegrees(dist);
-  float targetDist = currPos + travelDist;
+  float travelDist = fabs(distanceToDegrees(dist));
   
-  while (currPos < targetDist) {
-    // setLeftVelocity(dist > 0 ? forward : reverse, 5 + (percent - 5) * ((targetDist - currPos) / travelDist));
-    // setRightVelocity(dist > 0 ? forward : reverse, 5 + (percent - 5) * ((targetDist - currPos) / travelDist) - ((currRight - currLeft) / travelDist * 10));
+  while (currPos < travelDist) {
+    // setLeftVelocity(dist > 0 ? forward : reverse, 5 + (percent - 5) * ((travelDist - currPos) / travelDist));
+    // setRightVelocity(dist > 0 ? forward : reverse, 5 + (percent - 5) * ((travelDist - currPos) / travelDist) - ((currRight - currLeft) / travelDist * 10));
     setLeftVelocity(dist > 0 ? forward : reverse, percent);
     setRightVelocity(dist > 0 ? forward : reverse, percent);
     currLeft = leftMotorA.position(degrees);
     currRight = rightMotorA.position(degrees);
-    currPos = (currLeft + currRight) / 2;
+    currPos = fabs((currLeft + currRight) / 2);
   }
-  leftDrive.stop();
-  rightDrive.stop();
+  stopLeft();
+  stopRight();
 }
 
 void Robot::driveTimed(float percent, float driveTime) {
@@ -305,8 +320,8 @@ void Robot::driveTimed(float percent, float driveTime) {
     setLeftVelocity(forward, percent);
     setRightVelocity(forward, percent);
   }
-  leftDrive.stop();
-  rightDrive.stop();
+  stopLeft();
+  stopRight();
 }
 
 //12.375 in wheelbase
@@ -414,14 +429,14 @@ void Robot::goForwardVision(bool back, float speed, int forwardDistance, float p
   stopRight();
 }
 
-void Robot::turnAndAlignVision(bool clockwise, int color) {
+void Robot::turnAndAlignVision(bool clockwise, int color, float modThresh) {
   leftMotorA.resetPosition();
   rightMotorA.resetPosition();
   frontCamera = vision(PORT9, 50, color == 0? *YELLOW_SIG : (color == 1? *RED_SIG : *BLUE_SIG));
 
   while(true) {
     // If completed, exit
-    if(turnAndAlignVisionNonblocking(clockwise, color)) {
+    if(turnAndAlignVisionNonblocking(clockwise, color, modThresh)) {
       return;
     }
     wait(100, msec);
@@ -432,7 +447,7 @@ void Robot::turnAndAlignVision(bool clockwise, int color) {
 }
 
 //Brightness: 13 for yellow, 22 for red, 40 for blue
-bool Robot::turnAndAlignVisionNonblocking(bool clockwise, int color) {
+bool Robot::turnAndAlignVisionNonblocking(bool clockwise, int color, float modThresh) {
   // hopefully this is a constant-time call, if not will have to refactor
   int brightness = color == 0? 13 : (color == 1? 22 : 40);
   frontCamera.setBrightness(brightness);
@@ -441,7 +456,7 @@ bool Robot::turnAndAlignVisionNonblocking(bool clockwise, int color) {
   frontCamera.takeSnapshot(color == 0? *YELLOW_SIG : (color == 1? *RED_SIG : *BLUE_SIG));
 
   float mod = frontCamera.largestObject.exists? (CENTER_X-frontCamera.largestObject.centerX)/CENTER_X : (clockwise? -1 : 1);
-  if (fabs(mod) < 0.05) {
+  if (fabs(mod) < modThresh) {
     stopLeft();
     stopRight();
     return true;
@@ -471,7 +486,7 @@ void Robot::blindAndVisionTurn(float blindAngle, int color) {
     if (!blindTurnFinished) {
       blindTurnFinished = turnToAngleNonblocking(100, targetDist, false, reverse);
     } else if(!turnFinished) {
-      turnFinished = turnAndAlignVisionNonblocking(false, color);
+      turnFinished = turnAndAlignVisionNonblocking(false, color, 0.05);
     } else {
       stopLeft();
       stopRight();
@@ -484,12 +499,12 @@ void Robot::blindAndVisionTurn(float blindAngle, int color) {
 
 
 void Robot::openClaw() {
-  claw.rotateTo(MAX_CLAW, deg);
+  claw.rotateTo(MAX_CLAW, deg, 100, velocityUnits::pct);
   isClawOpen = true;
 }
 
 void Robot::closeClaw() {
-  claw.rotateTo(1000, deg);
+  claw.rotateTo(500, deg, 100, velocityUnits::pct);
   isClawOpen = false;
 }
 
@@ -509,6 +524,22 @@ void Robot::setRightVelocity(directionType d, double percent) {
   rightMotorE.spin(d, percent, pct);
 }
 
+void Robot::doCursedAutonStuff(int color){
+  turnToAngle(100, -40, false, forward);
+  turnAndAlignVision(true, color, 0.1);
+  goForwardVision(false, 20, 10, 40, color);
+  moveArmToPosition(0, 100);
+  openClaw();
+  driveStraight(20, 12);
+  closeClaw();
+  moveArmToPosition(3, 100);
+  setFrontClamp(true);
+  moveArmToPosition(5, 100);
+  openClaw();
+  moveArmToPosition(3, 100);
+  setFrontClamp(false);
+}
+
 void Robot::stopLeft() {
   leftMotorA.stop();
   leftMotorB.stop();
@@ -524,3 +555,4 @@ void Robot::stopRight() {
   rightMotorD.stop();
   rightMotorE.stop();
 }
+

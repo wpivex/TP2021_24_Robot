@@ -61,8 +61,8 @@ class Robot {
     bool turnToAngleNonblocking(float percent, float targetDist, bool PID, directionType direction);
     void driveCurved(directionType d, float dist, int delta);
     void goForwardVision(bool back, float speed, int forwardDistance, float pMod, int color);
-    void turnAndAlignVision(bool clockwise, int brightness);
-    bool turnAndAlignVisionNonblocking(bool clockwise, int color);
+    void turnAndAlignVision(bool clockwise, int brightness, float modThresh);
+    bool turnAndAlignVisionNonblocking(bool clockwise, int color, float modThresh);
     void blindAndVisionTurn(float blindAngle, int color);
     float distanceToDegrees(float dist);
     void openClaw();
@@ -82,6 +82,7 @@ class Robot {
     void goUltrasoundDistance(float dist);
     void stopLeft();
     void stopRight();
+    void doCursedAutonStuff(int color);
 
     enum DriveType { ARCADE, TANK };
     DriveType driveType;
@@ -89,13 +90,13 @@ class Robot {
   private:
 
     // fourbar, chainbar
-    double angles[7][2] = {{394.8, 1082.8}, //intaking (0)
-                          {1114, 671.2}, //intermediate 1 (1) (farther into robot)
+    double angles[7][2] = {{394, 1140}, //intaking (0)
+                          {1492.4, 682}, //intermediate 1 (1) (farther into robot)
                           {1060, 428}, //ring front (2)
-                          {1271, 327}, //ring middle (3)
+                          {1375.2, 563.2}, //ring middle (3)
                           {1446, -26}, //right back (4)
-                          {500, 220}, //place goal (5)
-                          {1177.2, 1378}}; //intermediate 2 (6) (farther out of robot)
+                          {509.2, 140}, //place goal (5) //{500, 220}
+                          {1339.2, 1777.6}}; //intermediate 2 (6) (farther out of robot)
 
     void driveTeleop();
     void pneumaticsTeleop();
@@ -105,15 +106,27 @@ class Robot {
     // State variables for arm teleop code
     bool isPressed;
     bool arrived;
-    int finalIndex, targetIndex;
+    int finalIndex, targetIndex, prevIndex;
     float fourStart, chainStart;
+    int armTimeout;
+
+    float ARM_TIMEOUT_MS = 2000; // 2 seconds for timeout per motion
 
     // State variables for claw
     float MAX_CLAW = -520;
     bool isClawOpen = false;
 
+
     // State variables for goal clamp
     time_t lastLeftPress = std::time(nullptr);
     time_t lastRightPress = std::time(nullptr);
     time_t lastClawPress = std::time(nullptr);
+
+    bool frontWasPressed = false;
+    bool backWasPressed = false;
+    bool clawWasPressed = false;
+
+    // time_t lastLeftPress = std::time(nullptr);
+    // time_t lastRightPress = std::time(nullptr);
+    // time_t lastClawPress = std::time(nullptr);
 };
