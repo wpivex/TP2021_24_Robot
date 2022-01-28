@@ -36,7 +36,7 @@ void mainAuto(void) {
   mainBot.blindAndVisionTurn(80, 0);
   
   mainBot.setFrontClamp(true);
-  mainBot.goForwardVision(false, 100, 12, 40, 0);
+  mainBot.goForwardVision(false, 100, 15, 40, 0);
   mainBot.setFrontClamp(false);
   wait(250, msec);
 
