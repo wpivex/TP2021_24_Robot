@@ -3,9 +3,12 @@
 
 // Motor ports Left: 1R, 2F, 3F,  20T Right: 12R, 11F, 13F
 // gear ratio is 60/36
-Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftMotorD(0), leftMotorE(0), rightMotorA(0), rightMotorB(0), 
+Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftMotorD(0), leftMotorE(0), rightMotorA(0), rightMotorB(0), 
   rightMotorC(0), rightMotorD(0), rightMotorE(0), fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0), claw(0), frontCamera(0), 
   backCamera(0) {
+
+  isSkills = _isSkills;
+
   leftMotorA = motor(PORT1, ratio18_1, true); 
   leftMotorB = motor(PORT2, ratio18_1, true);
   leftMotorC = motor(PORT3, ratio18_1, true);
@@ -42,8 +45,10 @@ Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftM
   claw.setBrake(hold);
 
   // Skills place goal position
-  // angles[5][0] = 50.8;
-  // angles[5][1] = -92.8;
+  if (isSkills) {
+    angles[5][0] = 50.8;
+    angles[5][1] = -92.8;
+  }
 }
 
 void Robot::driveTeleop() {
@@ -155,9 +160,20 @@ bool Robot::armMovement(bool isTeleop, float BASE_SPEED, bool isSkills) {
     if (targetIndex != finalIndex) { 
       // A bit of hardcoding to find next target required. Refer to graph on discord.
 
+
       // INTAKING = 0, INTER_INNER = 1, RING_FRONT = 2, ABOVE_MIDDLE = 3, RING_BACK = 4, PLACE_GOAL = 5, INTER_FRONT = 6, PLATFORM_LEVEL = 7
 
-      if (targetIndex == INTAKING && finalIndex > INTAKING) targetIndex = PLATFORM_LEVEL; // 0 -> 7 -> 6 -> 1 -> anything (always goes through intermediate point)
+      // If skills, starting at position 0 or 7, and going to 2/3/4, go directly there instead of through 1 and 6. If going to 5, go through 3 to 5
+      if (isSkills && targetIndex == INTAKING && finalIndex >= RING_FRONT && finalIndex <= PLACE_GOAL) {
+        targetIndex = PLATFORM_LEVEL;
+      }
+      else if (isSkills && targetIndex == PLATFORM_LEVEL && finalIndex >= RING_FRONT && finalIndex <= PLACE_GOAL) {
+        targetIndex = (finalIndex == PLACE_GOAL) ? ABOVE_MIDDLE : finalIndex;
+      } 
+      else if (isSkills && (targetIndex >= RING_FRONT && targetIndex <= PLACE_GOAL) && (finalIndex == INTAKING || finalIndex == PLATFORM_LEVEL)) {
+        targetIndex = (targetIndex == PLACE_GOAL) ? ABOVE_MIDDLE : PLATFORM_LEVEL;
+      }
+      else if (targetIndex == INTAKING && finalIndex > INTAKING) targetIndex = PLATFORM_LEVEL; // 0 -> 7 -> 6 -> 1 -> anything (always goes through intermediate point)
       else if (targetIndex == INTER_FRONT) targetIndex = (finalIndex == INTAKING ? PLATFORM_LEVEL : INTER_INNER);
       else if (targetIndex == PLATFORM_LEVEL) targetIndex = (finalIndex == INTAKING ? INTAKING : INTER_FRONT);
       else if (targetIndex == INTER_INNER) { // starting at intermediate point
@@ -249,7 +265,7 @@ void Robot::setBackClamp(bool intaking) {
 // Run every tick
 void Robot::teleop() {
   driveTeleop();
-  armMovement(true, 100);
+  armMovement(true, 100, isSkills);
   clawMovement();
   goalClamp();
   wait(20, msec);

@@ -6,10 +6,12 @@
 // ---- END VEXCODE CONFIGURED DEVICES ----
 #include "../include/robot.cpp"
 
+const bool IS_SKILLS = true;
+
 competition Competition;
 controller Controller1(controllerType::primary);
 
-Robot mainBot = Robot(&Controller1);
+Robot mainBot = Robot(&Controller1, IS_SKILLS);
 
 int mainTeleop() {
   mainBot.setBackClamp(false);
@@ -107,7 +109,7 @@ int main() {
 
   Competition.autonomous(autonomous);
   Competition.drivercontrol(userControl);
-  // testArmValues();
+  //testArmValues();
 
   while (true) {
     wait(20, msec);

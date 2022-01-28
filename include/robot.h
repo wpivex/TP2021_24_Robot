@@ -20,7 +20,7 @@ brain Brain;
 class Robot {
   public:
     // four drivebase motors will not be accessible for a while
-    Robot(controller* c);
+    Robot(controller* c, bool isSkills);
     motor leftMotorA;
     motor leftMotorB;
     motor leftMotorC;
@@ -77,7 +77,7 @@ class Robot {
     void teleop( void );
     void initArmAndClaw();
     void setArmDestination(Arm pos);
-    bool armMovement(bool isTeleop, float BASESPEED, bool isSkills);
+    bool armMovement(bool isTeleop, float BASESPEED, bool isSkills = false);
     void moveArmToPosition(Arm pos, float BASESPEED);
     void setLeftVelocity(directionType d, double percent);
     void setRightVelocity(directionType d, double percent);
@@ -89,6 +89,7 @@ class Robot {
     enum DriveType { ARCADE, TANK };
     DriveType driveType;
 
+
   private:
 
     // fourbar, chainbar
@@ -99,7 +100,7 @@ class Robot {
                           {1446, -26}, //ring back (4)
                           {509.2, 140}, //place goal (5)
                           {1339.2, 1777.6}, //intermediate 2 (6) (farther out of robot)
-                          {914.4, 1032}}; //score goal on platform (7)
+                          {870.4, 1180.2}}; //score goal on platform (7)
 
     void driveTeleop();
     void pneumaticsTeleop();
@@ -122,4 +123,6 @@ class Robot {
     bool frontWasPressed = false;
     bool backWasPressed = false;
     bool clawWasPressed = false;
+
+    bool isSkills;
 };
