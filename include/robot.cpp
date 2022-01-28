@@ -126,15 +126,15 @@ bool Robot::armMovement(bool isTeleop, float BASE_SPEED) {
     if (targetIndex != finalIndex) { 
       // A bit of hardcoding to find next target required. Refer to graph on discord.
 
-      if (targetIndex == INTAKING && finalIndex > INTAKING) targetIndex = INTER_INNER; // 0 -> 6 -> 1 -> anything (always goes through intermediate point)
-      else if (targetIndex == INTER_INNER) targetIndex = (finalIndex == INTAKING ? INTAKING : INTER_FRONT);
-      else if (targetIndex == INTER_FRONT) { // starting at intermediate point
+      if (targetIndex == INTAKING && finalIndex > INTAKING) targetIndex = INTER_FRONT; // 0 -> 6 -> 1 -> anything (always goes through intermediate point)
+      else if (targetIndex == INTER_FRONT) targetIndex = (finalIndex == INTAKING ? INTAKING : INTER_INNER);
+      else if (targetIndex == INTER_INNER) { // starting at intermediate point
         if (finalIndex == PLACE_GOAL) targetIndex = ABOVE_MIDDLE; // Must go 1 -> 3 -> 5;
-        else if (finalIndex == INTAKING) targetIndex = INTER_INNER;
+        else if (finalIndex == INTAKING) targetIndex = INTER_FRONT;
         else targetIndex = finalIndex; // For any other point, 1 -> x is fine
       }
       else if (targetIndex == RING_FRONT || targetIndex == ABOVE_MIDDLE || targetIndex == RING_BACK) {
-        if (finalIndex == INTAKING) targetIndex = INTER_FRONT; // For example, 3 -> 1 -> 0
+        if (finalIndex == INTAKING) targetIndex = INTER_INNER; // For example, 3 -> 1 -> 0
         else if (finalIndex == PLACE_GOAL) {
           if (targetIndex == ABOVE_MIDDLE) targetIndex = PLACE_GOAL; // 2 -> 3 -> 5
           else targetIndex = ABOVE_MIDDLE; // 3 -> 5
@@ -142,7 +142,7 @@ bool Robot::armMovement(bool isTeleop, float BASE_SPEED) {
           targetIndex = finalIndex;
         }
       }
-      else if (targetIndex == 5 && finalIndex == INTAKING) targetIndex = INTER_FRONT;
+      else if (targetIndex == 5 && finalIndex == INTAKING) targetIndex = INTER_INNER;
       else targetIndex = ABOVE_MIDDLE; // Runs if currently at 5. Can only go 5 -> 3
 
       // Store starting location of arm motors for purposes of velocity calculation. 

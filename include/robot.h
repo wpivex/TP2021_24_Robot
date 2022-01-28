@@ -53,7 +53,7 @@ class Robot {
     vision::signature* RED_SIG;
     vision::signature* BLUE_SIG;
 
-    enum Arm { INTAKING = 0, INTER_FRONT = 1, RING_FRONT = 2, ABOVE_MIDDLE = 3, RING_BACK = 4, PLACE_GOAL = 5, INTER_INNER = 6, PLATFORM_LEVEL = 7 };
+    enum Arm { INTAKING = 0, INTER_INNER = 1, RING_FRONT = 2, ABOVE_MIDDLE = 3, RING_BACK = 4, PLACE_GOAL = 5, INTER_FRONT = 6, PLATFORM_LEVEL = 7 };
 
     void driveStraight(float percent, float dist);
     void driveStraight(float percent, float dist, float accPercent);
@@ -98,8 +98,8 @@ class Robot {
                           {1375.2, 563.2}, //ring middle (3)
                           {1446, -26}, //ring back (4)
                           {509.2, 140}, //place goal (5)
-                          {1339.2, 1777.6}};//, //intermediate 2 (6) (farther out of robot)
-                          // {0, 0}}; //score goal on platform (7)
+                          {1339.2, 1777.6}, //intermediate 2 (6) (farther out of robot)
+                          {0, 0}}; //score goal on platform (7)
 
     void driveTeleop();
     void pneumaticsTeleop();
