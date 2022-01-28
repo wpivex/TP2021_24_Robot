@@ -16,7 +16,7 @@ int mainTeleop() {
   mainBot.setFrontClamp(false);
   while (true) {
     mainBot.teleop();
-    wait(100, msec);
+    wait(20, msec);
   }
   return 0;
 }
@@ -99,7 +99,7 @@ void testArmValues() {
     Brain.Screen.print("%f", mainBot.fourBarRight.position(degrees));
     Brain.Screen.setCursor(2, 1);
     Brain.Screen.print("%f", mainBot.chainBarRight.position(degrees));
-    wait(100, msec);
+    wait(20, msec);
   }
 }
 

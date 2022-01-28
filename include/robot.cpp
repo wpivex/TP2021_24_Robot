@@ -226,7 +226,7 @@ void Robot::teleop() {
   armMovement(true, 100);
   clawMovement();
   goalClamp();
-  wait(50, msec);
+  wait(20, msec);
 }
 
 // Non-blocking, no-action method that updates final destination. Call armMovement() afterwards
@@ -244,7 +244,7 @@ void Robot::moveArmToPosition(int pos, float BASE_SPEED) {
     if (armMovement(false, BASE_SPEED)) {
       break;
     }
-    wait(100,msec);
+    wait(20,msec);
   }
 }
 
@@ -282,7 +282,7 @@ void Robot::goUltrasoundDistance(float wallDist) {
     setLeftVelocity(forward, (0 - direction)*TURN_SCALAR + distDelta * FORWARD_SCALAR);
     setRightVelocity(forward, direction*TURN_SCALAR + distDelta * FORWARD_SCALAR);
 
-    wait(100, msec);
+    wait(20, msec);
   }
 
   leftDrive.stop();
@@ -331,7 +331,7 @@ void Robot::turnToAngle(float percent, float turnAngle, bool PID, directionType 
   
   while (true) {
     if(turnToAngleNonblocking(percent, targetDist, PID, direction)) break;
-    wait(100, msec);
+    wait(20, msec);
   }
   stopLeft();
   stopRight();
@@ -386,7 +386,7 @@ void Robot::driveCurved(directionType d, float dist, int delta) {
     Robot::robotController->Screen.clearScreen();
     Robot::robotController->Screen.print(currPos);
 
-    wait(100, msec);
+    wait(20, msec);
   }
   // stopLeft();
   // stopRight();
@@ -422,7 +422,7 @@ void Robot::goForwardVision(bool back, float speed, int forwardDistance, float p
       setRightVelocity(back? reverse : forward, baseSpeed+mod*(back?-1:1));
     }
 
-    wait(100, msec);
+    wait(20, msec);
     dist = fabs((leftMotorA.position(degrees) + rightMotorA.position(degrees)) / 2.0);
   }
   stopLeft();
@@ -439,7 +439,7 @@ void Robot::turnAndAlignVision(bool clockwise, int color, float modThresh) {
     if(turnAndAlignVisionNonblocking(clockwise, color, modThresh)) {
       return;
     }
-    wait(100, msec);
+    wait(20, msec);
   }
 
   stopLeft();
@@ -493,7 +493,7 @@ void Robot::blindAndVisionTurn(float blindAngle, int color) {
     }
    
     if (armFinished && turnFinished) break;
-    wait(100,msec);
+    wait(20, msec);
   }
 }
 
