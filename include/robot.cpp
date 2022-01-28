@@ -125,6 +125,9 @@ bool Robot::armMovement(bool isTeleop, float BASE_SPEED) {
       } else if (!isPressed && Robot::robotController->ButtonB.pressing()) {
           isPressed = true;
           finalIndex = PLACE_GOAL;
+      } else if (!isPressed && Robot::robotController->ButtonRight.pressing()) {
+          isPressed = true;
+          finalIndex = PLATFORM_LEVEL;
       } else {
         isPressed = false;
       }
@@ -517,7 +520,12 @@ void Robot::openClaw() {
 }
 
 void Robot::closeClaw() {
-  claw.rotateTo(500, deg, 100, velocityUnits::pct);
+  int clawTimeout = vex::timer::system();
+  while(true) {
+    if (vex::timer::system() - clawTimeout > 1000) { return; }
+    claw.rotateTo(500, deg, 100, velocityUnits::pct, false);
+    wait(20, msec);
+  }
   isClawOpen = false;
 }
 
@@ -538,12 +546,12 @@ void Robot::setRightVelocity(directionType d, double percent) {
 }
 
 void Robot::intakeOverGoal(int color) {
-  turnToAngle(100, -40, false, forward);
+  turnToAngle(100, -60, false, forward);
   turnAndAlignVision(true, color, 0.1);
   goForwardVision(false, 20, 10, 40, color);
   moveArmToPosition(INTAKING, 100);
   openClaw();
-  driveStraight(20, 12);
+  driveStraight(20, 8);
   closeClaw();
   moveArmToPosition(ABOVE_MIDDLE, 100);
   setFrontClamp(true);

@@ -27,26 +27,21 @@ void mainAuto(void) {
   int color = 1; //red is 1, blue is 2
   mainBot.setBackClamp(true);
   mainBot.driveCurved(reverse, 20, 55);
-  mainBot.goForwardVision(true, 100, 40, 30, 0);
+  mainBot.goForwardVision(true, 100, 30, 25, 0);
+  mainBot.driveStraight(100, -10);
   mainBot.setBackClamp(false);
   
-  wait(1000, msec);
-  //go back 2 ft
+  //Go back 2 ft
   mainBot.driveStraight(100, 24);
-  mainBot.blindAndVisionTurn(60, 0);
-
-  wait(1000, msec);
+  mainBot.blindAndVisionTurn(80, 0);
   
   mainBot.setFrontClamp(true);
-  mainBot.goForwardVision(false, 100, 30, 40, 0);
+  mainBot.goForwardVision(false, 100, 12, 40, 0);
   mainBot.setFrontClamp(false);
+  wait(250, msec);
 
-  wait(1000, msec);
   //Go back 2 ft
-  mainBot.driveStraight(100, -24);
-
-  wait(1000, msec);
-
+  mainBot.driveStraight(100, -15);
   mainBot.intakeOverGoal(color);
 }
 
@@ -58,7 +53,7 @@ void skills() {
   mainBot.closeClaw();
   mainBot.turnToAngle(100, 110, true, forward);
   mainBot.driveStraight(100, 30);
-  // put arm up
+  mainBot.moveArmToPosition(mainBot.PLATFORM_LEVEL, 100);
   mainBot.driveStraight(100, 10);
   mainBot.openClaw();
   mainBot.driveStraight(100, -10);
@@ -67,7 +62,7 @@ void skills() {
   mainBot.goForwardVision(true, 100, 40, 25, 0);
   mainBot.closeClaw();
   mainBot.turnToAngle(100, 160, true, forward);
-  // put arm up
+  mainBot.moveArmToPosition(mainBot.PLATFORM_LEVEL, 100);
   mainBot.driveCurved(forward, 40, 15);
   mainBot.openClaw();
   mainBot.driveStraight(100, 10);
@@ -77,7 +72,7 @@ void skills() {
   mainBot.goForwardVision(false, 100, 100, 25, color);
   mainBot.closeClaw();
   mainBot.turnToAngle(100, 180, true, forward);
-  // put arm up
+  mainBot.moveArmToPosition(mainBot.PLATFORM_LEVEL, 100);
   mainBot.driveStraight(100, 100);
   mainBot.openClaw();
   mainBot.driveStraight(100, -10);

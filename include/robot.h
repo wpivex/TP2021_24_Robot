@@ -99,7 +99,7 @@ class Robot {
                           {1446, -26}, //ring back (4)
                           {509.2, 140}, //place goal (5)
                           {1339.2, 1777.6}, //intermediate 2 (6) (farther out of robot)
-                          {1339.2, 1777.6}}; //score goal on platform (7)
+                          {914.4, 1032}}; //score goal on platform (7)
 
     void driveTeleop();
     void pneumaticsTeleop();
@@ -119,17 +119,7 @@ class Robot {
     float MAX_CLAW = -520;
     bool isClawOpen = false;
 
-
-    // State variables for goal clamp
-    time_t lastLeftPress = std::time(nullptr);
-    time_t lastRightPress = std::time(nullptr);
-    time_t lastClawPress = std::time(nullptr);
-
     bool frontWasPressed = false;
     bool backWasPressed = false;
     bool clawWasPressed = false;
-
-    // time_t lastLeftPress = std::time(nullptr);
-    // time_t lastRightPress = std::time(nullptr);
-    // time_t lastClawPress = std::time(nullptr);
 };
