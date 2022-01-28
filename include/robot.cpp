@@ -100,37 +100,51 @@ void Robot::initArmAndClaw() {
 
 // Run every tick. Call setArmDestination() before this
 // Return true when arm has reached set destination
-bool Robot::armMovement(bool isTeleop, float BASE_SPEED) {
+bool Robot::armMovement(bool isTeleop, float BASE_SPEED, bool isSkills) {
+
+
+  bool isTimeout = vex::timer::system() - armTimeout > ARM_TIMEOUT_MS;
+  if (isTimeout) {
+    finalIndex = prevIndex;
+  }
+
   // Code runs whenever arm reaches a node.
-  if (arrived) { 
+  if (arrived || isTimeout) { 
 
     // When arrived, prevIndex is finalIndex. But once a button is pressed, prevIndex stays the same number while finalIndex changes
-    prevIndex = finalIndex;
     armTimeout = vex::timer::system();
 
     // Getting inputs only work if in teleop mode. For auton, finalIndex will be set by function calls
-    if (isTeleop && targetIndex == finalIndex) { // Buttons only responsive if arm is not moving, and arm has rested in final destination
+    if (!isTimeout && isTeleop && targetIndex == finalIndex) { // Buttons only responsive if arm is not moving, and arm has rested in final destination
       if (!isPressed && Robot::robotController->ButtonDown.pressing()) {
           isPressed = true;
+          prevIndex = finalIndex;
           finalIndex = INTAKING;
       } else if (!isPressed && Robot::robotController->ButtonY.pressing()) {
           isPressed = true;
+          prevIndex = finalIndex;
           finalIndex = RING_FRONT;
       } else if (!isPressed && Robot::robotController->ButtonA.pressing()) {
           isPressed = true;
+          prevIndex = finalIndex;
           finalIndex = ABOVE_MIDDLE;
       } else if (!isPressed && Robot::robotController->ButtonX.pressing()) {
           isPressed = true;
+          prevIndex = finalIndex;
           finalIndex = RING_BACK;
       } else if (!isPressed && Robot::robotController->ButtonB.pressing()) {
           isPressed = true;
+          prevIndex = finalIndex;
           finalIndex = PLACE_GOAL;
       } else if (!isPressed && Robot::robotController->ButtonRight.pressing()) {
           isPressed = true;
+          prevIndex = finalIndex;
           finalIndex = PLATFORM_LEVEL;
       } else {
         isPressed = false;
       }
+
+
     }
 
     /*
@@ -141,7 +155,9 @@ bool Robot::armMovement(bool isTeleop, float BASE_SPEED) {
     if (targetIndex != finalIndex) { 
       // A bit of hardcoding to find next target required. Refer to graph on discord.
 
-      if (targetIndex == INTAKING && finalIndex > INTAKING) targetIndex = PLATFORM_LEVEL; // 0 -> 6 -> 1 -> anything (always goes through intermediate point)
+      // INTAKING = 0, INTER_INNER = 1, RING_FRONT = 2, ABOVE_MIDDLE = 3, RING_BACK = 4, PLACE_GOAL = 5, INTER_FRONT = 6, PLATFORM_LEVEL = 7
+
+      if (targetIndex == INTAKING && finalIndex > INTAKING) targetIndex = PLATFORM_LEVEL; // 0 -> 7 -> 6 -> 1 -> anything (always goes through intermediate point)
       else if (targetIndex == INTER_FRONT) targetIndex = (finalIndex == INTAKING ? PLATFORM_LEVEL : INTER_INNER);
       else if (targetIndex == PLATFORM_LEVEL) targetIndex = (finalIndex == INTAKING ? INTAKING : INTER_FRONT);
       else if (targetIndex == INTER_INNER) { // starting at intermediate point
@@ -166,17 +182,11 @@ bool Robot::armMovement(bool isTeleop, float BASE_SPEED) {
       fourStart = fourBarLeft.position(degrees);
       chainStart = chainBarLeft.position(degrees);
     }
-  } else {
-    // not arrived
-
-    if (vex::timer::system() - armTimeout > ARM_TIMEOUT_MS) {
-      targetIndex = prevIndex;
-    }
   }
 
   Brain.Screen.clearScreen();
   Brain.Screen.setCursor(1, 1);
-  Brain.Screen.print("%d %d %d %d", targetIndex, finalIndex, arrived ? 1 : 0, vex::timer::system() - armTimeout);
+  Brain.Screen.print("%d %d %d %d %d", targetIndex, finalIndex, prevIndex, arrived ? 1 : 0, vex::timer::system() - armTimeout);
 
   float MARGIN = 10; // margin of error for if robot arm is in vicinity of target node
   //float BASE_SPEED = 30; // Base speed of arm

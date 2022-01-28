@@ -77,7 +77,7 @@ class Robot {
     void teleop( void );
     void initArmAndClaw();
     void setArmDestination(Arm pos);
-    bool armMovement(bool isTeleop, float BASESPEED);
+    bool armMovement(bool isTeleop, float BASESPEED, bool isSkills);
     void moveArmToPosition(Arm pos, float BASESPEED);
     void setLeftVelocity(directionType d, double percent);
     void setRightVelocity(directionType d, double percent);
