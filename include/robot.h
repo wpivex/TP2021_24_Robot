@@ -53,6 +53,8 @@ class Robot {
     vision::signature* RED_SIG;
     vision::signature* BLUE_SIG;
 
+    enum Arm { INTAKING = 0, INTER_FRONT = 1, RING_FRONT = 2, ABOVE_MIDDLE = 3, RING_BACK = 4, PLACE_GOAL = 5, INTER_INNER = 6, PLATFORM_LEVEL = 7 };
+
     void driveStraight(float percent, float dist);
     void driveStraight(float percent, float dist, float accPercent);
     void driveTimed(float percent, float driveTime);
@@ -74,15 +76,15 @@ class Robot {
     void userControl( void );
     void teleop( void );
     void initArmAndClaw();
-    void setArmDestination(int pos);
+    void setArmDestination(Arm pos);
     bool armMovement(bool isTeleop, float BASESPEED);
-    void moveArmToPosition(int pos, float BASESPEED);
+    void moveArmToPosition(Arm pos, float BASESPEED);
     void setLeftVelocity(directionType d, double percent);
     void setRightVelocity(directionType d, double percent);
     void goUltrasoundDistance(float dist);
     void stopLeft();
     void stopRight();
-    void doCursedAutonStuff(int color);
+    void intakeOverGoal(int color);
 
     enum DriveType { ARCADE, TANK };
     DriveType driveType;
@@ -90,13 +92,14 @@ class Robot {
   private:
 
     // fourbar, chainbar
-    double angles[7][2] = {{394, 1140}, //intaking (0)
+    double angles[8][2] = {{394, 1140}, //intaking (0)
                           {1492.4, 682}, //intermediate 1 (1) (farther into robot)
                           {1060, 428}, //ring front (2)
                           {1375.2, 563.2}, //ring middle (3)
-                          {1446, -26}, //right back (4)
-                          {509.2, 140}, //place goal (5) //{500, 220}
-                          {1339.2, 1777.6}}; //intermediate 2 (6) (farther out of robot)
+                          {1446, -26}, //ring back (4)
+                          {509.2, 140}, //place goal (5)
+                          {1339.2, 1777.6}};//, //intermediate 2 (6) (farther out of robot)
+                          // {0, 0}}; //score goal on platform (7)
 
     void driveTeleop();
     void pneumaticsTeleop();
@@ -106,7 +109,7 @@ class Robot {
     // State variables for arm teleop code
     bool isPressed;
     bool arrived;
-    int finalIndex, targetIndex, prevIndex;
+    Arm finalIndex, targetIndex, prevIndex;
     float fourStart, chainStart;
     int armTimeout;
 

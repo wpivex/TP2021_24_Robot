@@ -77,8 +77,8 @@ void Robot::initArmAndClaw() {
   isPressed = false; // Button presses register only at the first frame pressed. Also disallows concurrent presses from different buttons.
   arrived = true;
 
-  finalIndex = 2; // The immediate default destination from the starting point is to Ring Front (index 2)
-  prevIndex = 2;
+  finalIndex = RING_FRONT; // The immediate default destination from the starting point is to Ring Front (index 2)
+  prevIndex = RING_FRONT;
   targetIndex = finalIndex;
 
   // Store starting location of arm motors for purposes of velocity calculation
@@ -100,19 +100,19 @@ bool Robot::armMovement(bool isTeleop, float BASE_SPEED) {
     if (isTeleop && targetIndex == finalIndex) { // Buttons only responsive if arm is not moving, and arm has rested in final destination
       if (!isPressed && Robot::robotController->ButtonDown.pressing()) {
           isPressed = true;
-          finalIndex = 0;
+          finalIndex = INTAKING;
       } else if (!isPressed && Robot::robotController->ButtonY.pressing()) {
           isPressed = true;
-          finalIndex = 2;
+          finalIndex = RING_FRONT;
       } else if (!isPressed && Robot::robotController->ButtonA.pressing()) {
           isPressed = true;
-          finalIndex = 3;
+          finalIndex = ABOVE_MIDDLE;
       } else if (!isPressed && Robot::robotController->ButtonX.pressing()) {
           isPressed = true;
-          finalIndex = 4;
+          finalIndex = RING_BACK;
       } else if (!isPressed && Robot::robotController->ButtonB.pressing()) {
           isPressed = true;
-          finalIndex = 5;
+          finalIndex = PLACE_GOAL;
       } else {
         isPressed = false;
       }
@@ -126,24 +126,24 @@ bool Robot::armMovement(bool isTeleop, float BASE_SPEED) {
     if (targetIndex != finalIndex) { 
       // A bit of hardcoding to find next target required. Refer to graph on discord.
 
-      if (targetIndex == 0 && finalIndex > 0) targetIndex = 6; // 0 -> 6 -> 1 -> anything (always goes through intermediate point)
-      else if (targetIndex == 6) targetIndex = (finalIndex == 0 ? 0 : 1);
-      else if (targetIndex == 1) { // starting at intermediate point
-        if (finalIndex == 5) targetIndex = 3; // Must go 1 -> 3 -> 5;
-        else if (finalIndex == 0) targetIndex = 6;
+      if (targetIndex == INTAKING && finalIndex > INTAKING) targetIndex = INTER_INNER; // 0 -> 6 -> 1 -> anything (always goes through intermediate point)
+      else if (targetIndex == INTER_INNER) targetIndex = (finalIndex == INTAKING ? INTAKING : INTER_FRONT);
+      else if (targetIndex == INTER_FRONT) { // starting at intermediate point
+        if (finalIndex == PLACE_GOAL) targetIndex = ABOVE_MIDDLE; // Must go 1 -> 3 -> 5;
+        else if (finalIndex == INTAKING) targetIndex = INTER_INNER;
         else targetIndex = finalIndex; // For any other point, 1 -> x is fine
       }
-      else if (targetIndex == 2 || targetIndex == 3 || targetIndex == 4) {
-        if (finalIndex == 0) targetIndex = 1; // For example, 3 -> 1 -> 0
-        else if (finalIndex == 5) {
-          if (targetIndex == 3) targetIndex = 5; // 2 -> 3 -> 5
-          else targetIndex = 3; // 3 -> 5
+      else if (targetIndex == RING_FRONT || targetIndex == ABOVE_MIDDLE || targetIndex == RING_BACK) {
+        if (finalIndex == INTAKING) targetIndex = INTER_FRONT; // For example, 3 -> 1 -> 0
+        else if (finalIndex == PLACE_GOAL) {
+          if (targetIndex == ABOVE_MIDDLE) targetIndex = PLACE_GOAL; // 2 -> 3 -> 5
+          else targetIndex = ABOVE_MIDDLE; // 3 -> 5
         } else { // This means finalIndex is 1,2,3, or 4. Just go directly to it
           targetIndex = finalIndex;
         }
       }
-      else if (targetIndex == 5 && finalIndex == 0) targetIndex = 1;
-      else targetIndex = 3; // Runs if currently at 5. Can only go 5 -> 3
+      else if (targetIndex == 5 && finalIndex == INTAKING) targetIndex = INTER_FRONT;
+      else targetIndex = ABOVE_MIDDLE; // Runs if currently at 5. Can only go 5 -> 3
 
       // Store starting location of arm motors for purposes of velocity calculation. 
       // We must do this every time we change our target index, and arm is about to move to a new node
@@ -230,13 +230,13 @@ void Robot::teleop() {
 }
 
 // Non-blocking, no-action method that updates final destination. Call armMovement() afterwards
-void Robot::setArmDestination(int pos) {
+void Robot::setArmDestination(Arm pos) {
   arrived = true;
   finalIndex = pos;
 }
 
 // Blocking method to move arm to location
-void Robot::moveArmToPosition(int pos, float BASE_SPEED) {
+void Robot::moveArmToPosition(Arm pos, float BASE_SPEED) {
 
   setArmDestination(pos);
 
@@ -475,7 +475,7 @@ void Robot::blindAndVisionTurn(float blindAngle, int color) {
   bool turnFinished = false;
   bool blindTurnFinished = false;
 
-  setArmDestination(2);
+  setArmDestination(RING_FRONT);
   int targetDist = getTurnAngle(blindAngle);
 
   while (true) {
@@ -524,19 +524,19 @@ void Robot::setRightVelocity(directionType d, double percent) {
   rightMotorE.spin(d, percent, pct);
 }
 
-void Robot::doCursedAutonStuff(int color){
+void Robot::intakeOverGoal(int color) {
   turnToAngle(100, -40, false, forward);
   turnAndAlignVision(true, color, 0.1);
   goForwardVision(false, 20, 10, 40, color);
-  moveArmToPosition(0, 100);
+  moveArmToPosition(INTAKING, 100);
   openClaw();
   driveStraight(20, 12);
   closeClaw();
-  moveArmToPosition(3, 100);
+  moveArmToPosition(ABOVE_MIDDLE, 100);
   setFrontClamp(true);
-  moveArmToPosition(5, 100);
+  moveArmToPosition(PLACE_GOAL, 100);
   openClaw();
-  moveArmToPosition(3, 100);
+  moveArmToPosition(ABOVE_MIDDLE, 100);
   setFrontClamp(false);
 }
 

@@ -47,7 +47,7 @@ void mainAuto(void) {
 
   wait(1000, msec);
 
-  mainBot.doCursedAutonStuff(color);
+  mainBot.intakeOverGoal(color);
 }
 
 void skills() {
