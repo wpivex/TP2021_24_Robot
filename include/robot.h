@@ -99,7 +99,7 @@ class Robot {
                           {1446, -26}, //ring back (4)
                           {509.2, 140}, //place goal (5)
                           {1339.2, 1777.6}, //intermediate 2 (6) (farther out of robot)
-                          {0, 0}}; //score goal on platform (7)
+                          {1339.2, 1777.6}}; //score goal on platform (7)
 
     void driveTeleop();
     void pneumaticsTeleop();
@@ -113,7 +113,7 @@ class Robot {
     float fourStart, chainStart;
     int armTimeout;
 
-    float ARM_TIMEOUT_MS = 2000; // 2 seconds for timeout per motion
+    float ARM_TIMEOUT_MS = 3000; // 3 seconds for timeout per motion
 
     // State variables for claw
     float MAX_CLAW = -520;

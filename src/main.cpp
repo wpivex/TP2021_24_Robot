@@ -14,7 +14,7 @@ Robot mainBot = Robot(&Controller1);
 int mainTeleop() {
   mainBot.setBackClamp(false);
   mainBot.setFrontClamp(false);
-  while (true) {
+  while (true) {  
     mainBot.teleop();
     wait(20, msec);
   }

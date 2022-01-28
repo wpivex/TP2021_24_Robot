@@ -40,6 +40,10 @@ Robot::Robot(controller* c) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftM
   chainBarLeft.setBrake(hold);
   chainBarRight.setBrake(hold);
   claw.setBrake(hold);
+
+  // Skills place goal position
+  // angles[5][0] = 50.8;
+  // angles[5][1] = -92.8;
 }
 
 void Robot::driveTeleop() {
@@ -67,6 +71,14 @@ void Robot::driveTeleop() {
 }
 
 void Robot::initArmAndClaw() {
+  // chainBarLeft.setBrake(coast);
+  // chainBarRight.setBrake(coast);
+  // fourBarLeft.spin(reverse, 10, pct);
+  // fourBarRight.spin(reverse, 10, pct);
+  // wait(1, sec);
+  // chainBarLeft.setBrake(hold);
+  // chainBarRight.setBrake(hold);
+
   // Reset position of motors
   chainBarLeft.resetPosition();
   fourBarLeft.resetPosition();
@@ -126,8 +138,9 @@ bool Robot::armMovement(bool isTeleop, float BASE_SPEED) {
     if (targetIndex != finalIndex) { 
       // A bit of hardcoding to find next target required. Refer to graph on discord.
 
-      if (targetIndex == INTAKING && finalIndex > INTAKING) targetIndex = INTER_FRONT; // 0 -> 6 -> 1 -> anything (always goes through intermediate point)
-      else if (targetIndex == INTER_FRONT) targetIndex = (finalIndex == INTAKING ? INTAKING : INTER_INNER);
+      if (targetIndex == INTAKING && finalIndex > INTAKING) targetIndex = PLATFORM_LEVEL; // 0 -> 6 -> 1 -> anything (always goes through intermediate point)
+      else if (targetIndex == INTER_FRONT) targetIndex = (finalIndex == INTAKING ? PLATFORM_LEVEL : INTER_INNER);
+      else if (targetIndex == PLATFORM_LEVEL) targetIndex = (finalIndex == INTAKING ? INTAKING : INTER_FRONT);
       else if (targetIndex == INTER_INNER) { // starting at intermediate point
         if (finalIndex == PLACE_GOAL) targetIndex = ABOVE_MIDDLE; // Must go 1 -> 3 -> 5;
         else if (finalIndex == INTAKING) targetIndex = INTER_FRONT;
