@@ -38,7 +38,7 @@ void mainAuto(void) {
   mainBot.blindAndVisionTurn(80, 0);
   
   mainBot.setFrontClamp(true);
-  mainBot.goForwardVision(false, 100, 15, 40, 0);
+  mainBot.goForwardVision(false, 100, 20, 40, 0);
   mainBot.setFrontClamp(false);
   wait(250, msec);
 
@@ -50,26 +50,29 @@ void mainAuto(void) {
 void skills() {
   int color = 1;
   mainBot.openClaw();
-  mainBot.driveCurved(forward, 20, 55);
-  mainBot.goForwardVision(false, 100, 40, 25, 0);
-  mainBot.closeClaw();
-  mainBot.turnToAngle(100, 110, true, forward);
-  mainBot.driveStraight(100, 30);
   mainBot.moveArmToPosition(mainBot.PLATFORM_LEVEL, 100);
-  mainBot.driveStraight(100, 10);
+  mainBot.driveCurved(forward, 20, -54);
+  mainBot.goForwardVision(false, 30, 20, 10, 0);
+  mainBot.moveArmToPosition(mainBot.INTAKING, 100);
+  mainBot.driveStraight(20, 5);
+  mainBot.closeClaw();
+  mainBot.moveArmToPosition(mainBot.PLATFORM_LEVEL, 100);
+  mainBot.turnToAngle(100, 120, true, reverse);
+  mainBot.driveStraight(100, 30);
   mainBot.openClaw();
   mainBot.driveStraight(100, -10);
-  mainBot.turnAndAlignVision(false, 0, 40);
+  mainBot.turnToAngle(100, 130, true, forward);
+  mainBot.turnAndAlignVision(false, 0, 40, false);
   mainBot.openClaw();
-  mainBot.goForwardVision(true, 100, 40, 25, 0);
+  mainBot.goForwardVision(false, 100, 40, 25, 0);
   mainBot.closeClaw();
-  mainBot.turnToAngle(100, 160, true, forward);
+  mainBot.turnToAngle(100, -130, true, forward);
   mainBot.moveArmToPosition(mainBot.PLATFORM_LEVEL, 100);
   mainBot.driveCurved(forward, 40, 15);
   mainBot.openClaw();
-  mainBot.driveStraight(100, 10);
-  mainBot.turnToAngle(100, 110, true, forward);
-  mainBot.turnAndAlignVision(true, color, 40);
+  mainBot.driveStraight(100, -10);
+  mainBot.turnToAngle(100, -110, true, forward);
+  mainBot.turnAndAlignVision(true, color, 40, false);
   mainBot.openClaw();
   mainBot.goForwardVision(false, 100, 100, 25, color);
   mainBot.closeClaw();
@@ -82,7 +85,7 @@ void skills() {
 
 int tetherAuto(void) { return 0; }
 
-void autonomous() { thread auto1(mainAuto); }
+void autonomous() { thread auto1(skills); }
 
 void testArmValues() {
   mainBot.fourBarLeft.setBrake(coast);

@@ -108,7 +108,7 @@ void Robot::initArmAndClaw() {
 bool Robot::armMovement(bool isTeleop, float BASE_SPEED, bool isSkills) {
 
 
-  bool isTimeout = vex::timer::system() - armTimeout > ARM_TIMEOUT_MS;
+  bool isTimeout = isSkills && vex::timer::system() - armTimeout > ARM_TIMEOUT_MS;
   if (isTimeout) {
     finalIndex = prevIndex;
   }
@@ -471,14 +471,15 @@ void Robot::goForwardVision(bool back, float speed, int forwardDistance, float p
   stopRight();
 }
 
-void Robot::turnAndAlignVision(bool clockwise, int color, float modThresh) {
+void Robot::turnAndAlignVision(bool clockwise, int color, float modThresh, bool returnImmediate) {
   leftMotorA.resetPosition();
   rightMotorA.resetPosition();
   frontCamera = vision(PORT9, 50, color == 0? *YELLOW_SIG : (color == 1? *RED_SIG : *BLUE_SIG));
+  visionLastMod = 2;
 
   while(true) {
     // If completed, exit
-    if(turnAndAlignVisionNonblocking(clockwise, color, modThresh)) {
+    if(turnAndAlignVisionNonblocking(clockwise, color, modThresh, returnImmediate)) {
       return;
     }
     wait(20, msec);
@@ -489,7 +490,7 @@ void Robot::turnAndAlignVision(bool clockwise, int color, float modThresh) {
 }
 
 //Brightness: 13 for yellow, 22 for red, 40 for blue
-bool Robot::turnAndAlignVisionNonblocking(bool clockwise, int color, float modThresh) {
+bool Robot::turnAndAlignVisionNonblocking(bool clockwise, int color, float modThresh, bool returnImmediate) {
   // hopefully this is a constant-time call, if not will have to refactor
   int brightness = color == 0? 13 : (color == 1? 22 : 40);
   frontCamera.setBrightness(brightness);
@@ -498,7 +499,7 @@ bool Robot::turnAndAlignVisionNonblocking(bool clockwise, int color, float modTh
   frontCamera.takeSnapshot(color == 0? *YELLOW_SIG : (color == 1? *RED_SIG : *BLUE_SIG));
 
   float mod = frontCamera.largestObject.exists? (CENTER_X-frontCamera.largestObject.centerX)/CENTER_X : (clockwise? -1 : 1);
-  if (fabs(mod) < modThresh) {
+  if ((returnImmediate && mod * visionLastMod <= 0 && visionLastMod != 2) || fabs(mod) < modThresh) {
     stopLeft();
     stopRight();
     return true;
@@ -507,6 +508,7 @@ bool Robot::turnAndAlignVisionNonblocking(bool clockwise, int color, float modTh
   float speed = 15 * (mod > 0? 1 : -1);// + 15 * cbrt(mod);
   setLeftVelocity(reverse, speed);
   setRightVelocity(forward, speed);
+  visionLastMod = mod;
 
   return false;
 }
@@ -528,7 +530,7 @@ void Robot::blindAndVisionTurn(float blindAngle, int color) {
     if (!blindTurnFinished) {
       blindTurnFinished = turnToAngleNonblocking(100, targetDist, false, reverse);
     } else if(!turnFinished) {
-      turnFinished = turnAndAlignVisionNonblocking(false, color, 0.05);
+      turnFinished = turnAndAlignVisionNonblocking(false, color, 0.025, false);
     } else {
       stopLeft();
       stopRight();
@@ -555,6 +557,22 @@ void Robot::closeClaw() {
   isClawOpen = false;
 }
 
+void Robot::intakeOverGoal(int color) {
+  turnToAngle(100, -60, false, forward);
+  turnAndAlignVision(true, color, 0.1, true);
+  goForwardVision(false, 20, 10, 40, color);
+  moveArmToPosition(INTAKING, 100);
+  openClaw();
+  driveStraight(20, 8);
+  closeClaw();
+  moveArmToPosition(ABOVE_MIDDLE, 100);
+  setFrontClamp(true);
+  moveArmToPosition(PLACE_GOAL, 100);
+  openClaw();
+  moveArmToPosition(ABOVE_MIDDLE, 100);
+  setFrontClamp(false);
+}
+
 void Robot::setLeftVelocity(directionType d, double percent) {
   leftMotorA.spin(d, percent, pct);
   leftMotorB.spin(d, percent, pct);
@@ -569,22 +587,6 @@ void Robot::setRightVelocity(directionType d, double percent) {
   rightMotorC.spin(d, percent, pct);
   rightMotorD.spin(d, percent, pct);
   rightMotorE.spin(d, percent, pct);
-}
-
-void Robot::intakeOverGoal(int color) {
-  turnToAngle(100, -60, false, forward);
-  turnAndAlignVision(true, color, 0.1);
-  goForwardVision(false, 20, 10, 40, color);
-  moveArmToPosition(INTAKING, 100);
-  openClaw();
-  driveStraight(20, 8);
-  closeClaw();
-  moveArmToPosition(ABOVE_MIDDLE, 100);
-  setFrontClamp(true);
-  moveArmToPosition(PLACE_GOAL, 100);
-  openClaw();
-  moveArmToPosition(ABOVE_MIDDLE, 100);
-  setFrontClamp(false);
 }
 
 void Robot::stopLeft() {

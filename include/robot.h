@@ -63,8 +63,8 @@ class Robot {
     bool turnToAngleNonblocking(float percent, float targetDist, bool PID, directionType direction);
     void driveCurved(directionType d, float dist, int delta);
     void goForwardVision(bool back, float speed, int forwardDistance, float pMod, int color);
-    void turnAndAlignVision(bool clockwise, int brightness, float modThresh);
-    bool turnAndAlignVisionNonblocking(bool clockwise, int color, float modThresh);
+    void turnAndAlignVision(bool clockwise, int brightness, float modThresh, bool returnImmediate);
+    bool turnAndAlignVisionNonblocking(bool clockwise, int color, float modThresh, bool returnImmediate);
     void blindAndVisionTurn(float blindAngle, int color);
     float distanceToDegrees(float dist);
     void openClaw();
@@ -125,4 +125,5 @@ class Robot {
     bool clawWasPressed = false;
 
     bool isSkills;
+    float visionLastMod = 2;
 };
