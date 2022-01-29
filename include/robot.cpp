@@ -29,9 +29,9 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
   chainBarRight = motor(PORT18, ratio18_1, true);
   claw = motor(PORT19, ratio18_1, false);
 
-  YELLOW_SIG = new vision::signature (1, 1897, 2275, 2086, -3439, -3007, -3223, 11, 0);
-  RED_SIG = new vision::signature (1, 6351, 10581, 8466, -1267, -537, -902, 3.300, 0);
-  BLUE_SIG = new vision::signature (1, -2505, -1535, -2020, 6483, 9831, 8157, 2.500, 0);
+  YELLOW_SIG = new vision::signature (1, 1849, 2799, 2324, -3795, -3261, -3528, 2.500, 0);
+  RED_SIG = new vision::signature (1, 5767, 9395, 7581, -685, 1, -342, 3.000, 0);
+  BLUE_SIG = new vision::signature (1, -2675, -1975, -2324, 8191, 14043, 11116, 3.000, 0);
 
   driveType = ARCADE;
   robotController = c; 
@@ -94,7 +94,7 @@ void Robot::initArmAndClaw() {
   isPressed = false; // Button presses register only at the first frame pressed. Also disallows concurrent presses from different buttons.
   arrived = true;
 
-  finalIndex = RING_FRONT; // The immediate default destination from the starting point is to Ring Front (index 2)
+  finalIndex = ABOVE_MIDDLE; // The immediate default destination from the starting point is to Ring Front (index 2)
   prevIndex = RING_FRONT;
   targetIndex = finalIndex;
 
@@ -105,10 +105,10 @@ void Robot::initArmAndClaw() {
 
 // Run every tick. Call setArmDestination() before this
 // Return true when arm has reached set destination
-bool Robot::armMovement(bool isTeleop, float BASE_SPEED, bool isSkills) {
+bool Robot::armMovement(bool isTeleop, float BASE_SPEED) {
 
 
-  bool isTimeout = isSkills && vex::timer::system() - armTimeout > ARM_TIMEOUT_MS;
+  bool isTimeout = isTeleop && vex::timer::system() - armTimeout > ARM_TIMEOUT_MS;
   if (isTimeout) {
     finalIndex = prevIndex;
   }
@@ -265,7 +265,7 @@ void Robot::setBackClamp(bool intaking) {
 // Run every tick
 void Robot::teleop() {
   driveTeleop();
-  armMovement(true, 100, isSkills);
+  armMovement(true, 100);
   clawMovement();
   goalClamp();
   wait(20, msec);
@@ -444,7 +444,7 @@ void Robot::goForwardVision(bool back, float speed, int forwardDistance, float p
   frontCamera = vision(PORT9, 50, color == 0? *YELLOW_SIG : (color == 1? *RED_SIG : *BLUE_SIG));
   frontCamera = vision(PORT9, 50, color == 0? *YELLOW_SIG : (color == 1? *RED_SIG : *BLUE_SIG));
   vision *camera = back? &backCamera : &frontCamera;
-  int brightness = color == 0? 13 : (color == 1? 22 : 40);
+  int brightness = color == 0? 13 : (color == 1? 56 : 67);
   camera->setBrightness(brightness);
   
   leftMotorA.resetPosition();
@@ -492,7 +492,7 @@ void Robot::turnAndAlignVision(bool clockwise, int color, float modThresh, bool 
 //Brightness: 13 for yellow, 22 for red, 40 for blue
 bool Robot::turnAndAlignVisionNonblocking(bool clockwise, int color, float modThresh, bool returnImmediate) {
   // hopefully this is a constant-time call, if not will have to refactor
-  int brightness = color == 0? 13 : (color == 1? 22 : 40);
+  int brightness = color == 0? 13 : (color == 1? 56 : 67);
   frontCamera.setBrightness(brightness);
   // frontCamera.setSignature(color == 0? *YELLOW_SIG : (color == 1? *RED_SIG : *BLUE_SIG));
 
@@ -560,10 +560,10 @@ void Robot::closeClaw() {
 void Robot::intakeOverGoal(int color) {
   turnToAngle(100, -60, false, forward);
   turnAndAlignVision(true, color, 0.1, true);
-  goForwardVision(false, 20, 10, 40, color);
+  goForwardVision(false, 20, 5, 40, color);
   moveArmToPosition(INTAKING, 100);
   openClaw();
-  driveStraight(20, 8);
+  driveStraight(20, 13);
   closeClaw();
   moveArmToPosition(ABOVE_MIDDLE, 100);
   setFrontClamp(true);
