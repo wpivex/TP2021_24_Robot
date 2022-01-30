@@ -96,7 +96,7 @@ void skills() {
   mainBot.moveArmToPosition(mainBot.ABOVE_MIDDLE, 100);
 
   // Place right goal
-  mainBot.turnToAngle(100, -150, true, forward);
+  mainBot.turnToAngle(100, -147, true, forward);
   mainBot.driveStraight(20, 24);
   mainBot.moveArmToPosition(mainBot.PLATFORM_LEVEL, 65);
   mainBot.openClaw();
@@ -115,8 +115,8 @@ void skills() {
   // Place red goal
   mainBot.turnToAngle(100, 180, true, forward);
   mainBot.driveStraight(100, 35);
-  mainBot.turnToAngle(100, 45, true, forward);
-  mainBot.driveStraight(25, 40);
+  mainBot.turnToAngle(100, 50, true, forward);
+  mainBot.driveStraight(25, 35);
   mainBot.moveArmToPosition(mainBot.PLATFORM_LEVEL, 65);
   mainBot.openClaw();
 
@@ -124,15 +124,15 @@ void skills() {
   mainBot.driveStraight(100, -5);
   mainBot.turnToAngle(100, 90, true, reverse);
   mainBot.turnAndAlignVision(true, 2, 0.1, false);
-  mainBot.goForwardVision(false, 100, 20, 25, 2);
+  mainBot.goForwardVision(false, 100, 25, 35, 2);
   mainBot.moveArmToPosition(mainBot.INTAKING, 100);
-  mainBot.driveStraight(20, 10);
+  mainBot.driveStraight(20, 5);
   mainBot.closeClaw();
 
   // Run with blue goal
-  mainBot.moveArmToPosition(mainBot.PLACE_GOAL, 100);
-  mainBot.turnToAngle(100, 90, true, reverse);
-  mainBot.driveStraight(100, 30);
+  mainBot.moveArmToPosition(mainBot.ABOVE_MIDDLE, 100);
+  mainBot.turnToAngle(100, 100, true, reverse);
+  mainBot.driveStraight(100, 50);
 }
 
 int tetherAuto(void) { return 0; }
