@@ -97,6 +97,7 @@ void Robot::initArmAndClaw() {
   finalIndex = isSkills? INTAKING: ABOVE_MIDDLE; // The immediate default destination from the starting point is to Ring Front (index 2)
   prevIndex = RING_FRONT;
   targetIndex = isSkills ? ABOVE_MIDDLE : finalIndex;
+  if (isSkills) openClaw();
 
   // Store starting location of arm motors for purposes of velocity calculation
   fourStart = fourBarLeft.position(degrees);
