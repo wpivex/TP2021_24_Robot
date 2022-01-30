@@ -94,9 +94,9 @@ void Robot::initArmAndClaw() {
   isPressed = false; // Button presses register only at the first frame pressed. Also disallows concurrent presses from different buttons.
   arrived = true;
 
-  finalIndex = ABOVE_MIDDLE; // The immediate default destination from the starting point is to Ring Front (index 2)
+  finalIndex = isSkills? INTAKING: ABOVE_MIDDLE; // The immediate default destination from the starting point is to Ring Front (index 2)
   prevIndex = RING_FRONT;
-  targetIndex = finalIndex;
+  targetIndex = isSkills ? ABOVE_MIDDLE : finalIndex;
 
   // Store starting location of arm motors for purposes of velocity calculation
   fourStart = fourBarLeft.position(degrees);
