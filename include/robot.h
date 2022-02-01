@@ -50,19 +50,14 @@ class Robot {
 
     controller* robotController;
 
+    inertial gyroSensor;
+
     vision::signature* YELLOW_SIG;
     vision::signature* RED_SIG;
     vision::signature* BLUE_SIG;
 
     enum Arm { INTAKING = 0, INTER_INNER = 1, RING_FRONT = 2, ABOVE_MIDDLE = 3, RING_BACK = 4, PLACE_GOAL = 5, INTER_FRONT = 6, PLATFORM_LEVEL = 7 };
 
-    void driveStraight(float percent, float dist);
-    void driveStraight(float percent, float dist, float accPercent);
-    void driveTimed(float percent, float driveTime);
-    int getTurnAngle(float turnAngle);
-    void turnToAngle(float percent, float turnAngle, bool PID, directionType direction);
-    bool turnToAngleNonblocking(float percent, float targetDist, bool PID, directionType direction);
-    void driveCurved(directionType d, float dist, int delta);
 
     void smartDrive(float distInches, float speed, directionType left, directionType right, int timeout, float slowDownInches, 
       float turnPercent, bool stopAfter, std::function<bool(void)> func);
@@ -78,6 +73,9 @@ class Robot {
     digital_in* limitSwitch, std::function<bool(void)> func = {});
     void alignToGoalVision(Goal goal, bool clockwise, directionType cameraDirection, int timeout);
 
+    void driveStraightGyro(float distInches, float speed, directionType dir, int timeout, float slowDownInches, std::function<bool(void)> func);
+    void turnToAngleGyro(bool clockwise, float angleDegrees, float maxSpeed, int startSlowDownDegrees,
+int timeout, std::function<bool(void)> func = {});
 
     void goForwardVision(bool back, float speed, int forwardDistance, float pMod, int color);
     void turnAndAlignVision(bool clockwise, int brightness, float modThresh, bool returnImmediate);
@@ -92,10 +90,6 @@ class Robot {
 
     void userControl( void );
     void teleop( void );
-    void initArmAndClaw();
-    void setArmDestination(Arm pos);
-    bool armMovement(bool isTeleop, float BASESPEED);
-    void moveArmToPosition(Arm pos, float BASESPEED);
     void setLeftVelocity(directionType d, double percent);
     void setRightVelocity(directionType d, double percent);
     void goUltrasoundDistance(float dist);

@@ -16,10 +16,13 @@ const struct Goal BLUE = {67, vex::vision::signature (1, -2675, -1975, -2324, 81
 
 
 static const float VISION_CENTER_X = 157.0;
+static const float DIST_BETEWEEN_WHEELS = 15.0;
 
-static int distanceToDegrees(float dist) {
-  return dist * 360 / 2 / M_PI / (4 / 2) * 15 / 14; // 4 in diameter wheels
+
+static int distanceToDegrees(float distInches) {
+  return distInches * 360 / 2 / M_PI / (4 / 2) * 15 / 14; // 4 in diameter wheels
 }
+
 
 // return distance in inches if wanting to turn turnAngle degrees
 static int getTurnAngle(float turnAngle) {

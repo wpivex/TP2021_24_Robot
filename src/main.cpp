@@ -25,6 +25,8 @@ int mainTeleop() {
 
 void userControl(void) { task controlLoop1(mainTeleop); }
 
+/*
+
 void middleFirst(void) {
   int color = 1; //red is 1, blue is 2
   mainBot.setBackClamp(true);
@@ -137,6 +139,8 @@ void skills() {
 
 int tetherAuto(void) { return 0; }
 
+
+
 void autonomous() { thread auto1(skills); }
 
 void testArmValues() {
@@ -155,15 +159,24 @@ void testArmValues() {
   }
 }
 
+*/
+
+void vcatTesting() {
+  mainBot.driveStraight(30, 50, directionType dir, int timeout, float slowDownInches);
+}
+
 int main() {
-  mainBot.setBackClamp(false);
-  mainBot.setFrontClamp(false);
+
+  vcatTesting();
+
+  //mainBot.setBackClamp(false);
+  //mainBot.setFrontClamp(false);
 
   // Reset location of arm
-  mainBot.initArmAndClaw();
+  //mainBot.initArmAndClaw();
 
-  Competition.autonomous(autonomous);
-  Competition.drivercontrol(userControl);
+  //Competition.autonomous(autonomous);
+  //Competition.drivercontrol(userControl);
   //testArmValues();
 
   while (true) {

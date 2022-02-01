@@ -1,5 +1,4 @@
 #include "../include/ArmGraph.h"
-#include "Buttons.h"
 
 
 ArmGraph::ArmGraph(Buttons* bh) {
