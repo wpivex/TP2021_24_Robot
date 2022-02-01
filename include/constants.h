@@ -18,17 +18,24 @@ const struct Goal BLUE = {67, vex::vision::signature (1, -2675, -1975, -2324, 81
 static const float VISION_CENTER_X = 157.0;
 static const float DIST_BETEWEEN_WHEELS = 15.0;
 
+static const float FORWARD_MIN_SPEED = 20; // the robot approaches this speed at the end of going forward
+static const float TURN_MIN_SPEED = 20; // the robot approaches this speed at the end of turning
 
-static int distanceToDegrees(float distInches) {
+
+static inline float distanceToDegrees(float distInches) {
   return distInches * 360 / 2 / M_PI / (4 / 2) * 15 / 14; // 4 in diameter wheels
 }
 
 
 // return distance in inches if wanting to turn turnAngle degrees
-static int getTurnAngle(float turnAngle) {
+static inline float getTurnAngle(float turnAngle) {
 
   return fabs(distanceToDegrees(turnAngle / 360 * 2 * M_PI * (15.125 / 2)));
+}
 
+// timeout in seconds
+static inline bool isTimeout(int startTime, int timeout) {
+  return timeout != -1 && vex::timer::system() >= startTime + timeout*1000;
 }
 
 #endif

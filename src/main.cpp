@@ -162,12 +162,23 @@ void testArmValues() {
 */
 
 void vcatTesting() {
-  mainBot.driveStraight(30, 50, directionType dir, int timeout, float slowDownInches);
+  //mainBot.driveStraight(50, 80, forward, 20, 10);
+  //mainBot.driveStraightGyro(80, 80, forward, 20, 10);
+  mainBot.turnToAngleGyro(true, 90, 40, 70, 20);
+}
+
+void logGyro() {
+  mainBot.gyroSensor.resetRotation();
+  while (true) {
+    mainBot.log("%f", mainBot.gyroSensor.rotation());
+    wait(20, msec);
+  }
 }
 
 int main() {
 
   vcatTesting();
+  //logGyro();
 
   //mainBot.setBackClamp(false);
   //mainBot.setFrontClamp(false);
@@ -178,7 +189,6 @@ int main() {
   //Competition.autonomous(autonomous);
   //Competition.drivercontrol(userControl);
   //testArmValues();
-
   while (true) {
     wait(20, msec);
   }

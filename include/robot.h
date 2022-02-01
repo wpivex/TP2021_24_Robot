@@ -14,6 +14,7 @@
 #include <stdio.h>      /* printf, fgets */
 #include <unistd.h>
 #include <constants.h>
+#include <stdarg.h>
 
 using namespace vex;
 brain Brain;
@@ -73,15 +74,12 @@ class Robot {
     digital_in* limitSwitch, std::function<bool(void)> func = {});
     void alignToGoalVision(Goal goal, bool clockwise, directionType cameraDirection, int timeout);
 
-    void driveStraightGyro(float distInches, float speed, directionType dir, int timeout, float slowDownInches, std::function<bool(void)> func);
+    void driveStraightGyro(float distInches, float speed, directionType dir, int timeout, float slowDownInches,
+    std::function<bool(void)> func = {});
     void turnToAngleGyro(bool clockwise, float angleDegrees, float maxSpeed, int startSlowDownDegrees,
 int timeout, std::function<bool(void)> func = {});
 
-    void goForwardVision(bool back, float speed, int forwardDistance, float pMod, int color);
-    void turnAndAlignVision(bool clockwise, int brightness, float modThresh, bool returnImmediate);
-    bool turnAndAlignVisionNonblocking(bool clockwise, int color, float modThresh, bool returnImmediate);
-    void blindAndVisionTurn(float blindAngle, int color);
-    float distanceToDegrees(float dist);
+
     void openClaw();
     void closeClaw();
     void goalClamp();
@@ -99,6 +97,9 @@ int timeout, std::function<bool(void)> func = {});
 
     enum DriveType { ARCADE, TANK };
     DriveType driveType;
+
+    template <class ... Args>
+    void log(const char *format, Args ... args);
 
 
   private:
