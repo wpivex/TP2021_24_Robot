@@ -13,6 +13,7 @@
 #include <math.h>       /* sin */
 #include <stdio.h>      /* printf, fgets */
 #include <unistd.h>
+#include <constants.h>
 
 using namespace vex;
 brain Brain;
@@ -62,6 +63,22 @@ class Robot {
     void turnToAngle(float percent, float turnAngle, bool PID, directionType direction);
     bool turnToAngleNonblocking(float percent, float targetDist, bool PID, directionType direction);
     void driveCurved(directionType d, float dist, int delta);
+
+    void smartDrive(float distInches, float speed, directionType left, directionType right, int timeout, float slowDownInches, 
+      float turnPercent, bool stopAfter, std::function<bool(void)> func);
+    void driveTurn(float degrees, float speed, bool isClockwise, int timeout, float slowDownInches = 10, 
+      bool stopAfter = true, std::function<bool(void)> func = {});
+    void driveCurved(float distInches, float speed, directionType dir, int timeout, 
+      float slowDownInches, float turnPercent, bool stopAfter = true, std::function<bool(void)> func = {});
+    void driveStraight(float distInches, float speed, directionType dir, int timeout, 
+      float slowDownInches, bool stopAfter = true, std::function<bool(void)> func = {});
+    void driveStraightTimed(float speed, directionType dir, int timeMs, bool stopAfter, std::function<bool(void)> func = {});
+
+    void goForwardVision(Goal goal, float speed, directionType dir, float maximumDistance, int timeout, 
+    digital_in* limitSwitch, std::function<bool(void)> func = {});
+    void alignToGoalVision(Goal goal, bool clockwise, directionType cameraDirection, int timeout);
+
+
     void goForwardVision(bool back, float speed, int forwardDistance, float pMod, int color);
     void turnAndAlignVision(bool clockwise, int brightness, float modThresh, bool returnImmediate);
     bool turnAndAlignVisionNonblocking(bool clockwise, int color, float modThresh, bool returnImmediate);
@@ -92,29 +109,14 @@ class Robot {
 
   private:
 
-    // fourbar, chainbar
-    double angles[8][2] = {{394, 1140}, //intaking (0)
-                          {1492.4, 682}, //intermediate 1 (1) (farther into robot)
-                          {1060, 428}, //ring front (2)
-                          {1375.2, 563.2}, //ring middle (3)
-                          {1446, -26}, //ring back (4)
-                          {509.2, 140}, //place goal (5)
-                          {1339.2, 1777.6}, //intermediate 2 (6) (farther out of robot)
-                          {870.4, 1180.2}}; //score goal on platform (7)
 
     void driveTeleop();
     void pneumaticsTeleop();
     void clawMovement();
     
 
-    // State variables for arm teleop code
-    bool isPressed;
-    bool arrived;
-    Arm finalIndex, targetIndex, prevIndex;
     float fourStart, chainStart;
-    int armTimeout;
 
-    float ARM_TIMEOUT_MS = 3000; // 3 seconds for timeout per motion
 
     // State variables for claw
     float MAX_CLAW = -520;
@@ -125,5 +127,4 @@ class Robot {
     bool clawWasPressed = false;
 
     bool isSkills;
-    float visionLastMod = 2;
 };
