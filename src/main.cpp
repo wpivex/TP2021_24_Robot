@@ -147,12 +147,27 @@ void testArmValues() {
   mainBot.chainBarLeft.setBrake(coast);
   mainBot.chainBarRight.setBrake(coast);
 
+  bool wasAPressed = false;
+  bool wasClawPressed = false;
+  bool isClawOpen = false;
   while (true) {
-    Brain.Screen.clearScreen();
-    Brain.Screen.setCursor(1, 1);
-    Brain.Screen.print("%f", mainBot.fourBarRight.position(degrees));
-    Brain.Screen.setCursor(2, 1);
-    Brain.Screen.print("%f", mainBot.chainBarRight.position(degrees));
+    if (Controller1.ButtonUp.pressing()) {
+      if(!wasClawPressed) {
+        mainBot.claw.rotateTo(isClawOpen? 500 : -520, deg, 100, velocityUnits::pct, false);
+        isClawOpen = !isClawOpen;
+      }
+      wasClawPressed = true;
+    } else {
+      wasClawPressed = false;
+    }
+    if (Controller1.ButtonA.pressing()) {
+      if(!wasAPressed) {
+        printf("{%f, %f},\n",  mainBot.fourBarRight.position(degrees), mainBot.chainBarRight.position(degrees));
+      }
+      wasAPressed = true;
+    } else {
+      wasAPressed = false;
+    }
     wait(20, msec);
   }
 }
@@ -177,9 +192,10 @@ void logGyro() {
 
 int main() {
 
-  mainBot.callibrateGyro();  
+  // mainBot.callibrateGyro(); 
+  testArmValues(); 
 
-  vcatTesting();
+  // vcatTesting();
 
   // logGyro();
 

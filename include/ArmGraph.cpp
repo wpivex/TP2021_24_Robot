@@ -12,29 +12,40 @@ void ArmGraph::init(Buttons* bh, vex::motor chainL, vex::motor chainR, vex::moto
   fourBarRight = fourR;
   chainBarLeft = chainL;
   chainBarRight = chainR;
+  bool isSkills = false;
 
   // Initialize teleop button mappings. Add / remove / change mappings as needed.
   log("a");
   std::fill_n(teleopMap, NUM_NODES, -1);
   log("b");
-  teleopMap[Buttons::DOWN] = INTAKING;
-  teleopMap[Buttons::Y] = RING_FRONT;
-  teleopMap[Buttons::A] = ABOVE_MIDDLE;
-  teleopMap[Buttons::X] = RING_BACK;
-  teleopMap[Buttons::B] = PLACE_GOAL;
-  teleopMap[Buttons::RIGHT] = PLATFORM_LEVEL;
+  teleopMap[Buttons::DOWN] = INTAKE;
+  // teleopMap[Buttons::Y] = RING_FRONT;
+  teleopMap[Buttons::A] = ABOVE_GOAL;
+  teleopMap[Buttons::X] = BACK_RING;
+  teleopMap[Buttons::B] = isSkills? PLACE_GOAL_NO_YELLOW : PLACE_GOAL_WITH_YELLOW; //needs to toggle
+  teleopMap[Buttons::RIGHT] = PLATFORM_PLACE;
 
   log("c");
-  addEdge(START, ABOVE_MIDDLE);
-  addEdge(START, PLACE_GOAL);
-  addEdge(START, RING_BACK);
-  addEdge(PLACE_GOAL, ABOVE_MIDDLE);
-  addEdge(PLACE_GOAL, RING_BACK);
-  addEdge(ABOVE_MIDDLE, PLATFORM_LEVEL);
-  addEdge(ABOVE_MIDDLE, RING_BACK);
-  addEdge(PLATFORM_LEVEL, INTAKING);
-  //addEdge(INTER_FRONT, INTER_INNER);
-  //addEdge(INTER_INNER, ABOVE_MIDDLE);
+  addEdge(START, ABOVE_GOAL);
+  addEdge(START, INTER_ABOVE_ALLIANCE);
+  addEdge(START, PLACE_GOAL_NO_YELLOW);
+  addEdge(START, PLACE_GOAL_WITH_YELLOW);
+  addEdge(START, ABOVE_GOAL);
+  addEdge(START, BACK_RING);
+  addEdge(INTER_ABOVE_ALLIANCE, PLACE_GOAL_NO_YELLOW);
+  addEdge(INTER_ABOVE_ALLIANCE, PLACE_GOAL_WITH_YELLOW);
+  addEdge(INTER_ABOVE_ALLIANCE, ABOVE_GOAL);
+  addEdge(INTER_ABOVE_ALLIANCE, BACK_RING);
+  addEdge(ABOVE_GOAL, PLATFORM_PLACE);
+  addEdge(ABOVE_GOAL, BACK_RING);
+  addEdge(PLATFORM_PLACE, INTAKE);
+  
+  addEdge(PLATFORM_PLACE, INTAKE_TO_PLACE_INTER_1);
+  addEdge(INTAKE_TO_PLACE_INTER_1, INTAKE_TO_PLACE_INTER_2);
+  addEdge(INTAKE_TO_PLACE_INTER_2, INTAKE_TO_PLACE_INTER_3);
+  addEdge(INTAKE_TO_PLACE_INTER_3, INTAKE_TO_PLACE_INTER_4);
+  addEdge(INTAKE_TO_PLACE_INTER_4, INTAKE_TO_PLACE_INTER_5);
+  addEdge(INTAKE_TO_PLACE_INTER_5, PLACE_GOAL_WITH_YELLOW);
 
   log("d");
 

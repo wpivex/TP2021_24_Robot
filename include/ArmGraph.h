@@ -13,7 +13,7 @@
 using namespace vex;
 
 
-const int NUM_NODES = 9;
+const int NUM_NODES = 13;
 
 class ArmGraph {
 
@@ -33,17 +33,23 @@ class ArmGraph {
 
     float fourStart, chainStart;
 
-    enum Arm { INTAKING = 0, INTER_INNER = 1, RING_FRONT = 2, ABOVE_MIDDLE = 3, RING_BACK = 4, PLACE_GOAL = 5, INTER_FRONT = 6, PLATFORM_LEVEL = 7, START = 8 };
+    enum Arm { START = 0, PLACE_GOAL_NO_YELLOW = 1, INTER_ABOVE_ALLIANCE = 2, ABOVE_GOAL = 3, BACK_RING = 4, PLATFORM_PLACE = 5, INTAKE = 6,
+      PLACE_GOAL_WITH_YELLOW = 7, INTAKE_TO_PLACE_INTER_1 = 8, INTAKE_TO_PLACE_INTER_2 = 9, INTAKE_TO_PLACE_INTER_3 = 10, INTAKE_TO_PLACE_INTER_4 = 11,
+      INTAKE_TO_PLACE_INTER_5 = 12 };
     
-    double angles[NUM_NODES][2] = {{394, 1140}, //intaking (0)
-                          {1492.4, 682}, //intermediate 1 (1) (farther into robot)
-                          {1060, 428}, //ring front (2)
-                          {1375.2, 563.2}, //ring middle (3)
-                          {1446, -26}, //ring back (4)
-                          {509.2, 140}, //place goal (5)
-                          {1339.2, 1777.6}, //intermediate 2 (6) (farther out of robot)
-                          {870.4, 1180.2}, //score goal on platform (7)
-                          {0, 0}}; //starting position
+    double angles[NUM_NODES][2] = {{0, 0}, //START
+      {44.8, -180.8}, //PLACE_GOAL_NO_YELLOW
+      {145.6, -121.6}, //INTER_ABOVE_ALLIANCE
+      {539.2, -121.2}, //ABOVE_GOAL
+      {1307.2, 39.2}, //BACK_RING
+      {727.2, 1106.4}, //PLATFORM_PLACE
+      {356.4, 920.4}, //INTAKE
+      {380.8, 76.8}, //PLACE_GOAL_WITH_YELLOW
+      {871.6, 1156.8}, //INTAKE_TO_PLACE_INTER_1
+      {1065.6, 1243.2}, //INTAKE_TO_PLACE_INTER_2
+      {1344.0, 1242.8}, //INTAKE_TO_PLACE_INTER_3
+      {1436.8, 719.2}, //INTAKE_TO_PLACE_INTER_4
+      {455.2, 152.4}}; //INTAKE_TO_PLACE_INTER_5
 
     int teleopMap [NUM_NODES];
 
