@@ -162,7 +162,7 @@ void testArmValues() {
 void vcatTesting() {
   //mainBot.driveStraight(50, 80, forward, 20, 10);
   //mainBot.driveStraightGyro(80, 80, forward, 20, 10);
-  mainBot.turnToAngleGyro(true, 90, 40, 70, 20);
+  mainBot.turnToAngleGyro(true, 90, 100, 10, 20);
 }
 
 void autonomous() { thread auto1(vcatTesting); }
@@ -177,20 +177,20 @@ void logGyro() {
 
 int main() {
 
-  // vcatTesting();
-  //logGyro();
+  mainBot.callibrateGyro();  
+
+  vcatTesting();
+
+  // logGyro();
 
   //mainBot.setBackClamp(false);
   //mainBot.setFrontClamp(false);
 
   // Reset location of arm
-  log("wtf");
-  mainBot.arm.initArmPosition();
+  // mainBot.arm.initArmPosition();
 
-  log("asdf");
-
-  Competition.autonomous(autonomous);
-  Competition.drivercontrol(userControl);
+  // Competition.autonomous(autonomous);
+  // Competition.drivercontrol(userControl);
   //testArmValues();
   while (true) {
     wait(20, msec);

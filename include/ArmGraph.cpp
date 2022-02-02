@@ -26,12 +26,15 @@ void ArmGraph::init(Buttons* bh, vex::motor chainL, vex::motor chainR, vex::moto
 
   log("c");
   addEdge(START, ABOVE_MIDDLE);
-  addEdge(INTAKING, PLACE_GOAL);
-  addEdge(PLACE_GOAL, INTER_FRONT);
-  addEdge(INTER_FRONT, INTER_INNER);
-  addEdge(INTER_INNER, ABOVE_MIDDLE);
-  addEdge(ABOVE_MIDDLE, PLACE_GOAL);
+  addEdge(START, PLACE_GOAL);
+  addEdge(START, RING_BACK);
+  addEdge(PLACE_GOAL, ABOVE_MIDDLE);
+  addEdge(PLACE_GOAL, RING_BACK);
+  addEdge(ABOVE_MIDDLE, PLATFORM_LEVEL);
   addEdge(ABOVE_MIDDLE, RING_BACK);
+  addEdge(PLATFORM_LEVEL, INTAKING);
+  //addEdge(INTER_FRONT, INTER_INNER);
+  //addEdge(INTER_INNER, ABOVE_MIDDLE);
 
   log("d");
 
@@ -65,6 +68,7 @@ void ArmGraph::armMovement() {
     if (b != Buttons::NONE && teleopMap[b] != -1) {
         generateShortestPath(targetNode, teleopMap[b]);
       targetArmPathIndex = 1;
+      targetNode = armPath.at(targetArmPathIndex);
     }
 
     // not at final destination, so since it's arrived at the current one, set the new target destination to the next on the route
@@ -79,10 +83,10 @@ void ArmGraph::armMovement() {
   
 
 
-  //log("%d %d", targetNode, arrived ? 1 : 0);
+  log("%d %d  |  %s", targetNode, arrived ? 1 : 0, pathStr.c_str());
 
   float MARGIN = 10; // margin of error for if robot arm is in vicinity of target node
-  float BASE_SPEED = 30; // Base speed of arm
+  float BASE_SPEED = 100; // Base speed of arm
 
   // Execute motor rotation towards target!
   int chainBarVelocity = BASE_SPEED * fabs((chainStart - angles[targetNode][1])/(fourStart - angles[targetNode][0]));
@@ -197,8 +201,8 @@ void ArmGraph::generateShortestPath(int start, int dest) {
       crawl = pred[crawl];
   }
 
-  std::reverse(armPath.begin(),armPath.end()); 
+  std::reverse(armPath.begin(),armPath.end());
+  pathStr = getPathStr();
 
-  log(getPathStr().c_str());
 
 }

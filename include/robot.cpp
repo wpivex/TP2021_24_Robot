@@ -43,8 +43,6 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
   chainBarRight.setBrake(hold);
   claw.setBrake(hold);
 
-  log("bye");
-
 }
 
 void Robot::driveTeleop() {
@@ -121,7 +119,10 @@ void Robot::teleop() {
   wait(20, msec);
 }
 
-
+void Robot::callibrateGyro() {
+  gyroSensor.calibrate();
+  while (gyroSensor.isCalibrating()) wait(20, msec);
+}
 
 
 
@@ -278,15 +279,16 @@ int timeout, std::function<bool(void)> func) {
 
   float speed;
 
+  log("initing");
   int startTime = vex::timer::system();
   leftMotorA.resetPosition();
   rightMotorA.resetPosition();
   gyroSensor.resetRotation();
+  log("about to loop");
 
   float currDegrees = 0; // always positive with abs
 
   while (currDegrees < angleDegrees && !isTimeout(startTime, timeout)) {
-
     // if there is a concurrent function to run, run it
     if (func) {
       if (func()) {
@@ -295,7 +297,7 @@ int timeout, std::function<bool(void)> func) {
       }
     }
 
-    currDegrees = float(gyroSensor.rotation());
+    currDegrees = fabs(gyroSensor.rotation());
     if (currDegrees < startSlowDownDegrees) {
       // before hitting theshhold, speed is constant at starting speed
       speed = maxSpeed;
@@ -304,8 +306,10 @@ int timeout, std::function<bool(void)> func) {
       speed = TURN_MIN_SPEED + delta * (speed - TURN_MIN_SPEED);
     }
 
+    log("%f %f", speed, currDegrees);
     setLeftVelocity(clockwise ? forward : reverse, speed);
     setRightVelocity(clockwise ? reverse : forward, speed);
+    wait(20, msec);
   }
 
   stopLeft();

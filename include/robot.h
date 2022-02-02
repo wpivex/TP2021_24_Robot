@@ -74,6 +74,7 @@ class Robot {
     void turnToAngleGyro(bool clockwise, float angleDegrees, float maxSpeed, int startSlowDownDegrees,
 int timeout, std::function<bool(void)> func = {});
 
+    void callibrateGyro();
 
     void openClaw();
     void closeClaw();

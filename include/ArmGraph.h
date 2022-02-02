@@ -55,6 +55,7 @@ class ArmGraph {
     std::vector<int> armPath;
     int targetArmPathIndex = 0;
     int targetNode = 2;
+    std::string pathStr;
 
     bool arrived = true;
 
