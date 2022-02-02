@@ -3,6 +3,8 @@
 
 #include "vex.h"
 
+vex::brain Brain;
+
 struct Goal {
   int bright;
   vex::vision::signature sig;
@@ -36,6 +38,16 @@ static inline float getTurnAngle(float turnAngle) {
 // timeout in seconds
 static inline bool isTimeout(int startTime, int timeout) {
   return timeout != -1 && vex::timer::system() >= startTime + timeout*1000;
+}
+
+// log output to brain display the way you would with printf
+template <class ... Args>
+static inline void log(const char *format, Args ... args) {
+
+  Brain.Screen.clearScreen();
+  Brain.Screen.setCursor(1, 1);
+  Brain.Screen.print(format, args...);
+
 }
 
 #endif

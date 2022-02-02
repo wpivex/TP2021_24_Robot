@@ -6,7 +6,9 @@
 // gear ratio is 60/36
 Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftMotorD(0), leftMotorE(0), rightMotorA(0), rightMotorB(0), 
   rightMotorC(0), rightMotorD(0), rightMotorE(0), fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0), claw(0), frontCamera(0), 
-  backCamera(0), gyroSensor(PORT16)/*, arm(), buttons(c)*/ {
+  backCamera(0), gyroSensor(PORT16), arm(), buttons(c) {
+
+    log("hello");
 
   isSkills = _isSkills;
 
@@ -30,18 +32,18 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
   chainBarRight = motor(PORT18, ratio18_1, true);
   claw = motor(PORT19, ratio18_1, false);
 
-  //arm.init(&buttons, chainBarLeft, chainBarRight, fourBarLeft, fourBarRight);
+  arm.init(&buttons, chainBarLeft, chainBarRight, fourBarLeft, fourBarRight);
 
   driveType = ARCADE;
   robotController = c; 
-  frontCamera = vision(PORT9, 50, *YELLOW_SIG);
-  backCamera = vision(PORT8, 50, *YELLOW_SIG);
 
   fourBarLeft.setBrake(hold);
   fourBarRight.setBrake(hold);
   chainBarLeft.setBrake(hold);
   chainBarRight.setBrake(hold);
   claw.setBrake(hold);
+
+  log("bye");
 
 }
 
@@ -113,7 +115,7 @@ void Robot::setBackClamp(bool intaking) {
 // Run every tick
 void Robot::teleop() {
   driveTeleop();
-  // arm.armMovement();
+  arm.armMovement();
   clawMovement();
   goalClamp();
   wait(20, msec);
@@ -455,14 +457,4 @@ void Robot::stopRight() {
   rightMotorC.stop();
   rightMotorD.stop();
   rightMotorE.stop();
-}
-
-// log output to brain display the way you would with printf
-template <class ... Args>
-void Robot::log(const char *format, Args ... args) {
-
-  Brain.Screen.clearScreen();
-  Brain.Screen.setCursor(1, 1);
-  Brain.Screen.print(format, args...);
-
 }

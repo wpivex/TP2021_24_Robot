@@ -1,7 +1,7 @@
 #pragma once
-// #include "ArmGraph.h"
-// #include "ArmGraph.cpp"
-// #include "Buttons.cpp"
+#include "ArmGraph.h"
+#include "ArmGraph.cpp"
+#include "Buttons.cpp"
 #include <string>
 #include <fstream>
 #include <vector>
@@ -15,13 +15,8 @@
 #include <math.h>       /* sin */
 #include <stdio.h>      /* printf, fgets */
 #include <unistd.h>
-#include <constants.h>
+#include "constants.h"
 #include <stdarg.h>
-#include "vex.h"
-
-
-using namespace vex;
-brain Brain;
 
 class Robot {
   public:
@@ -57,12 +52,8 @@ class Robot {
 
     inertial gyroSensor;
 
-    vision::signature* YELLOW_SIG;
-    vision::signature* RED_SIG;
-    vision::signature* BLUE_SIG;
-
-    //ArmGraph arm;
-    //Buttons buttons;
+    ArmGraph arm;
+    Buttons buttons;
 
     void smartDrive(float distInches, float speed, directionType left, directionType right, int timeout, float slowDownInches, 
       float turnPercent, bool stopAfter, std::function<bool(void)> func);
@@ -101,9 +92,6 @@ int timeout, std::function<bool(void)> func = {});
 
     enum DriveType { ARCADE, TANK };
     DriveType driveType;
-
-    template <class ... Args>
-    void log(const char *format, Args ... args);
 
 
   private:

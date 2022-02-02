@@ -3,9 +3,15 @@
 #include "Buttons.h"
 #include <vector>
 #include <list>
+#include <string>
+#include <cstring>
+#include <stdio.h>
+#include <stdlib.h>
+#include <algorithm>
+#include "constants.h"
 
 using namespace vex;
-brain Brain;
+
 
 const int NUM_NODES = 9;
 
@@ -27,7 +33,7 @@ class ArmGraph {
 
     float fourStart, chainStart;
 
-    enum Arm { INTAKING = 0, INTER_INNER = 1, RING_FRONT = 2, ABOVE_MIDDLE = 3, RING_BACK = 4, PLACE_GOAL = 5, INTER_FRONT = 6, PLATFORM_LEVEL = 7, START = 9 };
+    enum Arm { INTAKING = 0, INTER_INNER = 1, RING_FRONT = 2, ABOVE_MIDDLE = 3, RING_BACK = 4, PLACE_GOAL = 5, INTER_FRONT = 6, PLATFORM_LEVEL = 7, START = 8 };
     
     double angles[NUM_NODES][2] = {{394, 1140}, //intaking (0)
                           {1492.4, 682}, //intermediate 1 (1) (farther into robot)
@@ -52,6 +58,7 @@ class ArmGraph {
 
     bool arrived = true;
 
+    std::string getPathStr();
     bool BFS(std::vector<int> adj[], int src, int dest, int pred[]);
 
 };

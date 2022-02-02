@@ -18,7 +18,7 @@ int mainTeleop() {
   mainBot.setBackClamp(false);
   mainBot.setFrontClamp(false);
   while (true) {
-    //mainBot.teleop();
+    mainBot.teleop();
     wait(20, msec);
   }
   return 0;
@@ -139,10 +139,7 @@ void skills() {
 }
 
 int tetherAuto(void) { return 0; }
-
-
-
-void autonomous() { thread auto1(skills); }
+*/
 
 void testArmValues() {
   mainBot.fourBarLeft.setBrake(coast);
@@ -160,7 +157,7 @@ void testArmValues() {
   }
 }
 
-*/
+
 
 void vcatTesting() {
   //mainBot.driveStraight(50, 80, forward, 20, 10);
@@ -168,10 +165,12 @@ void vcatTesting() {
   mainBot.turnToAngleGyro(true, 90, 40, 70, 20);
 }
 
+void autonomous() { thread auto1(vcatTesting); }
+
 void logGyro() {
   mainBot.gyroSensor.resetRotation();
   while (true) {
-    mainBot.log("%f", mainBot.gyroSensor.rotation());
+    log("%f", mainBot.gyroSensor.rotation());
     wait(20, msec);
   }
 }
@@ -185,9 +184,12 @@ int main() {
   //mainBot.setFrontClamp(false);
 
   // Reset location of arm
-  // mainBot.arm.initArmPosition();
+  log("wtf");
+  mainBot.arm.initArmPosition();
 
-  // Competition.autonomous(autonomous);
+  log("asdf");
+
+  Competition.autonomous(autonomous);
   Competition.drivercontrol(userControl);
   //testArmValues();
   while (true) {

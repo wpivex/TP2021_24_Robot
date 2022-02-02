@@ -14,13 +14,29 @@ void ArmGraph::init(Buttons* bh, vex::motor chainL, vex::motor chainR, vex::moto
   chainBarRight = chainR;
 
   // Initialize teleop button mappings. Add / remove / change mappings as needed.
+  log("a");
   std::fill_n(teleopMap, NUM_NODES, -1);
+  log("b");
   teleopMap[Buttons::DOWN] = INTAKING;
   teleopMap[Buttons::Y] = RING_FRONT;
   teleopMap[Buttons::A] = ABOVE_MIDDLE;
   teleopMap[Buttons::X] = RING_BACK;
   teleopMap[Buttons::B] = PLACE_GOAL;
   teleopMap[Buttons::RIGHT] = PLATFORM_LEVEL;
+
+  log("c");
+  addEdge(START, ABOVE_MIDDLE);
+  addEdge(INTAKING, PLACE_GOAL);
+  addEdge(PLACE_GOAL, INTER_FRONT);
+  addEdge(INTER_FRONT, INTER_INNER);
+  addEdge(INTER_INNER, ABOVE_MIDDLE);
+  addEdge(ABOVE_MIDDLE, PLACE_GOAL);
+  addEdge(ABOVE_MIDDLE, RING_BACK);
+
+  log("d");
+
+  targetNode = START;
+  generateShortestPath(START, ABOVE_MIDDLE);
 }
 
 void ArmGraph::initArmPosition() {
@@ -34,12 +50,7 @@ void ArmGraph::initArmPosition() {
   fourStart = fourBarLeft.position(vex::degrees);
   chainStart = chainBarLeft.position(vex::degrees);
 
-  addEdge(INTAKING, PLACE_GOAL);
-  addEdge(PLACE_GOAL, INTER_FRONT);
-  addEdge(INTER_FRONT, INTER_INNER);
-  addEdge(INTER_INNER, ABOVE_MIDDLE);
-  addEdge(ABOVE_MIDDLE, PLACE_GOAL);
-  addEdge(ABOVE_MIDDLE, RING_BACK);
+ 
 }
 
 // LOOK HOW FUCKING SHORT AND CLEAN THIS IS
@@ -52,23 +63,23 @@ void ArmGraph::armMovement() {
 
     // a relevant button was pressed, so set arm destination
     if (b != Buttons::NONE && teleopMap[b] != -1) {
-      generateShortestPath(targetNode, teleopMap[b]);
+        generateShortestPath(targetNode, teleopMap[b]);
       targetArmPathIndex = 1;
     }
 
     // not at final destination, so since it's arrived at the current one, set the new target destination to the next on the route
-    if (targetArmPathIndex != armPath.size() - 1) {
+    if (armPath.size() > 1 && targetArmPathIndex != armPath.size() - 1) {
         targetArmPathIndex++;
+        targetNode = armPath.at(targetArmPathIndex);
     }
     fourStart = fourBarLeft.position(vex::degrees);
     chainStart = chainBarLeft.position(vex::degrees);
   }
 
-  targetNode = armPath.at(targetArmPathIndex);
+  
 
-  Brain.Screen.clearScreen();
-  Brain.Screen.setCursor(1, 1);
-  Brain.Screen.print("%d %d %d %d %d", targetNode, arrived ? 1 : 0);
+
+  //log("%d %d", targetNode, arrived ? 1 : 0);
 
   float MARGIN = 10; // margin of error for if robot arm is in vicinity of target node
   float BASE_SPEED = 30; // Base speed of arm
@@ -87,6 +98,8 @@ void ArmGraph::armMovement() {
 }
 
 void ArmGraph::addEdge(int u, int v) {
+
+  log("%d", u);
 
   adj[u].push_back(v);
   adj[v].push_back(u);
@@ -143,10 +156,28 @@ bool ArmGraph::BFS(std::vector<int> adj[], int src, int dest, int pred[]) {
  
     return false;
 }
+
+
+
+std::string ArmGraph::getPathStr() {
+  std::string str;
+  bool start = true;
+  for (int node : armPath) {
+    char a;
+     itoa(node, &a, 10);
+     if (!start) {
+       str += "->";
+     }
+     start = false;
+    str += std::string(&a);
+  }
+  return str;
+}
  
-// utility function to print the shortest distance
-// between source vertex and destination vertex
+// Given start and end node, update the arm path to be the shortest path between the two nodes
 void ArmGraph::generateShortestPath(int start, int dest) {
+
+  targetArmPathIndex = 0;
 
   // predecessor[i] array stores predecessor of
   // i and distance array stores distance of i
@@ -165,5 +196,9 @@ void ArmGraph::generateShortestPath(int start, int dest) {
       armPath.push_back(pred[crawl]);
       crawl = pred[crawl];
   }
+
+  std::reverse(armPath.begin(),armPath.end()); 
+
+  log(getPathStr().c_str());
 
 }
