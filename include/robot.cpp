@@ -6,7 +6,7 @@
 // gear ratio is 60/36
 Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftMotorD(0), leftMotorE(0), rightMotorA(0), rightMotorB(0), 
   rightMotorC(0), rightMotorD(0), rightMotorE(0), fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0), claw(0), frontCamera(0), 
-  backCamera(0), gyroSensor(PORT16) {
+  backCamera(0), gyroSensor(PORT16)/*, arm(), buttons(c)*/ {
 
   isSkills = _isSkills;
 
@@ -30,9 +30,7 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
   chainBarRight = motor(PORT18, ratio18_1, true);
   claw = motor(PORT19, ratio18_1, false);
 
-  YELLOW_SIG = new vision::signature (1, 1849, 2799, 2324, -3795, -3261, -3528, 2.500, 0);
-  RED_SIG = new vision::signature (1, 5767, 9395, 7581, -685, 1, -342, 3.000, 0);
-  BLUE_SIG = new vision::signature (1, -2675, -1975, -2324, 8191, 14043, 11116, 3.000, 0);
+  //arm.init(&buttons, chainBarLeft, chainBarRight, fourBarLeft, fourBarRight);
 
   driveType = ARCADE;
   robotController = c; 
@@ -115,7 +113,7 @@ void Robot::setBackClamp(bool intaking) {
 // Run every tick
 void Robot::teleop() {
   driveTeleop();
-  //armMovement(true, 100);
+  // arm.armMovement();
   clawMovement();
   goalClamp();
   wait(20, msec);

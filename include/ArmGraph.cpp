@@ -1,8 +1,17 @@
-#include "../include/ArmGraph.h"
+#include "ArmGraph.h"
 
 
-ArmGraph::ArmGraph(Buttons* bh) {
+ArmGraph::ArmGraph()
+  : fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0) {
+  
+}
+
+void ArmGraph::init(Buttons* bh, vex::motor chainL, vex::motor chainR, vex::motor fourL, vex::motor fourR) {
   buttons = bh;
+  fourBarLeft = fourL;
+  fourBarRight = fourR;
+  chainBarLeft = chainL;
+  chainBarRight = chainR;
 
   // Initialize teleop button mappings. Add / remove / change mappings as needed.
   std::fill_n(teleopMap, NUM_NODES, -1);
@@ -12,7 +21,25 @@ ArmGraph::ArmGraph(Buttons* bh) {
   teleopMap[Buttons::X] = RING_BACK;
   teleopMap[Buttons::B] = PLACE_GOAL;
   teleopMap[Buttons::RIGHT] = PLATFORM_LEVEL;
+}
 
+void ArmGraph::initArmPosition() {
+  // Reset position of motors
+  chainBarLeft.resetPosition();
+  fourBarLeft.resetPosition();
+  chainBarRight.resetPosition();
+  fourBarRight.resetPosition();
+
+  // Store starting location of arm motors for purposes of velocity calculation
+  fourStart = fourBarLeft.position(vex::degrees);
+  chainStart = chainBarLeft.position(vex::degrees);
+
+  addEdge(INTAKING, PLACE_GOAL);
+  addEdge(PLACE_GOAL, INTER_FRONT);
+  addEdge(INTER_FRONT, INTER_INNER);
+  addEdge(INTER_INNER, ABOVE_MIDDLE);
+  addEdge(ABOVE_MIDDLE, PLACE_GOAL);
+  addEdge(ABOVE_MIDDLE, RING_BACK);
 }
 
 // LOOK HOW FUCKING SHORT AND CLEAN THIS IS
@@ -33,12 +60,30 @@ void ArmGraph::armMovement() {
     if (targetArmPathIndex != armPath.size() - 1) {
         targetArmPathIndex++;
     }
+    fourStart = fourBarLeft.position(vex::degrees);
+    chainStart = chainBarLeft.position(vex::degrees);
   }
 
   targetNode = armPath.at(targetArmPathIndex);
 
-  /* WRITE MOTOR MOVEMENT CODE TO TARGETNODE HERE */
+  Brain.Screen.clearScreen();
+  Brain.Screen.setCursor(1, 1);
+  Brain.Screen.print("%d %d %d %d %d", targetNode, arrived ? 1 : 0);
 
+  float MARGIN = 10; // margin of error for if robot arm is in vicinity of target node
+  float BASE_SPEED = 30; // Base speed of arm
+
+  // Execute motor rotation towards target!
+  int chainBarVelocity = BASE_SPEED * fabs((chainStart - angles[targetNode][1])/(fourStart - angles[targetNode][0]));
+  fourBarLeft.rotateTo(angles[targetNode][0], vex::degrees, BASE_SPEED, vex::velocityUnits::pct, false);
+  fourBarRight.rotateTo(angles[targetNode][0], vex::degrees, BASE_SPEED, vex::velocityUnits::pct, false);
+  chainBarLeft.rotateTo(angles[targetNode][1], vex::degrees, chainBarVelocity , vex::velocityUnits::pct, false);
+  chainBarRight.rotateTo(angles[targetNode][1], vex::degrees, chainBarVelocity , vex::velocityUnits::pct, false);
+
+  // Calculate whether motor has arrived to intended target within some margin of error
+  int delta1 = fabs(fourBarLeft.rotation(vex::degrees) - angles[targetNode][0]);
+  int delta2 = fabs(chainBarLeft.rotation(vex::degrees) - angles[targetNode][1]);
+  arrived = delta1 < MARGIN && delta2 < MARGIN;
 }
 
 void ArmGraph::addEdge(int u, int v) {

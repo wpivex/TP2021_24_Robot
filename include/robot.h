@@ -1,5 +1,7 @@
 #pragma once
-#include "vex.h"
+// #include "ArmGraph.h"
+// #include "ArmGraph.cpp"
+// #include "Buttons.cpp"
 #include <string>
 #include <fstream>
 #include <vector>
@@ -15,6 +17,8 @@
 #include <unistd.h>
 #include <constants.h>
 #include <stdarg.h>
+#include "vex.h"
+
 
 using namespace vex;
 brain Brain;
@@ -57,8 +61,8 @@ class Robot {
     vision::signature* RED_SIG;
     vision::signature* BLUE_SIG;
 
-    enum Arm { INTAKING = 0, INTER_INNER = 1, RING_FRONT = 2, ABOVE_MIDDLE = 3, RING_BACK = 4, PLACE_GOAL = 5, INTER_FRONT = 6, PLATFORM_LEVEL = 7 };
-
+    //ArmGraph arm;
+    //Buttons buttons;
 
     void smartDrive(float distInches, float speed, directionType left, directionType right, int timeout, float slowDownInches, 
       float turnPercent, bool stopAfter, std::function<bool(void)> func);

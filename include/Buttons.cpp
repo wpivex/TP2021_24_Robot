@@ -1,4 +1,5 @@
-#include "../include/Buttons.h"
+#pragma once
+#include "Buttons.h"
 
 Buttons::Buttons(vex::controller* c) {
 

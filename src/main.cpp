@@ -13,11 +13,12 @@ controller Controller1(controllerType::primary);
 
 Robot mainBot = Robot(&Controller1, IS_SKILLS);
 
+
 int mainTeleop() {
   mainBot.setBackClamp(false);
   mainBot.setFrontClamp(false);
   while (true) {
-    mainBot.teleop();
+    //mainBot.teleop();
     wait(20, msec);
   }
   return 0;
@@ -177,17 +178,17 @@ void logGyro() {
 
 int main() {
 
-  vcatTesting();
+  // vcatTesting();
   //logGyro();
 
   //mainBot.setBackClamp(false);
   //mainBot.setFrontClamp(false);
 
   // Reset location of arm
-  //mainBot.initArmAndClaw();
+  // mainBot.arm.initArmPosition();
 
-  //Competition.autonomous(autonomous);
-  //Competition.drivercontrol(userControl);
+  // Competition.autonomous(autonomous);
+  Competition.drivercontrol(userControl);
   //testArmValues();
   while (true) {
     wait(20, msec);
