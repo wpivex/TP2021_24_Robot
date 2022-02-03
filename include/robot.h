@@ -56,23 +56,24 @@ class Robot {
     Buttons buttons;
 
     void smartDrive(float distInches, float speed, directionType left, directionType right, int timeout, float slowDownInches, 
-      float turnPercent, bool stopAfter, std::function<bool(void)> func);
+                    float turnPercent, bool stopAfter, std::function<bool(void)> func);
     void driveTurn(float degrees, float speed, bool isClockwise, int timeout, float slowDownInches = 10, 
-      bool stopAfter = true, std::function<bool(void)> func = {});
+                    bool stopAfter = true, std::function<bool(void)> func = {});
     void driveCurved(float distInches, float speed, directionType dir, int timeout, 
-      float slowDownInches, float turnPercent, bool stopAfter = true, std::function<bool(void)> func = {});
+                      float slowDownInches, float turnPercent, bool stopAfter = true, std::function<bool(void)> func = {});
     void driveStraight(float distInches, float speed, directionType dir, int timeout, 
-      float slowDownInches, bool stopAfter = true, std::function<bool(void)> func = {});
+                      float slowDownInches, bool stopAfter = true, std::function<bool(void)> func = {});
     void driveStraightTimed(float speed, directionType dir, int timeMs, bool stopAfter, std::function<bool(void)> func = {});
 
     void goForwardVision(Goal goal, float speed, directionType dir, float maximumDistance, int timeout, 
-    digital_in* limitSwitch, std::function<bool(void)> func = {});
+                        digital_in* limitSwitch, std::function<bool(void)> func = {});
     void alignToGoalVision(Goal goal, bool clockwise, directionType cameraDirection, int timeout);
+    void updateCamera(Goal goal);
 
     void driveStraightGyro(float distInches, float speed, directionType dir, int timeout, float slowDownInches,
-    std::function<bool(void)> func = {});
+                            std::function<bool(void)> func = {});
     void turnToAngleGyro(bool clockwise, float angleDegrees, float maxSpeed, int startSlowDownDegrees,
-int timeout, std::function<bool(void)> func = {});
+                        int timeout, std::function<bool(void)> func = {});
 
     void callibrateGyro();
 
@@ -91,7 +92,7 @@ int timeout, std::function<bool(void)> func = {});
     void stopRight();
     void intakeOverGoal(int color);
 
-    enum DriveType { ARCADE, TANK };
+    enum DriveType { ARCADE1, ARCADE2, TANK };
     DriveType driveType;
 
 

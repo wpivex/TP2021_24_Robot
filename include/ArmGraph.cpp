@@ -1,10 +1,7 @@
 #include "ArmGraph.h"
 
 
-ArmGraph::ArmGraph()
-  : fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0) {
-  
-}
+ArmGraph::ArmGraph() : fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0) {}
 
 void ArmGraph::init(Buttons* bh, vex::motor chainL, vex::motor chainR, vex::motor fourL, vex::motor fourR) {
   buttons = bh;
@@ -50,7 +47,7 @@ void ArmGraph::init(Buttons* bh, vex::motor chainL, vex::motor chainR, vex::moto
   log("d");
 
   targetNode = START;
-  generateShortestPath(START, ABOVE_MIDDLE);
+  generateShortestPath(START, ABOVE_GOAL);
 }
 
 void ArmGraph::initArmPosition() {
@@ -62,13 +59,20 @@ void ArmGraph::initArmPosition() {
 
   // Store starting location of arm motors for purposes of velocity calculation
   fourStart = fourBarLeft.position(vex::degrees);
-  chainStart = chainBarLeft.position(vex::degrees);
+  chainStart = chainBarLeft.position(vex::degrees); 
+}
 
- 
+void ArmGraph::moveArmToPosition(Arm armPos) {
+  //Blocking function to move to a position
+  generateShortestPath(targetNode, armPos);
+  while(!armMovement(false)) {
+    wait(20,msec);
+  }
+  
 }
 
 // LOOK HOW FUCKING SHORT AND CLEAN THIS IS
-void ArmGraph::armMovement() {
+bool ArmGraph::armMovement(bool buttonInput) {
 
   if (arrived) {
 
@@ -76,7 +80,7 @@ void ArmGraph::armMovement() {
     Buttons::Button b = buttons->get();
 
     // a relevant button was pressed, so set arm destination
-    if (b != Buttons::NONE && teleopMap[b] != -1) {
+    if (b != Buttons::NONE && teleopMap[b] != -1 && buttonInput) {
         generateShortestPath(targetNode, teleopMap[b]);
       targetArmPathIndex = 1;
       targetNode = armPath.at(targetArmPathIndex);
@@ -89,6 +93,7 @@ void ArmGraph::armMovement() {
     }
     fourStart = fourBarLeft.position(vex::degrees);
     chainStart = chainBarLeft.position(vex::degrees);
+
   }
 
   
@@ -110,6 +115,8 @@ void ArmGraph::armMovement() {
   int delta1 = fabs(fourBarLeft.rotation(vex::degrees) - angles[targetNode][0]);
   int delta2 = fabs(chainBarLeft.rotation(vex::degrees) - angles[targetNode][1]);
   arrived = delta1 < MARGIN && delta2 < MARGIN;
+  
+  return arrived && targetArmPathIndex == armPath.size() - 1;
 }
 
 void ArmGraph::addEdge(int u, int v) {

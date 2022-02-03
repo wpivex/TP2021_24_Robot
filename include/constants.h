@@ -21,7 +21,7 @@ static const float VISION_CENTER_X = 157.0;
 static const float DIST_BETEWEEN_WHEELS = 15.0;
 
 static const float FORWARD_MIN_SPEED = 20; // the robot approaches this speed at the end of going forward
-static const float TURN_MIN_SPEED = 20; // the robot approaches this speed at the end of turning
+static const float TURN_MIN_SPEED = 8; // the robot approaches this speed at the end of turning
 
 
 static inline float distanceToDegrees(float distInches) {

@@ -177,7 +177,20 @@ void testArmValues() {
 void vcatTesting() {
   //mainBot.driveStraight(50, 80, forward, 20, 10);
   //mainBot.driveStraightGyro(80, 80, forward, 20, 10);
-  mainBot.turnToAngleGyro(true, 90, 100, 10, 20);
+  // mainBot.callibrateGyro();
+  // mainBot.turnToAngleGyro(true, 90, 100, 30, 20);
+  // while(true) {
+  //   log(mainBot.gyroSensor.rotation());
+  // }
+  // mainBot.driveStraightTimed(50, forward, 2, true);
+  // mainBot.driveStraight(300, 100, forward, 1, 0);
+  // mainBot.driveCurved(30, 80, forward, 1000, 10, 0.5);
+  // mainBot.goForwardVision(RED, 20, forward, 40, 100000, nullptr);
+  // mainBot.alignToGoalVision(YELLOW, false, forward, 10000);
+  // mainBot.arm.setArmPosition(ArmGraph::PLATFORM_PLACE);
+  mainBot.arm.moveArmToPosition(ArmGraph::PLACE_GOAL_WITH_YELLOW);
+  //mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_3);
+  mainBot.arm.moveArmToPosition(ArmGraph::PLATFORM_PLACE);
 }
 
 void autonomous() { thread auto1(vcatTesting); }
@@ -193,20 +206,20 @@ void logGyro() {
 int main() {
 
   // mainBot.callibrateGyro(); 
-  testArmValues(); 
-
-  // vcatTesting();
+  // testArmValues(); 
 
   // logGyro();
 
-  //mainBot.setBackClamp(false);
-  //mainBot.setFrontClamp(false);
+  // mainBot.setBackClamp(false);
+  // mainBot.setFrontClamp(false);
 
-  // Reset location of arm
-  // mainBot.arm.initArmPosition();
+  // // Reset location of arm
+  mainBot.arm.initArmPosition();
 
-  // Competition.autonomous(autonomous);
-  // Competition.drivercontrol(userControl);
+  // vcatTesting();
+
+  Competition.autonomous(autonomous);
+  Competition.drivercontrol(userControl);
   //testArmValues();
   while (true) {
     wait(20, msec);

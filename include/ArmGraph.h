@@ -21,9 +21,14 @@ class ArmGraph {
     ArmGraph();
     void init(Buttons* bh, vex::motor chainL, vex::motor chainR, vex::motor fourL, vex::motor fourR);
     void initArmPosition();
-    void armMovement();
+    bool armMovement(bool buttonInput);
     void addEdge(int u, int v);
     void generateShortestPath(int start, int dest);
+
+    enum Arm { START = 0, PLACE_GOAL_NO_YELLOW = 1, INTER_ABOVE_ALLIANCE = 2, ABOVE_GOAL = 3, BACK_RING = 4, PLATFORM_PLACE = 5, INTAKE = 6,
+      PLACE_GOAL_WITH_YELLOW = 7, INTAKE_TO_PLACE_INTER_1 = 8, INTAKE_TO_PLACE_INTER_2 = 9, INTAKE_TO_PLACE_INTER_3 = 10, INTAKE_TO_PLACE_INTER_4 = 11,
+      INTAKE_TO_PLACE_INTER_5 = 12 };
+    void moveArmToPosition(Arm armPos);
 
   private:
     motor fourBarLeft;
@@ -32,10 +37,6 @@ class ArmGraph {
     motor chainBarRight;
 
     float fourStart, chainStart;
-
-    enum Arm { START = 0, PLACE_GOAL_NO_YELLOW = 1, INTER_ABOVE_ALLIANCE = 2, ABOVE_GOAL = 3, BACK_RING = 4, PLATFORM_PLACE = 5, INTAKE = 6,
-      PLACE_GOAL_WITH_YELLOW = 7, INTAKE_TO_PLACE_INTER_1 = 8, INTAKE_TO_PLACE_INTER_2 = 9, INTAKE_TO_PLACE_INTER_3 = 10, INTAKE_TO_PLACE_INTER_4 = 11,
-      INTAKE_TO_PLACE_INTER_5 = 12 };
     
     double angles[NUM_NODES][2] = {{0, 0}, //START
       {44.8, -180.8}, //PLACE_GOAL_NO_YELLOW
