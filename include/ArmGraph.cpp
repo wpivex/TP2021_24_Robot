@@ -109,17 +109,33 @@ bool ArmGraph::armMovement(bool buttonInput) {
 
   // Execute motor rotation towards target!
   int chainBarVelocity = BASE_SPEED * fabs((chainStart - angles[targetNode][1])/(fourStart - angles[targetNode][0]));
-  fourBarLeft.rotateTo(angles[targetNode][0], vex::degrees, BASE_SPEED, vex::velocityUnits::pct, false);
-  fourBarRight.rotateTo(angles[targetNode][0], vex::degrees, BASE_SPEED, vex::velocityUnits::pct, false);
-  chainBarLeft.rotateTo(angles[targetNode][1], vex::degrees, chainBarVelocity , vex::velocityUnits::pct, false);
-  chainBarRight.rotateTo(angles[targetNode][1], vex::degrees, chainBarVelocity , vex::velocityUnits::pct, false);
+
+  // normalize values if chainBarVelocity exceeds 100, so fourbar would move slower
+  if (chainBarVelocity > 100) {
+    BASE_SPEED *= 100 / chainBarVelocity;
+    chainBarVelocity = 100;
+  }
+  directionType fourDir = (fourBarLeft.rotation(vex::degrees) < angles[targetNode][0]) ? forward : reverse;
+  directionType chainDir = (chainBarLeft.rotation(vex::degrees) < angles[targetNode][1]) ? forward : reverse;
+  
+  fourBarLeft.spin(fourDir, BASE_SPEED, vex::velocityUnits::pct);
+  fourBarRight.spin(fourDir, BASE_SPEED, vex::velocityUnits::pct);
+  chainBarLeft.spin(chainDir, chainBarVelocity, vex::velocityUnits::pct);
+  chainBarRight.spin(chainDir, chainBarVelocity, vex::velocityUnits::pct);
 
   // Calculate whether motor has arrived to intended target within some margin of error
   int delta1 = fabs(fourBarLeft.rotation(vex::degrees) - angles[targetNode][0]);
   int delta2 = fabs(chainBarLeft.rotation(vex::degrees) - angles[targetNode][1]);
   arrived = delta1 < MARGIN && delta2 < MARGIN;
   
-  return arrived && targetArmPathIndex == armPath.size() - 1;
+  bool arrivedToFinalNode = arrived && targetArmPathIndex == armPath.size() - 1;
+  if (arrivedToFinalNode) {
+    fourBarLeft.stop();
+    fourBarRight.stop();
+    chainBarLeft.stop();
+    chainBarRight.stop();
+  }
+  return arrivedToFinalNode;
 }
 
 void ArmGraph::addEdge(int u, int v) {

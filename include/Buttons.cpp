@@ -5,6 +5,7 @@ Buttons::Buttons(vex::controller* c) {
 
   rController = c;
 
+
 }
 
 inline bool Buttons::pressing(Button b) {
