@@ -95,12 +95,12 @@ void skillsVCAT(Goal startingPlatformColor) {
   mainBot.closeClaw();
 
   // Go to platform and elevate center goal on platform
-  mainBot.arm.moveArmToPosition(ArmGraph::PLATFORM_PLACE); // wait for arm to lift off the ground for clearance
+  mainBot.arm.moveArmToPosition(ArmGraph::PLATFORM_HEIGHT); // wait for arm to lift off the ground for clearance
   mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_1); // a little above platform level
   mainBot.turnToAngleGyro(false, 125, 100, 20, 10, armFunc); // turn to platform, slowdown at 20 degrees to destination
   // TODO: limit switch detection
   mainBot.driveStraightGyro(20, 60, forward, 10, 10, armFunc); // Head to platform, slowdown at 10 inches to destination
-  mainBot.arm.moveArmToPosition(ArmGraph::PLATFORM_PLACE); // Lower goal to paltform
+  mainBot.arm.moveArmToPosition(ArmGraph::PLATFORM_HEIGHT); // Lower goal to paltform
   mainBot.openClaw(); // place goal
 
   // Get right goal
@@ -114,11 +114,11 @@ void skillsVCAT(Goal startingPlatformColor) {
   mainBot.closeClaw();
 
   // Go to platform and place right goal
-  mainBot.arm.moveArmToPosition(ArmGraph::PLATFORM_PLACE); // wait for arm to lift off the ground for clearance
+  mainBot.arm.moveArmToPosition(ArmGraph::PLATFORM_HEIGHT); // wait for arm to lift off the ground for clearance
   mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_1); // a little above platform level
   mainBot.turnToAngleGyro(false, 147, 100, 20, 10, armFunc); // turn to platform, slowdown at 20 degrees to destination
   mainBot.driveStraightGyro(24, 20, forward, 10, 10, armFunc); // Head to platform, slowdown at 10 inches to destination
-  mainBot.arm.moveArmToPosition(ArmGraph::PLATFORM_PLACE); // Lower goal to paltform
+  mainBot.arm.moveArmToPosition(ArmGraph::PLATFORM_HEIGHT); // Lower goal to paltform
   mainBot.openClaw(); // place goal
 
   // Get red goal
@@ -138,7 +138,7 @@ void skillsVCAT(Goal startingPlatformColor) {
 
   // Head towards other side of field to drop red goal off and pick up blue goal
   mainBot.turnToAngleGyro(false, 90, 80, 20, 5);
-  mainBot.arm.setArmDestination(ArmGraph::PLATFORM_PLACE); // to prepare to drop off red goal
+  mainBot.arm.setArmDestination(ArmGraph::PLATFORM_HEIGHT); // to prepare to drop off red goal
   mainBot.driveStraightGyro(60, 100, forward, 10, 10, armFunc); // cross field
   mainBot.openClaw(); // drop red goal
   mainBot.driveStraightGyro(10, 80, reverse, 5, 5);
@@ -154,7 +154,7 @@ void skillsVCAT(Goal startingPlatformColor) {
 
   // Drag blue out of platform slowly without raising arm (which would tip platform)
   mainBot.driveStraight(15, 40, reverse, 10, 5);
-  mainBot.arm.moveArmToPosition(ArmGraph::PLATFORM_PLACE);
+  mainBot.arm.moveArmToPosition(ArmGraph::PLATFORM_HEIGHT);
 
   // wall align with top wall
   mainBot.turnToAngleGyro(false, 135, 80, 20, 10);
@@ -282,10 +282,10 @@ void vcatTesting() {
   // mainBot.driveCurved(30, 80, forward, 1000, 10, 0.5);
   // mainBot.goForwardVision(RED, 20, forward, 40, 100000, nullptr);
   // mainBot.alignToGoalVision(YELLOW, false, forward, 10000);
-  // mainBot.arm.setArmPosition(ArmGraph::PLATFORM_PLACE);
+  // mainBot.arm.setArmPosition(ArmGraph::PLATFORM_HEIGHT);
   mainBot.arm.moveArmToPosition(ArmGraph::PLACE_GOAL_WITH_YELLOW);
   //mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_3);
-  mainBot.arm.moveArmToPosition(ArmGraph::PLATFORM_PLACE);
+  mainBot.arm.moveArmToPosition(ArmGraph::PLATFORM_HEIGHT);
 }
 
 void autonomous() { thread auto1(vcatTesting); }
@@ -315,7 +315,7 @@ int main() {
 
   Competition.autonomous(autonomous);
   Competition.drivercontrol(userControl);
-  //testArmValues();
+  // testArmValues();
   while (true) {
     wait(20, msec);
   }
