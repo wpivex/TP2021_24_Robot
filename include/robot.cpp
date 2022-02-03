@@ -43,6 +43,18 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
   chainBarRight.setBrake(hold);
   claw.setBrake(hold);
 
+  setControllerMapping(DEFAULT_MAPPING);
+
+}
+
+void Robot::setControllerMapping(ControllerMapping mapping) {
+
+  if (mapping == DEFAULT_MAPPING) {
+    FRONT_CLAMP_TOGGLE = Buttons::L1;
+    BACK_CLAMP_TOGGLE = Buttons::R1;
+    CLAW_TOGGLE = Buttons::UP;
+  } 
+
 }
 
 void Robot::driveTeleop() {
@@ -65,34 +77,18 @@ void Robot::driveTeleop() {
 
 
 void Robot::goalClamp() {
-  if (Robot::robotController->ButtonL1.pressing()) {
-    if(!frontWasPressed) {
-      frontGoal.set(!frontGoal.value());
-    }
-    frontWasPressed = true;
-  } else {
-    frontWasPressed = false;
-  }
 
-  if (Robot::robotController->ButtonR1.pressing()) {
-    if(!backWasPressed) {
-      backGoal.set(!backGoal.value());
-    }
-    backWasPressed = true;
-  } else {
-    backWasPressed = false;
+  if (buttons.pressed(FRONT_CLAMP_TOGGLE)) {
+    frontGoal.set(!frontGoal.value());
+  } else if (buttons.pressed(BACK_CLAMP_TOGGLE)) {
+    backGoal.set(!backGoal.value());
   }
 }
 
 void Robot::clawMovement() {
-  if (Robot::robotController->ButtonUp.pressing()) {
-    if(!clawWasPressed) {
-      claw.rotateTo(isClawOpen? 500 : MAX_CLAW, deg, 100, velocityUnits::pct, false);
+  if (buttons.pressed(CLAW_TOGGLE)) {
+    claw.rotateTo(isClawOpen? 500 : MAX_CLAW, deg, 100, velocityUnits::pct, false);
       isClawOpen = !isClawOpen;
-    }
-    clawWasPressed = true;
-  } else {
-    clawWasPressed = false;
   }
 }
 

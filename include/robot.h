@@ -55,6 +55,11 @@ class Robot {
     ArmGraph arm;
     Buttons buttons;
 
+    enum ControllerMapping {DEFAULT_MAPPING};
+    Buttons::Button FRONT_CLAMP_TOGGLE, BACK_CLAMP_TOGGLE, CLAW_TOGGLE; 
+
+    void setControllerMapping(ControllerMapping mapping);
+
     void smartDrive(float distInches, float speed, directionType left, directionType right, int timeout, float slowDownInches, 
                     float turnPercent, bool stopAfter, std::function<bool(void)> func);
     void driveTurn(float degrees, float speed, bool isClockwise, int timeout, float slowDownInches = 10, 
@@ -110,10 +115,6 @@ class Robot {
     // State variables for claw
     float MAX_CLAW = -520;
     bool isClawOpen = false;
-
-    bool frontWasPressed = false;
-    bool backWasPressed = false;
-    bool clawWasPressed = false;
 
     bool isSkills;
 };
