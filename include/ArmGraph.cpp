@@ -12,9 +12,8 @@ void ArmGraph::init(Buttons* bh, vex::motor chainL, vex::motor chainR, vex::moto
   bool isSkills = false;
 
   // Initialize teleop button mappings. Add / remove / change mappings as needed.
-  log("a");
   std::fill_n(teleopMap, NUM_NODES, -1);
-  log("b");
+  std::fill_n(nodeEnabled, NUM_NODES, true);
   teleopMap[Buttons::DOWN] = INTAKE;
   // teleopMap[Buttons::Y] = RING_FRONT;
   teleopMap[Buttons::A] = ABOVE_GOAL;
@@ -22,7 +21,6 @@ void ArmGraph::init(Buttons* bh, vex::motor chainL, vex::motor chainR, vex::moto
   teleopMap[Buttons::B] = isSkills? PLACE_GOAL_NO_YELLOW : PLACE_GOAL_WITH_YELLOW; //needs to toggle
   teleopMap[Buttons::RIGHT] = PLATFORM_PLACE;
 
-  log("c");
   addEdge(START, ABOVE_GOAL);
   addEdge(START, INTER_ABOVE_ALLIANCE);
   addEdge(START, PLACE_GOAL_NO_YELLOW);
@@ -44,10 +42,8 @@ void ArmGraph::init(Buttons* bh, vex::motor chainL, vex::motor chainR, vex::moto
   addEdge(INTAKE_TO_PLACE_INTER_4, INTAKE_TO_PLACE_INTER_5);
   addEdge(INTAKE_TO_PLACE_INTER_5, PLACE_GOAL_WITH_YELLOW);
 
-  log("d");
-
+  // Initialize starting position and path
   targetNode = START;
-  generateShortestPath(START, ABOVE_GOAL);
 }
 
 void ArmGraph::initArmPosition() {
@@ -60,6 +56,12 @@ void ArmGraph::initArmPosition() {
   // Store starting location of arm motors for purposes of velocity calculation
   fourStart = fourBarLeft.position(vex::degrees);
   chainStart = chainBarLeft.position(vex::degrees); 
+
+}
+
+// Set destination for arm, so that nonblocking armMovement can be called later in a loop
+void ArmGraph::setArmDestination(Arm armPos) {
+  generateShortestPath(targetNode, armPos);
 }
 
 void ArmGraph::moveArmToPosition(Arm armPos) {
@@ -71,7 +73,12 @@ void ArmGraph::moveArmToPosition(Arm armPos) {
   
 }
 
+bool ArmGraph::armMovementAuton() {
+  return armMovement(false);
+}
+
 // LOOK HOW FUCKING SHORT AND CLEAN THIS IS
+// buttonInput is whether armMovement should be reading the controller button presses
 bool ArmGraph::armMovement(bool buttonInput) {
 
   if (arrived) {
@@ -81,9 +88,7 @@ bool ArmGraph::armMovement(bool buttonInput) {
 
     // a relevant button was pressed, so set arm destination
     if (b != Buttons::NONE && teleopMap[b] != -1 && buttonInput) {
-        generateShortestPath(targetNode, teleopMap[b]);
-      targetArmPathIndex = 1;
-      targetNode = armPath.at(targetArmPathIndex);
+      generateShortestPath(targetNode, teleopMap[b]);
     }
 
     // not at final destination, so since it's arrived at the current one, set the new target destination to the next on the route
@@ -97,8 +102,6 @@ bool ArmGraph::armMovement(bool buttonInput) {
   }
 
   
-
-
   log("%d %d  |  %s", targetNode, arrived ? 1 : 0, pathStr.c_str());
 
   float MARGIN = 10; // margin of error for if robot arm is in vicinity of target node
@@ -120,8 +123,6 @@ bool ArmGraph::armMovement(bool buttonInput) {
 }
 
 void ArmGraph::addEdge(int u, int v) {
-
-  log("%d", u);
 
   adj[u].push_back(v);
   adj[v].push_back(u);
@@ -200,6 +201,7 @@ std::string ArmGraph::getPathStr() {
 void ArmGraph::generateShortestPath(int start, int dest) {
 
   targetArmPathIndex = 0;
+  arrived = true;
 
   // predecessor[i] array stores predecessor of
   // i and distance array stores distance of i

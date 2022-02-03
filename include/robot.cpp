@@ -128,7 +128,6 @@ void Robot::driveStraightTimed(float speed, directionType dir, int timeout, bool
 void Robot::driveStraight(float distInches, float speed, directionType dir, int timeout, 
 float slowDownInches, bool stopAfter, std::function<bool(void)> func) {
 
-  log("driving straight");
   driveCurved(distInches, speed, dir, timeout, slowDownInches, 0, stopAfter, func);
 
 }
@@ -423,8 +422,8 @@ void Robot::alignToGoalVision(Goal goal, bool clockwise, directionType cameraDir
 }
 
 
-void Robot::openClaw() {
-  claw.rotateTo(MAX_CLAW, deg, 100, velocityUnits::pct);
+void Robot::openClaw(bool waitForCompletion) {
+  claw.rotateTo(MAX_CLAW, deg, 100, velocityUnits::pct, waitForCompletion);
   isClawOpen = true;
 }
 

@@ -63,7 +63,7 @@ class Robot {
                       float slowDownInches, float turnPercent, bool stopAfter = true, std::function<bool(void)> func = {});
     void driveStraight(float distInches, float speed, directionType dir, int timeout, 
                       float slowDownInches, bool stopAfter = true, std::function<bool(void)> func = {});
-    void driveStraightTimed(float speed, directionType dir, int timeMs, bool stopAfter, std::function<bool(void)> func = {});
+    void driveStraightTimed(float speed, directionType dir, int timeMs, bool stopAfter = true, std::function<bool(void)> func = {});
 
     void goForwardVision(Goal goal, float speed, directionType dir, float maximumDistance, int timeout, 
                         digital_in* limitSwitch, std::function<bool(void)> func = {});
@@ -77,7 +77,7 @@ class Robot {
 
     void callibrateGyro();
 
-    void openClaw();
+    void openClaw(bool waitForCompletion = true);
     void closeClaw();
     void goalClamp();
     void setFrontClamp(bool intaking);
