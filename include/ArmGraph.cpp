@@ -3,13 +3,12 @@
 
 ArmGraph::ArmGraph() : fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0) {}
 
-void ArmGraph::init(Buttons* bh, vex::motor chainL, vex::motor chainR, vex::motor fourL, vex::motor fourR) {
+void ArmGraph::init(bool isSkills, Buttons* bh, vex::motor chainL, vex::motor chainR, vex::motor fourL, vex::motor fourR) {
   buttons = bh;
   fourBarLeft = fourL;
   fourBarRight = fourR;
   chainBarLeft = chainL;
   chainBarRight = chainR;
-  bool isSkills = false;
 
   // Initialize teleop button mappings. Add / remove / change mappings as needed.
   std::fill_n(teleopMap, NUM_NODES, -1);
@@ -76,10 +75,14 @@ void ArmGraph::initArmPosition() {
 
 // Set destination for arm, so that nonblocking armMovement can be called later in a loop
 void ArmGraph::setArmDestination(Arm armPos) {
+  if (targetNode == armPos) return;
   generateShortestPath(targetNode, armPos);
 }
 
 void ArmGraph::moveArmToPosition(Arm armPos) {
+
+  if (arrivedFinal && targetNode == armPos) return;
+
   //Blocking function to move to a position
   generateShortestPath(targetNode, armPos);
   while(!armMovement(false)) {
@@ -89,6 +92,7 @@ void ArmGraph::moveArmToPosition(Arm armPos) {
 }
 
 bool ArmGraph::armMovementAuton() {
+  log("abc");
   return armMovement(false);
 }
 
@@ -96,13 +100,16 @@ bool ArmGraph::armMovementAuton() {
 // buttonInput is whether armMovement should be reading the controller button presses
 bool ArmGraph::armMovement(bool buttonInput) {
 
+
   if (arrived) {
+
+    startTimeout = vex::timer::system();
 
     // b is the button that was just pressed, or NONE if no button pressed this frame
     Buttons::Button b = buttons->get();
 
     // a relevant button was pressed, so set arm destination
-    if (b != Buttons::NONE && teleopMap[b] != -1 && buttonInput) {
+    if (b != Buttons::NONE && teleopMap[b] != -1 && buttonInput && targetNode != teleopMap[b]) {
       generateShortestPath(targetNode, teleopMap[b]);
     }
 
@@ -110,47 +117,79 @@ bool ArmGraph::armMovement(bool buttonInput) {
     if (armPath.size() > 1 && targetArmPathIndex != armPath.size() - 1) {
         targetArmPathIndex++;
         targetNode = armPath.at(targetArmPathIndex);
+        fourBarDone = false;
+        chainBarDone = false;
     }
     fourStart = fourBarLeft.position(vex::degrees);
     chainStart = chainBarLeft.position(vex::degrees);
 
   }
 
-  
-  log("%d %d  |  %s", targetNode, arrived ? 1 : 0, pathStr.c_str());
+  // Timeout, revert to the last position, if teleop
+  if (buttonInput && vex::timer::system() - startTimeout > ARM_TIMEOUT) {
+      generateShortestPath(targetNode, startNode);
+  }
 
-  float MARGIN = 10; // margin of error for if robot arm is in vicinity of target node
+  if (arrivedFinal) return true;
+
+  
+  //log("%d %d  |  %s", targetNode, arrived ? 1 : 0, pathStr.c_str());
+
+  float MARGIN = 100; // margin of error for if robot arm is in vicinity of target node
   float BASE_SPEED = 100; // Base speed of arm
+
+  float fourBarVelocity = BASE_SPEED;
 
   // Execute motor rotation towards target!
   int chainBarVelocity = BASE_SPEED * fabs((chainStart - angles[targetNode][1])/(fourStart - angles[targetNode][0]));
 
   // normalize values if chainBarVelocity exceeds 100, so fourbar would move slower
-  if (chainBarVelocity > 100) {
-    BASE_SPEED *= 100 / chainBarVelocity;
-    chainBarVelocity = 100;
+  if (chainBarVelocity > BASE_SPEED) {
+    fourBarVelocity *= BASE_SPEED / chainBarVelocity;
+    chainBarVelocity = BASE_SPEED;
   }
   directionType fourDir = (fourBarLeft.rotation(vex::degrees) < angles[targetNode][0]) ? forward : reverse;
   directionType chainDir = (chainBarLeft.rotation(vex::degrees) < angles[targetNode][1]) ? forward : reverse;
-  
-  fourBarLeft.spin(fourDir, BASE_SPEED, vex::velocityUnits::pct);
-  fourBarRight.spin(fourDir, BASE_SPEED, vex::velocityUnits::pct);
-  chainBarLeft.spin(chainDir, chainBarVelocity, vex::velocityUnits::pct);
-  chainBarRight.spin(chainDir, chainBarVelocity, vex::velocityUnits::pct);
 
   // Calculate whether motor has arrived to intended target within some margin of error
   int delta1 = fabs(fourBarLeft.rotation(vex::degrees) - angles[targetNode][0]);
   int delta2 = fabs(chainBarLeft.rotation(vex::degrees) - angles[targetNode][1]);
-  arrived = delta1 < MARGIN && delta2 < MARGIN;
+  log("%d %d %d %d", delta1, delta2, fourBarDone ? 1 : 0, chainBarDone ? 1 : 0);
   
-  bool arrivedToFinalNode = arrived && targetArmPathIndex == armPath.size() - 1;
-  if (arrivedToFinalNode) {
-    fourBarLeft.stop();
-    fourBarRight.stop();
-    chainBarLeft.stop();
-    chainBarRight.stop();
+  if (!fourBarDone && delta1 >= MARGIN) {
+    fourBarLeft.spin(fourDir, fourBarVelocity, vex::velocityUnits::pct);
+    fourBarRight.spin(fourDir, fourBarVelocity, vex::velocityUnits::pct);
+  } else {
+    fourBarDone = true;
+    if (targetArmPathIndex == armPath.size() - 1) {
+      fourBarLeft.rotateTo(angles[targetNode][0], vex::degrees, BASE_SPEED, vex::velocityUnits::pct, false);
+      fourBarRight.rotateTo(angles[targetNode][0], vex::degrees, BASE_SPEED, vex::velocityUnits::pct, false);
+    }
   }
-  return arrivedToFinalNode;
+    
+  if (!chainBarDone && delta2 >= MARGIN) {
+    chainBarLeft.spin(chainDir, chainBarVelocity, vex::velocityUnits::pct);
+    chainBarRight.spin(chainDir, chainBarVelocity, vex::velocityUnits::pct);
+  } else {
+    chainBarDone = true;
+    if (targetArmPathIndex == armPath.size() - 1) {
+      chainBarLeft.rotateTo(angles[targetNode][1], vex::degrees, BASE_SPEED, vex::velocityUnits::pct, false);
+      chainBarRight.rotateTo(angles[targetNode][1], vex::degrees, BASE_SPEED, vex::velocityUnits::pct, false);
+    }
+  }
+
+  arrived = fourBarDone && chainBarDone;
+  
+  arrivedFinal = arrived && targetArmPathIndex == armPath.size() - 1;
+
+  if (arrivedFinal && !buttonInput) {
+    chainBarLeft.rotateTo(angles[targetNode][1], vex::degrees, BASE_SPEED, vex::velocityUnits::pct, false);
+    chainBarRight.rotateTo(angles[targetNode][1], vex::degrees, BASE_SPEED, vex::velocityUnits::pct, false);
+    fourBarLeft.rotateTo(angles[targetNode][0], vex::degrees, BASE_SPEED, vex::velocityUnits::pct, false);
+    fourBarRight.rotateTo(angles[targetNode][0], vex::degrees, BASE_SPEED, vex::velocityUnits::pct, false);
+  }
+  return arrivedFinal;
+
 }
 
 void ArmGraph::addEdge(int u, int v) {
@@ -231,8 +270,14 @@ std::string ArmGraph::getPathStr() {
 // Given start and end node, update the arm path to be the shortest path between the two nodes
 void ArmGraph::generateShortestPath(int start, int dest) {
 
+  fourBarDone = false;
+  chainBarDone = false;
+
+  startNode = start;
+
   targetArmPathIndex = 0;
   arrived = true;
+  arrivedFinal = false;
 
   // predecessor[i] array stores predecessor of
   // i and distance array stores distance of i

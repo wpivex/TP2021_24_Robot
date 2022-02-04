@@ -6,7 +6,7 @@
 // ---- END VEXCODE CONFIGURED DEVICES ----
 #include "../include/robot.cpp"
 
-const bool IS_SKILLS = false;
+const bool IS_SKILLS = true;
 
 competition Competition;
 controller Controller1(controllerType::primary);
@@ -76,30 +76,36 @@ void sideFirst() {
 }
 */
 
-void skillsVCAT(Goal startingPlatformColor) {
+void skillsVCAT() {
+  Goal startingPlatformColor = RED;
+  Goal oppositeColor = BLUE;
 
-  Goal oppositeColor = (startingPlatformColor.id == RED.id) ? BLUE : RED;
 
   // a function reference to mainBot arm's armMovement() function
-  std::function<bool(void)> armFunc = std::bind(&ArmGraph::armMovementAuton, mainBot.arm); 
+  std::function<bool(void)> armFunc = std::bind(&ArmGraph::armMovementAuton, &mainBot.arm); 
 
   // Drive curved while moving arm to a raised position without blocking vision sensor
-  mainBot.arm.setArmDestination(ArmGraph::PLACE_GOAL_WITH_YELLOW);
-  mainBot.driveCurved(20, 100, forward, 10, 0, -54, false, armFunc); // distance, speed, direction, seconds, slowdown, turn, stopafter, function
+  mainBot.arm.setArmDestination(ArmGraph::ABOVE_GOAL);
+  mainBot.driveCurved(15, 100, forward, 10, 0, -0.7, true, armFunc); // distance, speed, direction, seconds, slowdown, turn, stopafter, function
+  mainBot.arm.moveArmToPosition(ArmGraph::ABOVE_GOAL);
+
+  wait(1000, msec);
   
   // Go to center goal
-  mainBot.goForwardVision(YELLOW, 30, forward, 18, 10, nullptr);
+  mainBot.goForwardVision(YELLOW, 50, forward, 17, 10, nullptr);
   mainBot.openClaw(false); // open claw non blocking
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE);
-  mainBot.driveStraightGyro(7, 20, forward, 10, 0);
+  wait(1000, msec);
+  
+  mainBot.driveStraightGyro(6, 20, forward, 10, 0);
   mainBot.closeClaw();
 
   // Go to platform and elevate center goal on platform
-  mainBot.arm.moveArmToPosition(ArmGraph::PLATFORM_HEIGHT); // wait for arm to lift off the ground for clearance
-  mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_1); // a little above platform level
-  mainBot.turnToAngleGyro(false, 125, 100, 20, 10, armFunc); // turn to platform, slowdown at 20 degrees to destination
+  mainBot.arm.moveArmToPosition(ArmGraph::PLATFORM_HEIGHT);
+  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_3); // wait for arm to lift off the ground for clearance
+  mainBot.turnToAngleGyro(false, 125, 100, 20, 10); // turn to platform, slowdown at 20 degrees to destination
   // TODO: limit switch detection
-  mainBot.driveStraightGyro(20, 60, forward, 10, 10, armFunc); // Head to platform, slowdown at 10 inches to destination
+  mainBot.driveStraightGyro(20, 60, forward, 10, 10); // Head to platform, slowdown at 10 inches to destination
   mainBot.arm.moveArmToPosition(ArmGraph::PLATFORM_HEIGHT); // Lower goal to paltform
   mainBot.openClaw(); // place goal
 
@@ -267,6 +273,15 @@ void testArmValues() {
   }
 }
 
+void concurrentTest() {
+
+  std::function<bool(void)> armFunc = std::bind(&ArmGraph::armMovementAuton, &mainBot.arm);
+
+  mainBot.arm.setArmDestination(ArmGraph::INTAKE);
+  mainBot.driveStraightGyro(40, 20, reverse, 20, 10, armFunc);
+  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE);
+
+}
 
 
 void vcatTesting() {
@@ -288,7 +303,7 @@ void vcatTesting() {
   mainBot.arm.moveArmToPosition(ArmGraph::PLATFORM_HEIGHT);
 }
 
-void autonomous() { thread auto1(vcatTesting); }
+void autonomous() { thread auto1(skillsVCAT); }
 
 void logGyro() {
   mainBot.gyroSensor.resetRotation();
@@ -310,12 +325,18 @@ int main() {
 
   // // Reset location of arm
   mainBot.arm.initArmPosition();
+  mainBot.callibrateGyro();
 
   // vcatTesting();
 
   Competition.autonomous(autonomous);
   Competition.drivercontrol(userControl);
   // testArmValues();
+
+  // test concurrent
+  //concurrentTest();
+
+
   while (true) {
     wait(20, msec);
   }

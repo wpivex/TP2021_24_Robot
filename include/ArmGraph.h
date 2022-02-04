@@ -25,7 +25,7 @@ class ArmGraph {
     };
 
     ArmGraph();
-    void init(Buttons* bh, vex::motor chainL, vex::motor chainR, vex::motor fourL, vex::motor fourR);
+    void init(bool isSkills, Buttons* bh, vex::motor chainL, vex::motor chainR, vex::motor fourL, vex::motor fourR);
     void initArmPosition();
     void setArmDestination(Arm armPos);
     void moveArmToPosition(Arm armPos);
@@ -45,13 +45,13 @@ class ArmGraph {
       {180.000000, -133.600000},
       {389.600000, -69.600000},
       {1458.800000, 12.800000},
-      {869.600000, 1241.600000},
-      {380.400000, 1031.600000},
-      {1412.800000, 973.600000},
-      {1376.000000, 1109.600000},
-      {1176.000000, 1294.400000},
-      {908.800000, 1127.200000},
-      {1054.400000, 491.600000},
+      {902.400000, 1172.400000},
+      {422.400000, 1156.400000},
+      {1068.400000, 480.000000},
+      {1473.200000, 886.800000},
+      {1473.600000, 1159.200000},
+      {1220.800000, 1298.800000},
+      {849.200000, 221.600000},
       {5.600000, -196.000000}
       // {380.8, 76.8}, // PLACE_GOAL_WITH_YELLOW
       // {145.6, -121.6}, // INTER_ABOVE_ALLIANCE
@@ -80,6 +80,12 @@ class ArmGraph {
     std::string pathStr;
 
     bool arrived = true;
+    bool arrivedFinal = true;
+
+    bool fourBarDone, chainBarDone;
+
+    int startTimeout = vex::timer::system();
+    int startNode;
 
     void addEdge(int u, int v);
     void generateShortestPath(int start, int dest);

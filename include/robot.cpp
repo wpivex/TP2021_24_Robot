@@ -32,7 +32,7 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
   chainBarRight = motor(PORT18, ratio18_1, true);
   claw = motor(PORT19, ratio18_1, false);
 
-  arm.init(&buttons, chainBarLeft, chainBarRight, fourBarLeft, fourBarRight);
+  arm.init(isSkills, &buttons, chainBarLeft, chainBarRight, fourBarLeft, fourBarRight);
 
   driveType = ARCADE1;
   robotController = c; 
@@ -106,7 +106,6 @@ void Robot::teleop() {
   arm.armMovement(true);
   clawMovement();
   goalClamp();
-  wait(20, msec);
 }
 
 void Robot::callibrateGyro() {
@@ -183,7 +182,7 @@ float slowDownInches, float turnPercent, bool stopAfter, std::function<bool(void
     float proportion = slowDown == 0 ? 1 : fmin(1, 1 - (currentDist - (finalDist - slowDown)) / slowDown);
     float baseSpeed = FORWARD_MIN_SPEED + (speed-FORWARD_MIN_SPEED) * proportion;
 
-    log("%f", baseSpeed);
+    //log("%f", baseSpeed);
 
     // reduce baseSpeed so that the faster motor always capped at max speed
     baseSpeed = fmin(baseSpeed, 100 - baseSpeed*turnPercent);
@@ -218,6 +217,7 @@ void Robot::driveStraightGyro(float distInches, float speed, directionType dir, 
   gyroSensor.resetRotation();
 
   const float GYRO_CONSTANT = 0.01;
+  bool hasSetToDone = false;
 
   // finalDist is 0 if we want driveTimed instead of drive some distance
   float currentDist = 0;
@@ -225,9 +225,12 @@ void Robot::driveStraightGyro(float distInches, float speed, directionType dir, 
 
     // if there is a concurrent function to run, run it
     if (func) {
-      if (func()) {
+      bool done = func();
+      log("running concurrent %d %d", done ? 1 : 0, hasSetToDone ? 1 : 0);
+      if (done) {
         // if func is done, make it empty
         func = {};
+        hasSetToDone = true;
       }
     }
 
@@ -248,7 +251,7 @@ void Robot::driveStraightGyro(float distInches, float speed, directionType dir, 
     float right = baseSpeed*(1 + gyroCorrection);
     setLeftVelocity(dir, left);
     setRightVelocity(dir, right);
-    log("%f %f %f", gyroCorrection, left, right);
+    //log("%f %f %f", gyroCorrection, left, right);
     
     wait(20, msec);
   }
