@@ -20,41 +20,43 @@ void ArmGraph::init(bool isSkills, Buttons* bh, vex::motor chainL, vex::motor ch
   teleopMap[Buttons::B] = PLACE_GOAL_WITH_YELLOW;//isSkills? PLACE_GOAL_NO_YELLOW : PLACE_GOAL_WITH_YELLOW; //needs to toggle
   teleopMap[Buttons::RIGHT] = PLATFORM_HEIGHT;
 
-  addEdge(START, PLACE_GOAL_WITH_YELLOW);
-  addEdge(PLACE_GOAL_WITH_YELLOW, INTER_ABOVE_ALLIANCE);
-  addEdge(INTER_ABOVE_ALLIANCE, ABOVE_GOAL);
-  addEdge(BACK_RING, ABOVE_GOAL);
-  addEdge(INTAKE, PLATFORM_HEIGHT);
-  addEdge(PLACE_GOAL_WITH_YELLOW, ABOVE_GOAL);
-  addEdge(START, BACK_RING);
-  addEdge(PLACE_GOAL_WITH_YELLOW, BACK_RING);
-  addEdge(INTER_ABOVE_ALLIANCE, BACK_RING);
-  addEdge(ABOVE_GOAL, START);
-  addEdge(INTER_ABOVE_ALLIANCE, START);
-  addEdge(INTAKE_TO_PLACE_INTER_1, INTAKE_TO_PLACE_INTER_2);
-  addEdge(INTAKE_TO_PLACE_INTER_2, INTAKE_TO_PLACE_INTER_3);
-  addEdge(INTAKE_TO_PLACE_INTER_3, INTAKE_TO_PLACE_INTER_4);
-  addEdge(ABOVE_GOAL, INTAKE_TO_PLACE_INTER_5);
-  addEdge(INTAKE_TO_PLACE_INTER_5, INTAKE_TO_PLACE_INTER_4);
-  addEdge(INTAKE_TO_PLACE_INTER_1, PLATFORM_HEIGHT);
+  // testing
+  teleopMap[Buttons::LEFT] = INTAKE_TO_PLACE_INTER_2;
 
-  if (isSkills) {
-    addEdge(ABOVE_GOAL, PLATFORM_HEIGHT);
-    addEdge(INTER_ABOVE_ALLIANCE, PLATFORM_HEIGHT);
-    addEdge(PLACE_GOAL_WITH_YELLOW, PLATFORM_HEIGHT);
-    addEdge(INTAKE_TO_PLACE_INTER_1, INTER_ABOVE_ALLIANCE);
-    addEdge(INTAKE_TO_PLACE_INTER_1, ABOVE_GOAL);
-    addEdge(PLACE_GOAL_WITH_YELLOW, INTAKE_TO_PLACE_INTER_2);
-    addEdge(INTER_ABOVE_ALLIANCE, INTAKE_TO_PLACE_INTER_2);
-    addEdge(ABOVE_GOAL, INTAKE_TO_PLACE_INTER_2);
-    addEdge(PLACE_GOAL_WITH_YELLOW, INTAKE_TO_PLACE_INTER_3);
-    addEdge(INTER_ABOVE_ALLIANCE, INTAKE_TO_PLACE_INTER_3);
-    addEdge(ABOVE_GOAL, INTAKE_TO_PLACE_INTER_3);
-    addEdge(ABOVE_GOAL, INTAKE_TO_PLACE_INTER_4);
-    addEdge(INTER_ABOVE_ALLIANCE, INTAKE_TO_PLACE_INTER_4);
-    addEdge(PLACE_GOAL_WITH_YELLOW, INTAKE_TO_PLACE_INTER_4);
-    addEdge(INTAKE_TO_PLACE_INTER_1, PLACE_GOAL_WITH_YELLOW);
-  }
+  addEdge(START, PLACE_GOAL_WITH_YELLOW, false);
+  addEdge(PLACE_GOAL_WITH_YELLOW, INTER_ABOVE_ALLIANCE, false);
+  addEdge(INTER_ABOVE_ALLIANCE, ABOVE_GOAL, false);
+  addEdge(BACK_RING, ABOVE_GOAL, false);
+  addEdge(INTAKE, PLATFORM_HEIGHT, false);
+  addEdge(PLACE_GOAL_WITH_YELLOW, ABOVE_GOAL, false);
+  addEdge(START, BACK_RING, false);
+  addEdge(PLACE_GOAL_WITH_YELLOW, BACK_RING, false);
+  addEdge(INTER_ABOVE_ALLIANCE, BACK_RING, false);
+  addEdge(ABOVE_GOAL, START, false);
+  addEdge(INTER_ABOVE_ALLIANCE, START, false);
+  addEdge(INTAKE_TO_PLACE_INTER_1, INTAKE_TO_PLACE_INTER_2, false);
+  addEdge(INTAKE_TO_PLACE_INTER_2, INTAKE_TO_PLACE_INTER_3, false);
+  addEdge(INTAKE_TO_PLACE_INTER_3, INTAKE_TO_PLACE_INTER_4, false);
+  addEdge(ABOVE_GOAL, INTAKE_TO_PLACE_INTER_5, false);
+  addEdge(INTAKE_TO_PLACE_INTER_5, INTAKE_TO_PLACE_INTER_4, false);
+  addEdge(INTAKE_TO_PLACE_INTER_1, PLATFORM_HEIGHT, false);
+
+  addEdge(ABOVE_GOAL, PLATFORM_HEIGHT, true);
+  addEdge(INTER_ABOVE_ALLIANCE, PLATFORM_HEIGHT, true);
+  addEdge(PLACE_GOAL_WITH_YELLOW, PLATFORM_HEIGHT, true);
+  addEdge(INTAKE_TO_PLACE_INTER_1, INTER_ABOVE_ALLIANCE, true);
+  addEdge(INTAKE_TO_PLACE_INTER_1, ABOVE_GOAL, true);
+  addEdge(PLACE_GOAL_WITH_YELLOW, INTAKE_TO_PLACE_INTER_2, true);
+  addEdge(INTER_ABOVE_ALLIANCE, INTAKE_TO_PLACE_INTER_2, true);
+  addEdge(ABOVE_GOAL, INTAKE_TO_PLACE_INTER_2, true);
+  addEdge(PLACE_GOAL_WITH_YELLOW, INTAKE_TO_PLACE_INTER_3, true);
+  addEdge(INTER_ABOVE_ALLIANCE, INTAKE_TO_PLACE_INTER_3, true);
+  addEdge(ABOVE_GOAL, INTAKE_TO_PLACE_INTER_3, true);
+  addEdge(ABOVE_GOAL, INTAKE_TO_PLACE_INTER_4, true);
+  addEdge(INTER_ABOVE_ALLIANCE, INTAKE_TO_PLACE_INTER_4, true);
+  addEdge(PLACE_GOAL_WITH_YELLOW, INTAKE_TO_PLACE_INTER_4, true);
+  addEdge(INTAKE_TO_PLACE_INTER_1, PLACE_GOAL_WITH_YELLOW, true);
+
 
   // Initialize starting position and path
   targetNode = START;
@@ -133,7 +135,7 @@ bool ArmGraph::armMovement(bool buttonInput) {
   if (arrivedFinal) return true;
 
   
-  //log("%d %d  |  %s", targetNode, arrived ? 1 : 0, pathStr.c_str());
+  log("%d %d  |  %s", targetNode, arrived ? 1 : 0, pathStr.c_str());
 
   float MARGIN = 100; // margin of error for if robot arm is in vicinity of target node
   float BASE_SPEED = 100; // Base speed of arm
@@ -154,7 +156,7 @@ bool ArmGraph::armMovement(bool buttonInput) {
   // Calculate whether motor has arrived to intended target within some margin of error
   int delta1 = fabs(fourBarLeft.rotation(vex::degrees) - angles[targetNode][0]);
   int delta2 = fabs(chainBarLeft.rotation(vex::degrees) - angles[targetNode][1]);
-  log("%d %d %d %d", delta1, delta2, fourBarDone ? 1 : 0, chainBarDone ? 1 : 0);
+  //log("%d %d %d %d", delta1, delta2, fourBarDone ? 1 : 0, chainBarDone ? 1 : 0);
   
   if (!fourBarDone && delta1 >= MARGIN) {
     fourBarLeft.spin(fourDir, fourBarVelocity, vex::velocityUnits::pct);
@@ -192,10 +194,13 @@ bool ArmGraph::armMovement(bool buttonInput) {
 
 }
 
-void ArmGraph::addEdge(int u, int v) {
+void ArmGraph::addEdge(int u, int v, bool togglable) {
 
   adj[u].push_back(v);
+  togglableEdge[u].push_back(togglable);
+
   adj[v].push_back(u);
+  togglableEdge[v].push_back(togglable);
 
 }
 
@@ -231,8 +236,8 @@ bool ArmGraph::BFS(std::vector<int> adj[], int src, int dest, int pred[]) {
 
             int n = adj[u][i]; // current neighbor
 
-            // Skip disabled nodes
-            if (!nodeEnabled[n]) continue;
+            // Skip disabled edges and nodes
+            if (togglableEdge[u][i] || !nodeEnabled[n]) continue;
 
             if (!visited[n]) {
                 visited[n] = true;
