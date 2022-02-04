@@ -79,7 +79,7 @@ void Robot::driveTeleop() {
   }else{
     float drive = driveType == ARCADE1? rightVert:leftVert;
     float turn = rightHoriz;
-    float max = std::max(fabs(drive+turn), fabs(drive-turn));
+    float max = std::max(1.0, std::max(fabs(drive+turn), fabs(drive-turn)));
     setLeftVelocity(forward,100 * (drive+turn)/max);
     setRightVelocity(forward,100 * (drive-turn)/max);
   }
