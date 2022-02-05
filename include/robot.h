@@ -55,7 +55,11 @@ class Robot {
     ArmGraph arm;
     Buttons buttons;
 
+    enum DriveType { ONE_STICK_ARCADE, TWO_STICK_ARCADE, TANK };
+    DriveType driveType;
+
     enum ControllerMapping {DEFAULT_MAPPING};
+    ControllerMapping cMapping;
     Buttons::Button FRONT_CLAMP_TOGGLE, BACK_CLAMP_TOGGLE, CLAW_TOGGLE; 
 
     void setControllerMapping(ControllerMapping mapping);
@@ -96,10 +100,6 @@ class Robot {
     void stopLeft();
     void stopRight();
     void intakeOverGoal(int color);
-
-    enum DriveType { ARCADE1, ARCADE2, TANK };
-    DriveType driveType;
-
 
   private:
 

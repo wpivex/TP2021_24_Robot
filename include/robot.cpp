@@ -34,7 +34,6 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
 
   arm.init(isSkills, &buttons, chainBarLeft, chainBarRight, fourBarLeft, fourBarRight);
 
-  driveType = ARCADE1;
   robotController = c; 
 
   fourBarLeft.setBrake(hold);
@@ -49,7 +48,11 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
 
 void Robot::setControllerMapping(ControllerMapping mapping) {
 
+  cMapping = mapping;
+
   if (mapping == DEFAULT_MAPPING) {
+    driveType = ONE_STICK_ARCADE;
+
     FRONT_CLAMP_TOGGLE = Buttons::L1;
     BACK_CLAMP_TOGGLE = Buttons::R1;
     CLAW_TOGGLE = Buttons::UP;
@@ -60,7 +63,7 @@ void Robot::setControllerMapping(ControllerMapping mapping) {
 // take in axis value between -100 to 100, discard (-5 to 5) values, divide by 100, and cube
 // output is num between -1 and 1
 float normalize(float axisValue) {
-  if (fabs(axisValue) <= 7) {
+  if (fabs(axisValue) <= 5) {
     return 0;
   }
   return pow(axisValue / 100.0, 3);
@@ -68,17 +71,13 @@ float normalize(float axisValue) {
 }
 
 void Robot::driveTeleop() {
-  float leftVert = normalize(robotController->Axis3.position());
-  float leftHoriz = normalize(robotController->Axis4.position());
-  float rightVert = normalize(robotController->Axis2.position());
-  float rightHoriz = normalize(robotController->Axis1.position());
 
   if(driveType == TANK) {
-    setLeftVelocity(forward,leftVert);
-    setRightVelocity(forward,rightVert);
+    setLeftVelocity(forward,buttons.axis(Buttons::LEFT_VERTICAL));
+    setRightVelocity(forward,buttons.axis(Buttons::RIGHT_VERTICAL));
   }else{
-    float drive = driveType == ARCADE1? rightVert:leftVert;
-    float turn = rightHoriz;
+    float drive = driveType == ONE_STICK_ARCADE ? buttons.axis(Buttons::RIGHT_VERTICAL) : buttons.axis(Buttons::LEFT_VERTICAL);
+    float turn = buttons.axis(Buttons::RIGHT_HORIZONTAL) / 1.3;
     float max = std::max(1.0, std::max(fabs(drive+turn), fabs(drive-turn)));
     setLeftVelocity(forward,100 * (drive+turn)/max);
     setRightVelocity(forward,100 * (drive-turn)/max);
