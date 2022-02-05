@@ -34,7 +34,7 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
 
   arm.init(isSkills, &buttons, chainBarLeft, chainBarRight, fourBarLeft, fourBarRight);
 
-  driveType = ARCADE1;
+  driveType = ARCADE2;
   robotController = c; 
 
   fourBarLeft.setBrake(hold);
@@ -50,9 +50,9 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
 void Robot::setControllerMapping(ControllerMapping mapping) {
 
   if (mapping == DEFAULT_MAPPING) {
-    FRONT_CLAMP_TOGGLE = Buttons::L1;
-    BACK_CLAMP_TOGGLE = Buttons::R1;
-    CLAW_TOGGLE = Buttons::UP;
+    FRONT_CLAMP_TOGGLE = Buttons::R1;
+    BACK_CLAMP_TOGGLE = Buttons::R2;
+    CLAW_TOGGLE = Buttons::L1;
   } 
 
 }
@@ -77,12 +77,17 @@ void Robot::driveTeleop() {
 
 
 void Robot::goalClamp() {
-
-  if (buttons.pressed(FRONT_CLAMP_TOGGLE)) {
+  static bool r1P, r2P;
+  bool r1 = vex::controller().ButtonR1.pressing();
+  bool r2 = vex::controller().ButtonR2.pressing();
+  if(r2 && r2 != r2P) {
     frontGoal.set(!frontGoal.value());
-  } else if (buttons.pressed(BACK_CLAMP_TOGGLE)) {
+  }
+  if(r1 && r1 != r1P) {
     backGoal.set(!backGoal.value());
   }
+  r1P = r1;
+  r2P = r2;
 }
 
 void Robot::clawMovement() {
@@ -106,6 +111,7 @@ void Robot::teleop() {
   arm.armMovement(true);
   clawMovement();
   goalClamp();
+  buttons.updateButtonState();
 }
 
 void Robot::callibrateGyro() {
