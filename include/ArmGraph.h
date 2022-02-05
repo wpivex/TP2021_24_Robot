@@ -72,6 +72,7 @@ class ArmGraph {
     bool nodeEnabled[NUM_NODES];
       
     std::vector<int> adj[NUM_NODES];
+    std::vector<int> togglableEdge[NUM_NODES];
     Buttons* buttons;
 
     std::vector<int> armPath;
@@ -87,7 +88,7 @@ class ArmGraph {
     int startTimeout = vex::timer::system();
     int startNode;
 
-    void addEdge(int u, int v);
+    void addEdge(int u, int v, bool togglable);
     void generateShortestPath(int start, int dest);
 
     std::string getPathStr();
