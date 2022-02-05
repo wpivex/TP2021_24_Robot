@@ -51,7 +51,7 @@ void Robot::setControllerMapping(ControllerMapping mapping) {
   cMapping = mapping;
 
   if (mapping == DEFAULT_MAPPING) {
-    driveType = ONE_STICK_ARCADE;
+    driveType = TWO_STICK_ARCADE;
 
     FRONT_CLAMP_TOGGLE = Buttons::L1;
     BACK_CLAMP_TOGGLE = Buttons::R1;

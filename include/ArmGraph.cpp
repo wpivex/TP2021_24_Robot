@@ -40,6 +40,8 @@ void ArmGraph::init(bool isSkills, Buttons* bh, vex::motor chainL, vex::motor ch
   addEdge(ABOVE_GOAL, INTAKE_TO_PLACE_INTER_5, false);
   addEdge(INTAKE_TO_PLACE_INTER_5, INTAKE_TO_PLACE_INTER_4, false);
   addEdge(INTAKE_TO_PLACE_INTER_1, PLATFORM_HEIGHT, false);
+  addEdge(ABOVE_GOAL, BACK_RING, false);
+  addEdge(INTAKE_TO_PLACE_INTER_5, BACK_RING, false);
 
   addEdge(ABOVE_GOAL, PLATFORM_HEIGHT, true);
   addEdge(INTER_ABOVE_ALLIANCE, PLATFORM_HEIGHT, true);
