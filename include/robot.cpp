@@ -77,7 +77,7 @@ void Robot::driveTeleop() {
     setRightVelocity(forward,buttons.axis(Buttons::RIGHT_VERTICAL));
   }else{
     float drive = driveType == ONE_STICK_ARCADE ? buttons.axis(Buttons::RIGHT_VERTICAL) : buttons.axis(Buttons::LEFT_VERTICAL);
-    float turn = buttons.axis(Buttons::RIGHT_HORIZONTAL) / 1.3;
+    float turn = buttons.axis(Buttons::RIGHT_HORIZONTAL);
     float max = std::max(1.0, std::max(fabs(drive+turn), fabs(drive-turn)));
     setLeftVelocity(forward,100 * (drive+turn)/max);
     setRightVelocity(forward,100 * (drive-turn)/max);

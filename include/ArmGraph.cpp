@@ -19,8 +19,6 @@ void ArmGraph::init(Buttons* bh, vex::motor chainL, vex::motor chainR, vex::moto
   teleopMap[Buttons::X] = BACK_RING;
   teleopMap[Buttons::B] = PLACE_GOAL_WITH_YELLOW; //isSkills? PLACE_GOAL_NO_YELLOW : PLACE_GOAL_WITH_YELLOW; //need to make toggleable
   teleopMap[Buttons::RIGHT] = PLATFORM_HEIGHT;
-
-  // testing
   teleopMap[Buttons::LEFT] = INTAKE_TO_PLACE_INTER_2;
 
   addEdge(START, PLACE_GOAL_WITH_YELLOW, false);
