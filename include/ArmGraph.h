@@ -25,7 +25,7 @@ class ArmGraph {
     };
 
     ArmGraph();
-    void init(bool isSkills, Buttons* bh, vex::motor chainL, vex::motor chainR, vex::motor fourL, vex::motor fourR);
+    void init(Buttons* bh, vex::motor chainL, vex::motor chainR, vex::motor fourL, vex::motor fourR);
     void initArmPosition();
     void setArmDestination(Arm armPos);
     void moveArmToPosition(Arm armPos);
@@ -83,10 +83,15 @@ class ArmGraph {
     bool arrived = true;
     bool arrivedFinal = true;
 
-    bool fourBarDone, chainBarDone;
+    bool chainBarDone;
+
+    float fourBarVelocity, chainBarVelocity;
+    directionType fourDir, chainDir;
 
     int startTimeout = vex::timer::system();
     int startNode;
+
+    void calculateVelocities();
 
     void addEdge(int u, int v, bool togglable);
     void generateShortestPath(int start, int dest);

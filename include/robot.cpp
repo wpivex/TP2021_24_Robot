@@ -32,7 +32,7 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
   chainBarRight = motor(PORT18, ratio18_1, true);
   claw = motor(PORT19, ratio18_1, false);
 
-  arm.init(isSkills, &buttons, chainBarLeft, chainBarRight, fourBarLeft, fourBarRight);
+  arm.init(&buttons, chainBarLeft, chainBarRight, fourBarLeft, fourBarRight);
 
   robotController = c; 
 
@@ -115,6 +115,9 @@ void Robot::teleop() {
   arm.armMovement(true);
   clawMovement();
   goalClamp();
+
+  buttons.updateButtonState();
+
 }
 
 void Robot::callibrateGyro() {
