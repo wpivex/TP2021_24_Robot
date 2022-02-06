@@ -34,7 +34,6 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
 
   arm.init(isSkills, &buttons, chainBarLeft, chainBarRight, fourBarLeft, fourBarRight);
 
-  driveType = ARCADE1;
   robotController = c; 
 
   fourBarLeft.setBrake(hold);
@@ -53,6 +52,7 @@ void Robot::setControllerMapping(ControllerMapping mapping) {
     FRONT_CLAMP_TOGGLE = Buttons::L1;
     BACK_CLAMP_TOGGLE = Buttons::R1;
     CLAW_TOGGLE = Buttons::UP;
+    driveType = ARCADE2;
   } 
 
 }
