@@ -56,7 +56,6 @@ void Robot::setControllerMapping(ControllerMapping mapping) {
     FRONT_CLAMP_TOGGLE = Buttons::L1;
     BACK_CLAMP_TOGGLE = Buttons::R1;
     CLAW_TOGGLE = Buttons::UP;
-    driveType = ARCADE2;
   } 
 
 }
