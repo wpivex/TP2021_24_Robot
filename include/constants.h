@@ -3,6 +3,8 @@
 
 #include "vex.h"
 
+const bool IS_SKILLS = true;
+
 vex::brain Brain;
 
 struct Goal {
@@ -10,7 +12,6 @@ struct Goal {
   int bright;
   vex::vision::signature sig;
 };
-
 
 const struct Goal YELLOW = {0, 13, vex::vision::signature (1, 1849, 2799, 2324, -3795, -3261, -3528, 2.500, 0)};
 const struct Goal RED = {1, 56, vex::vision::signature (1, 5767, 9395, 7581, -685, 1, -342, 3.000, 0)};

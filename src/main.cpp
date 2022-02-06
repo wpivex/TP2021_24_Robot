@@ -6,8 +6,6 @@
 // ---- END VEXCODE CONFIGURED DEVICES ----
 #include "../include/robot.cpp"
 
-const bool IS_SKILLS = true;
-
 competition Competition;
 controller Controller1(controllerType::primary);
 
