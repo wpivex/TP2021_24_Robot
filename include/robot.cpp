@@ -34,7 +34,7 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
 
   arm.init(isSkills, &buttons, chainBarLeft, chainBarRight, fourBarLeft, fourBarRight);
 
-  driveType = ARCADE2;
+  driveType = TWO_STICK_ARCADE;
   robotController = c; 
 
   fourBarLeft.setBrake(hold);
@@ -88,10 +88,10 @@ void Robot::goalClamp() {
   static bool r1P, r2P;
   bool r1 = vex::controller().ButtonR1.pressing();
   bool r2 = vex::controller().ButtonR2.pressing();
-  if(r2 && r2 != r2P) {
+  if(r1 && r1 != r1P) {
     frontGoal.set(!frontGoal.value());
   }
-  if(r1 && r1 != r1P) {
+  if(r2 && r2 != r2P) {
     backGoal.set(!backGoal.value());
   }
   r1P = r1;
@@ -116,7 +116,13 @@ void Robot::setBackClamp(bool intaking) {
 // Run every tick
 void Robot::teleop() {
   driveTeleop();
-  arm.armMovement(true);
+  if(vex::controller().ButtonL2.pressing()) {
+    int fourBarVelocity = vex::controller().Axis2.value();
+    fourBarLeft.spin(forward, fourBarVelocity, vex::velocityUnits::pct);
+    fourBarRight.spin(forward, fourBarVelocity, vex::velocityUnits::pct);
+  } else {
+    arm.armMovement(true);
+  }
   clawMovement();
   goalClamp();
   buttons.updateButtonState();
