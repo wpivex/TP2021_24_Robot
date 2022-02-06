@@ -15,26 +15,26 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
   leftMotorA = motor(PORT1, ratio18_1, true); 
   leftMotorB = motor(PORT2, ratio18_1, true);
   leftMotorC = motor(PORT3, ratio18_1, true);
-  leftMotorD = motor(PORT4, ratio18_1, true);
-  leftMotorE = motor(PORT5, ratio18_1, true);
+  leftMotorD = motor(PORT5, ratio18_1, true);
+  leftMotorE = motor(PORT6, ratio18_1, true);
   leftDrive = motor_group(leftMotorA, leftMotorB, leftMotorC, leftMotorD, leftMotorE);
 
-  rightMotorA = motor(PORT11, ratio18_1, false);
-  rightMotorB = motor(PORT12, ratio18_1, false);
-  rightMotorC = motor(PORT13, ratio18_1, false);
-  rightMotorD = motor(PORT14, ratio18_1, false);
-  rightMotorE = motor(PORT15, ratio18_1, false);
+  rightMotorA = motor(PORT16, ratio18_1, false);
+  rightMotorB = motor(PORT17, ratio18_1, false);
+  rightMotorC = motor(PORT18, ratio18_1, false);
+  rightMotorD = motor(PORT19, ratio18_1, false);
+  rightMotorE = motor(PORT20, ratio18_1, false);
   rightDrive = motor_group(rightMotorA, rightMotorB, rightMotorC, rightMotorD, rightMotorE);
 
-  fourBarLeft = motor(PORT20, ratio18_1, false);
-  fourBarRight = motor(PORT17, ratio18_1, true);
-  chainBarLeft = motor(PORT10, ratio18_1, false);
-  chainBarRight = motor(PORT18, ratio18_1, true);
-  claw = motor(PORT19, ratio18_1, false);
+  fourBarLeft = motor(PORT15, ratio18_1, false);
+  fourBarRight = motor(PORT15, ratio18_1, true);
+  chainBarLeft = motor(PORT15, ratio18_1, false);
+  chainBarRight = motor(PORT15, ratio18_1, true);
+  claw = motor(PORT15, ratio18_1, false);
 
   arm.init(isSkills, &buttons, chainBarLeft, chainBarRight, fourBarLeft, fourBarRight);
 
-  driveType = ARCADE1;
+  driveType = TWO_STICK_ARCADE;
   robotController = c; 
 
   fourBarLeft.setBrake(hold);
@@ -60,7 +60,7 @@ void Robot::setControllerMapping(ControllerMapping mapping) {
 // take in axis value between -100 to 100, discard (-5 to 5) values, divide by 100, and cube
 // output is num between -1 and 1
 float normalize(float axisValue) {
-  if (fabs(axisValue) <= 7) {
+  if (fabs(axisValue) <= 5) {
     return 0;
   }
   return pow(axisValue / 100.0, 3);
@@ -73,11 +73,12 @@ void Robot::driveTeleop() {
   float rightVert = normalize(robotController->Axis2.position());
   float rightHoriz = normalize(robotController->Axis1.position());
 
+
   if(driveType == TANK) {
     setLeftVelocity(forward,leftVert);
     setRightVelocity(forward,rightVert);
   }else{
-    float drive = driveType == ARCADE1? rightVert:leftVert;
+    float drive = driveType == ONE_STICK_ARCADE ? rightVert:leftVert;
     float turn = rightHoriz;
     float max = std::max(1.0, std::max(fabs(drive+turn), fabs(drive-turn)));
     setLeftVelocity(forward,100 * (drive+turn)/max);

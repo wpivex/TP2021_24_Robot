@@ -97,7 +97,7 @@ class Robot {
     void stopRight();
     void intakeOverGoal(int color);
 
-    enum DriveType { ARCADE1, ARCADE2, TANK };
+    enum DriveType { ONE_STICK_ARCADE, TWO_STICK_ARCADE, TANK };
     DriveType driveType;
 
 
