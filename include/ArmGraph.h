@@ -28,8 +28,8 @@ class ArmGraph {
     void init(Buttons* bh, vex::motor chainL, vex::motor chainR, vex::motor fourL, vex::motor fourR);
     void initArmPosition();
     void setArmDestination(Arm armPos);
-    void moveArmToPosition(Arm armPos);
-    bool armMovement(bool buttonInput = true);
+    void moveArmToPosition(Arm armPos, float baseSpeed = 100);
+    bool armMovement(bool buttonInput = true, float baseSpeed = 100);
     bool armMovementAuton();
 
   private:
@@ -79,7 +79,7 @@ class ArmGraph {
     int startTimeout = vex::timer::system();
     int startNode;
 
-    void calculateVelocities();
+    void calculateVelocities(float baseSpeed);
 
     void addEdge(int u, int v, bool togglable);
     void generateShortestPath(int start, int dest);

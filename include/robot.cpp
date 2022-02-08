@@ -28,7 +28,7 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
 
   fourBarLeft = motor(PORT20, ratio18_1, false);
   fourBarRight = motor(PORT17, ratio18_1, true);
-  chainBarLeft = motor(PORT10, ratio18_1, false);
+  chainBarLeft = motor(PORT6, ratio18_1, false);
   chainBarRight = motor(PORT18, ratio18_1, true);
   claw = motor(PORT19, ratio18_1, false);
 
@@ -320,20 +320,26 @@ int timeout, std::function<bool(void)> func) {
   stopRight();
 }
 
-  void Robot::updateCamera(Goal goal) {
-    backCamera = vision(PORT8, goal.bright, goal.sig);
-    frontCamera = vision(PORT9, goal.bright, goal.sig);
-  }
+void Robot::turnToUniversalAngleGyro(float universalAngleDegrees, float maxSpeed, int startSlowDownDegrees,
+int timeout, std::function<bool(void)> func){
+  float universalHeading = gyroSensor.heading(degrees);
+  float turnAngle = fabs(universalHeading-universalAngleDegrees);
+  bool clockwise = turnAngle<180;
+  turnToAngleGyro(clockwise, clockwise? 360-turnAngle:turnAngle, maxSpeed, startSlowDownDegrees, timeout);
+}
+
+
+void Robot::updateCamera(Goal goal) {
+  backCamera = vision(PORT8, goal.bright, goal.sig);
+  frontCamera = vision(PORT9, goal.bright, goal.sig);
+}
 
 // Go forward until the maximum distance is hit, the timeout is reached, or limitSwitch is turned on (collision with goal)
 // for indefinite timeout, set to -1
 void Robot::goForwardVision(Goal goal, float speed, directionType dir, float maxDistanceInches, int timeout, 
-digital_in* limitSwitch, std::function<bool(void)> func) {
+digital_in* limitSwitch, std::function<bool(void)> func, float pModMult) {
 
-  // The proportion to turn in relation to how offset the goal is. Is consistent through all speeds
-  const float PMOD_MULTIPLIER = 1.2;
-
-  int pMod = speed * PMOD_MULTIPLIER;
+  int pMod = speed * pModMult;
   float baseSpeed = fmin(speed, 100 - pMod);
 
   float totalDist = distanceToDegrees(maxDistanceInches);

@@ -51,6 +51,7 @@ void ArmGraph::init(Buttons* bh, vex::motor chainL, vex::motor chainR, vex::moto
   addEdge(PLACE_GOAL_WITH_YELLOW, INTAKE_TO_PLACE_INTER_3, true);
   addEdge(INTER_ABOVE_ALLIANCE, INTAKE_TO_PLACE_INTER_3, true);
   addEdge(ABOVE_GOAL, INTAKE_TO_PLACE_INTER_3, true);
+  addEdge(PLATFORM_HEIGHT, INTAKE_TO_PLACE_INTER_3, true);
   addEdge(ABOVE_GOAL, INTAKE_TO_PLACE_INTER_4, true);
   addEdge(INTER_ABOVE_ALLIANCE, INTAKE_TO_PLACE_INTER_4, true);
   addEdge(PLACE_GOAL_WITH_YELLOW, INTAKE_TO_PLACE_INTER_4, true);
@@ -76,13 +77,13 @@ void ArmGraph::setArmDestination(Arm armPos) {
   generateShortestPath(targetNode, armPos);
 }
 
-void ArmGraph::moveArmToPosition(Arm armPos) {
+void ArmGraph::moveArmToPosition(Arm armPos, float baseSpeed) {
 
   if (arrivedFinal && targetNode == armPos) return;
 
   //Blocking function to move to a position
   generateShortestPath(targetNode, armPos);
-  while(!armMovement(false)) {
+  while(!armMovement(false, baseSpeed)) {
     wait(20,msec);
   }
   
@@ -93,22 +94,20 @@ bool ArmGraph::armMovementAuton() {
   return armMovement(false);
 }
 
-void ArmGraph::calculateVelocities() {
-
-  float BASE_SPEED = 100; // Base speed of arm
+void ArmGraph::calculateVelocities(float baseSpeed) {
 
   fourStart = fourBarLeft.position(vex::degrees);
   chainStart = chainBarLeft.position(vex::degrees);
 
-  fourBarVelocity = BASE_SPEED;
+  fourBarVelocity = baseSpeed;
 
   // Execute motor rotation towards target!
-  chainBarVelocity = BASE_SPEED * fabs((chainStart - angles[targetNode][1])/(fourStart - angles[targetNode][0]));
+  chainBarVelocity = baseSpeed * fabs((chainStart - angles[targetNode][1])/(fourStart - angles[targetNode][0]));
 
   // normalize values if chainBarVelocity exceeds 100, so fourbar would move slower
-  if (chainBarVelocity > BASE_SPEED) {
-    fourBarVelocity *= BASE_SPEED / chainBarVelocity;
-    chainBarVelocity = BASE_SPEED;
+  if (chainBarVelocity > baseSpeed) {
+    fourBarVelocity *= baseSpeed / chainBarVelocity;
+    chainBarVelocity = baseSpeed;
   }
   fourDir = (fourBarLeft.rotation(vex::degrees) < angles[targetNode][0]) ? forward : reverse;
   chainDir = (chainBarLeft.rotation(vex::degrees) < angles[targetNode][1]) ? forward : reverse;
@@ -116,9 +115,9 @@ void ArmGraph::calculateVelocities() {
 
 }
 
-// LOOK HOW FUCKING SHORT AND CLEAN THIS IS
+// LOOK HOW SHORT AND CLEAN THIS IS
 // buttonInput is whether armMovement should be reading the controller button presses
-bool ArmGraph::armMovement(bool buttonInput) {
+bool ArmGraph::armMovement(bool buttonInput, float baseSpeed) {
 
   float MARGIN = 100; // margin of error for if robot arm is in vicinity of target node
 
@@ -139,7 +138,7 @@ bool ArmGraph::armMovement(bool buttonInput) {
         targetArmPathIndex++;
         targetNode = armPath.at(targetArmPathIndex);
         chainBarDone = false;
-        calculateVelocities();
+        calculateVelocities(baseSpeed);
     }
   }
 

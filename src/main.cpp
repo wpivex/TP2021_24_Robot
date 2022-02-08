@@ -84,33 +84,32 @@ void skillsVCAT() {
 
   // Drive curved while moving arm to a raised position without blocking vision sensor
   mainBot.arm.setArmDestination(ArmGraph::ABOVE_GOAL);
-  mainBot.driveCurved(15, 100, forward, 10, 0, -0.7, true, armFunc); // distance, speed, direction, seconds, slowdown, turn, stopafter, function
+  mainBot.driveCurved(15, 100, forward, 10, 0, -0.65, true, armFunc); // distance, speed, direction, seconds, slowdown, turn, stopafter, function
   mainBot.arm.moveArmToPosition(ArmGraph::ABOVE_GOAL);
-
-  wait(1000, msec);
   
   // Go to center goal
-  mainBot.goForwardVision(YELLOW, 50, forward, 17, 10, nullptr);
+  mainBot.goForwardVision(YELLOW, 50, forward, 16, 10, nullptr, nullptr, 1.5);
   mainBot.openClaw(false); // open claw non blocking
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE);
-  wait(1000, msec);
   
-  mainBot.driveStraightGyro(6, 20, forward, 10, 0);
+  mainBot.driveStraightGyro(14, 20, forward, 10, 0);
   mainBot.closeClaw();
 
-  // Go to platform and elevate center goal on platform
+  // // Go to platform and elevate center goal on platform
   mainBot.arm.moveArmToPosition(ArmGraph::PLATFORM_HEIGHT);
-  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_3); // wait for arm to lift off the ground for clearance
-  mainBot.turnToAngleGyro(false, 125, 100, 20, 10); // turn to platform, slowdown at 20 degrees to destination
+  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_4); // wait for arm to lift off the ground for clearance
+  mainBot.turnToAngleGyro(false, 120, 100, 20, 10); // turn to platform, slowdown at 20 degrees to destination
+  
   // TODO: limit switch detection
-  mainBot.driveStraightGyro(20, 60, forward, 10, 10); // Head to platform, slowdown at 10 inches to destination
-  mainBot.arm.moveArmToPosition(ArmGraph::PLATFORM_HEIGHT); // Lower goal to paltform
+  mainBot.goForwardVision(RED, 20, forward, 60, 10, nullptr, nullptr, 1); //Experimenting with vision onto platform
+
+  //mainBot.driveStraightGyro(20, 60, forward, 10, 10); // Head to platform, slowdown at 10 inches to destination
+  mainBot.arm.moveArmToPosition(ArmGraph::PLATFORM_HEIGHT, 40); // Lower goal to paltform
   mainBot.openClaw(); // place goal
 
   // Get right goal
   mainBot.driveStraightGyro(5, 100, reverse, 10, 2); // go back a little for clearance
-  mainBot.arm.setArmDestination(ArmGraph::INTAKE);
-  mainBot.turnToAngleGyro(false, 160, 100, 0, 10, armFunc); // turn to right goal while moving arm to intaking
+  mainBot.turnToUniversalAngleGyro(30, 100, 10, 10, armFunc); // turn to right goal while moving arm to intaking
   mainBot.alignToGoalVision(YELLOW, false, forward, 5);
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE); // finish the arm movement to intaking if it's not done
   // TODO: limit switch detection
