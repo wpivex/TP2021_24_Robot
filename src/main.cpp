@@ -7,7 +7,6 @@
 #include "../include/robot.cpp"
 
 competition Competition;
-controller Controller1(controllerType::primary);
 
 Robot mainBot = Robot(&Controller1, IS_SKILLS);
 
