@@ -122,6 +122,7 @@ void Robot::teleop() {
 
 void Robot::callibrateGyro() {
   gyroSensor.calibrate();
+  gyroSensor.resetHeading();
   while (gyroSensor.isCalibrating()) wait(20, msec);
 }
 
@@ -310,7 +311,7 @@ int timeout, std::function<bool(void)> func) {
       speed = TURN_MIN_SPEED + delta * (speed - TURN_MIN_SPEED);
     }
 
-    log("%f %f", speed, currDegrees);
+    log("%d %f %f", clockwise? 1:0, speed, currDegrees);
     setLeftVelocity(clockwise ? forward : reverse, speed);
     setRightVelocity(clockwise ? reverse : forward, speed);
     wait(20, msec);
@@ -324,7 +325,7 @@ void Robot::turnToUniversalAngleGyro(float universalAngleDegrees, float maxSpeed
 int timeout, std::function<bool(void)> func){
   float universalHeading = gyroSensor.heading(degrees);
   float turnAngle = fabs(universalHeading-universalAngleDegrees);
-  bool clockwise = turnAngle<180;
+  bool clockwise = turnAngle >= 180;
   turnToAngleGyro(clockwise, clockwise? 360-turnAngle:turnAngle, maxSpeed, startSlowDownDegrees, timeout);
 }
 
