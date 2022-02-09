@@ -15,25 +15,26 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
   leftMotorA = motor(PORT1, ratio18_1, true); 
   leftMotorB = motor(PORT2, ratio18_1, true);
   leftMotorC = motor(PORT3, ratio18_1, true);
-  leftMotorD = motor(PORT4, ratio18_1, true);
-  leftMotorE = motor(PORT5, ratio18_1, true);
+  leftMotorD = motor(PORT5, ratio18_1, true);
+  leftMotorE = motor(PORT6, ratio18_1, true);
   leftDrive = motor_group(leftMotorA, leftMotorB, leftMotorC, leftMotorD, leftMotorE);
 
-  rightMotorA = motor(PORT11, ratio18_1, false);
-  rightMotorB = motor(PORT12, ratio18_1, false);
-  rightMotorC = motor(PORT13, ratio18_1, false);
-  rightMotorD = motor(PORT14, ratio18_1, false);
-  rightMotorE = motor(PORT15, ratio18_1, false);
+  rightMotorA = motor(PORT16, ratio18_1, false);
+  rightMotorB = motor(PORT17, ratio18_1, false);
+  rightMotorC = motor(PORT18, ratio18_1, false);
+  rightMotorD = motor(PORT19, ratio18_1, false);
+  rightMotorE = motor(PORT20, ratio18_1, false);
   rightDrive = motor_group(rightMotorA, rightMotorB, rightMotorC, rightMotorD, rightMotorE);
 
-  fourBarLeft = motor(PORT20, ratio18_1, false);
-  fourBarRight = motor(PORT17, ratio18_1, true);
-  chainBarLeft = motor(PORT6, ratio18_1, false);
-  chainBarRight = motor(PORT18, ratio18_1, true);
-  claw = motor(PORT19, ratio18_1, false);
+  fourBarLeft = motor(PORT10, ratio18_1, false);
+  fourBarRight = motor(PORT14, ratio18_1, true);
+  chainBarLeft = motor(PORT8, ratio18_1, false);
+  chainBarRight = motor(PORT7, ratio18_1, true);
+  claw = motor(PORT12, ratio18_1, false);
 
   arm.init(&buttons, chainBarLeft, chainBarRight, fourBarLeft, fourBarRight);
 
+  driveType = TWO_STICK_ARCADE;
   robotController = c; 
 
   fourBarLeft.setBrake(hold);
@@ -111,10 +112,10 @@ void Robot::setBackClamp(bool intaking) {
 
 // Run every tick
 void Robot::teleop() {
-  driveTeleop();
-  arm.armMovement(true);
+  // driveTeleop();
+  arm.armMovement(true, 40);
   clawMovement();
-  goalClamp();
+  // goalClamp();
 
   buttons.updateButtonState();
 
