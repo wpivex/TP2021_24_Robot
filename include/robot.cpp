@@ -304,7 +304,7 @@ int timeout, std::function<bool(void)> func) {
     }
 
     currDegrees = fabs(gyroSensor.rotation());
-    if (currDegrees < startSlowDownDegrees) {
+    if (currDegrees < angleDegrees - startSlowDownDegrees) {
       // before hitting theshhold, speed is constant at starting speed
       speed = maxSpeed;
     } else {
@@ -323,11 +323,17 @@ int timeout, std::function<bool(void)> func) {
 }
 
 void Robot::turnToUniversalAngleGyro(float universalAngleDegrees, float maxSpeed, int startSlowDownDegrees,
-int timeout, std::function<bool(void)> func){
+int timeout, std::function<bool(void)> func) {
   float universalHeading = gyroSensor.heading(degrees);
   float turnAngle = fabs(universalHeading-universalAngleDegrees);
-  bool clockwise = turnAngle >= 180;
-  turnToAngleGyro(clockwise, clockwise? 360-turnAngle:turnAngle, maxSpeed, startSlowDownDegrees, timeout);
+  bool clockwise = universalHeading < universalAngleDegrees;
+
+  if (turnAngle > 180) {
+    clockwise = !clockwise;
+    turnAngle = 360 - turnAngle;
+  }
+
+  turnToAngleGyro(clockwise, turnAngle, maxSpeed, startSlowDownDegrees, timeout);
 }
 
 
