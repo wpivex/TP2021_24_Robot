@@ -26,11 +26,11 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
   rightMotorE = motor(PORT20, ratio18_1, false);
   rightDrive = motor_group(rightMotorA, rightMotorB, rightMotorC, rightMotorD, rightMotorE);
 
-  fourBarLeft = motor(PORT15, ratio18_1, false);
-  fourBarRight = motor(PORT15, ratio18_1, true);
-  chainBarLeft = motor(PORT15, ratio18_1, false);
-  chainBarRight = motor(PORT15, ratio18_1, true);
-  claw = motor(PORT15, ratio18_1, false);
+  fourBarLeft = motor(PORT10, ratio18_1, false);
+  fourBarRight = motor(PORT14, ratio18_1, true);
+  chainBarLeft = motor(PORT8, ratio18_1, false);
+  chainBarRight = motor(PORT7, ratio18_1, true);
+  claw = motor(PORT12, ratio18_1, false);
 
   arm.init(isSkills, &buttons, chainBarLeft, chainBarRight, fourBarLeft, fourBarRight);
 
@@ -113,10 +113,10 @@ void Robot::setBackClamp(bool intaking) {
 
 // Run every tick
 void Robot::teleop() {
-  driveTeleop();
+  // driveTeleop();
   arm.armMovement(true);
-  clawMovement();
-  goalClamp();
+  // clawMovement();
+  // goalClamp();
 }
 
 void Robot::callibrateGyro() {

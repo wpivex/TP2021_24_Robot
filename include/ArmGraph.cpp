@@ -138,7 +138,7 @@ bool ArmGraph::armMovement(bool buttonInput) {
   log("%d %d  |  %s", targetNode, arrived ? 1 : 0, pathStr.c_str());
 
   float MARGIN = 100; // margin of error for if robot arm is in vicinity of target node
-  float BASE_SPEED = 100; // Base speed of arm
+  float BASE_SPEED = 40; // Base speed of arm
 
   float fourBarVelocity = BASE_SPEED;
 

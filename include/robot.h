@@ -45,8 +45,8 @@ class Robot {
     motor chainBarRight;
     motor claw;
 
-    digital_out frontGoal = digital_out(Brain.ThreeWirePort.A);
-    digital_out backGoal = digital_out(Brain.ThreeWirePort.B);
+    digital_out frontGoal = digital_out(Brain.ThreeWirePort.B);
+    digital_out backGoal = digital_out(Brain.ThreeWirePort.C);
 
     controller* robotController;
 
