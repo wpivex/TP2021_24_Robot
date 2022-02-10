@@ -307,7 +307,7 @@ int timeout, std::function<bool(void)> func) {
     }
 
     currDegrees = fabs(gyroSensor.rotation());
-    if (currDegrees < startSlowDownDegrees) {
+    if (currDegrees < angleDegrees - startSlowDownDegrees) {
       // before hitting theshhold, speed is constant at starting speed
       speed = maxSpeed;
     } else {

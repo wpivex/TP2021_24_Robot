@@ -121,6 +121,11 @@ bool ArmGraph::armMovement(bool buttonInput, float baseSpeed) {
 
   float MARGIN = 100; // margin of error for if robot arm is in vicinity of target node
 
+  // Timeout, revert to the last position, if teleop
+  if (buttonInput && vex::timer::system() - startTimeout > ARM_TIMEOUT) {
+      generateShortestPath(targetNode, startNode);
+  }
+
   if (arrived) {
 
     startTimeout = vex::timer::system();
@@ -140,11 +145,6 @@ bool ArmGraph::armMovement(bool buttonInput, float baseSpeed) {
         chainBarDone = false;
         calculateVelocities(baseSpeed);
     }
-  }
-
-  // Timeout, revert to the last position, if teleop
-  if (buttonInput && vex::timer::system() - startTimeout > ARM_TIMEOUT) {
-      generateShortestPath(targetNode, startNode);
   }
 
   if (arrivedFinal) return true;
