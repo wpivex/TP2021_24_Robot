@@ -3,7 +3,7 @@
 
 #include "vex.h"
 
-const bool IS_SKILLS = true;
+const bool IS_SKILLS = false;
 
 vex::brain Brain;
 

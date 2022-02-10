@@ -45,8 +45,8 @@ class Robot {
     motor chainBarRight;
     motor claw;
 
-    digital_out frontGoal = digital_out(Brain.ThreeWirePort.A);
-    digital_out backGoal = digital_out(Brain.ThreeWirePort.B);
+    digital_out frontGoal = digital_out(Brain.ThreeWirePort.B);
+    digital_out backGoal = digital_out(Brain.ThreeWirePort.C);
 
     controller* robotController;
 
@@ -75,7 +75,7 @@ class Robot {
     void driveStraightTimed(float speed, directionType dir, int timeMs, bool stopAfter = true, std::function<bool(void)> func = {});
 
     void goForwardVision(Goal goal, float speed, directionType dir, float maximumDistance, int timeout, 
-                        digital_in* limitSwitch, std::function<bool(void)> func = {}, float pModMult = 1.2);
+                        digital_in* limitSwitch, std::function<bool(void)> func = {}, float pModMult = 0.2);
     void alignToGoalVision(Goal goal, bool clockwise, directionType cameraDirection, int timeout);
     void updateCamera(Goal goal);
 
@@ -115,7 +115,7 @@ class Robot {
 
 
     // State variables for claw
-    float MAX_CLAW = -520;
+    float MAX_CLAW = -256;
     bool isClawOpen = false;
 
     bool isSkills;

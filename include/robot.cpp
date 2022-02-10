@@ -5,8 +5,8 @@
 // Motor ports Left: 1R, 2F, 3F,  20T Right: 12R, 11F, 13F
 // gear ratio is 60/36
 Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftMotorD(0), leftMotorE(0), rightMotorA(0), rightMotorB(0), 
-  rightMotorC(0), rightMotorD(0), rightMotorE(0), fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0), claw(0), frontCamera(0), 
-  backCamera(0), gyroSensor(PORT16), arm(), buttons(c) {
+  rightMotorC(0), rightMotorD(0), rightMotorE(0), fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0), claw(0), frontCamera(PORT13), 
+  backCamera(PORT15), gyroSensor(PORT4), arm(), buttons(c) {
 
     log("hello");
 
@@ -21,6 +21,7 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
 
   rightMotorA = motor(PORT16, ratio18_1, false);
   rightMotorB = motor(PORT17, ratio18_1, false);
+
   rightMotorC = motor(PORT18, ratio18_1, false);
   rightMotorD = motor(PORT19, ratio18_1, false);
   rightMotorE = motor(PORT20, ratio18_1, false);
@@ -31,6 +32,8 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
   chainBarLeft = motor(PORT8, ratio18_1, false);
   chainBarRight = motor(PORT7, ratio18_1, true);
   claw = motor(PORT12, ratio18_1, false);
+
+  gyroSensor = inertial(PORT4);
 
   arm.init(&buttons, chainBarLeft, chainBarRight, fourBarLeft, fourBarRight);
 
@@ -112,10 +115,10 @@ void Robot::setBackClamp(bool intaking) {
 
 // Run every tick
 void Robot::teleop() {
-  // driveTeleop();
+  driveTeleop();
   arm.armMovement(true, 40);
   clawMovement();
-  // goalClamp();
+  goalClamp();
 
   buttons.updateButtonState();
 
@@ -199,7 +202,7 @@ float slowDownInches, float turnPercent, bool stopAfter, std::function<bool(void
     //log("%f", baseSpeed);
 
     // reduce baseSpeed so that the faster motor always capped at max speed
-    baseSpeed = fmin(baseSpeed, 100 - baseSpeed*turnPercent);
+    baseSpeed = fmin(baseSpeed, 100 - baseSpeed*fabs(turnPercent));
 
     setLeftVelocity(left, baseSpeed*(1 + turnPercent));
     setRightVelocity(right, baseSpeed*(1 - turnPercent));
@@ -323,17 +326,21 @@ int timeout, std::function<bool(void)> func) {
 }
 
 void Robot::turnToUniversalAngleGyro(float universalAngleDegrees, float maxSpeed, int startSlowDownDegrees,
-int timeout, std::function<bool(void)> func){
+int timeout, std::function<bool(void)> func) {
   float universalHeading = gyroSensor.heading(degrees);
   float turnAngle = fabs(universalHeading-universalAngleDegrees);
-  bool clockwise = turnAngle >= 180;
-  turnToAngleGyro(clockwise, clockwise? 360-turnAngle:turnAngle, maxSpeed, startSlowDownDegrees, timeout);
+  bool clockwise = universalHeading < universalAngleDegrees;
+  if (turnAngle > 180) {
+    clockwise = !clockwise;
+    turnAngle = 360 - turnAngle;
+  }
+  turnToAngleGyro(clockwise, turnAngle, maxSpeed, startSlowDownDegrees, timeout);
 }
 
 
 void Robot::updateCamera(Goal goal) {
-  backCamera = vision(PORT8, goal.bright, goal.sig);
-  frontCamera = vision(PORT9, goal.bright, goal.sig);
+  backCamera = vision(PORT15, goal.bright, goal.sig);
+  frontCamera = vision(PORT13, goal.bright, goal.sig);
 }
 
 // Go forward until the maximum distance is hit, the timeout is reached, or limitSwitch is turned on (collision with goal)
