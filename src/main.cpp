@@ -285,59 +285,58 @@ void oldAuton(void) {
 
   std::function<bool(void)> armFunc = std::bind(&ArmGraph::armMovementAuton, &mainBot.arm);
   mainBot.setBackClamp(true);
-  log("Part 1");
+  log("Part 1: Starting in the Middle");
   mainBot.driveCurved(20, 100, reverse, 10, 0, 0.33, true);
-  wait(250, msec);
   
   mainBot.goForwardVision(YELLOW, 50, reverse, 25, 10, nullptr, nullptr, 0.5);
   mainBot.driveStraightGyro(10, 100, reverse, 5, 5);
 
   mainBot.setBackClamp(false);
-  wait(250,msec);
-  log("Part 2");
+  wait(250, msec);
+  log("Part 2: Ctrl+Z");
   //guarantee the correct angle
-  mainBot.turnToUniversalAngleGyro(315, 20, 30, 5);
+  mainBot.turnToUniversalAngleGyro(315, 10, 30, 5);
   
-  mainBot.driveStraightGyro(24, 100, forward, 5, 5);
-  log("Part 3");
+  mainBot.driveStraightGyro(20, 100, forward, 5, 5);
+  log("Part 3: Spaghetti Arm");
   mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_3);
   mainBot.turnToUniversalAngleGyro(225, 20, 30, 10, nullptr);
-  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_3, 40);
-  wait(500,msec);
-  log("Part 4");
+  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_3, 100);
+  log("Part 4: The Right Way");
+
   mainBot.alignToGoalVision(YELLOW, false, forward, 10);
-  
   mainBot.setFrontClamp(true);
+  wait(250, msec);
   mainBot.goForwardVision(YELLOW, 100, forward, 26, 10, nullptr, nullptr, 0.35);
   mainBot.setFrontClamp(false);
-  wait(250, msec);
   
 
   //Note: Parts 1-4 are the same for skills and normal match autons. 
 
-  log("Part 5");
+  log("Part 5: Red Dead Redemption");
 
-  mainBot.driveStraightGyro(20, 100, forward, 5, 5);
+  mainBot.driveStraightGyro(20, 40, forward, 5, 5);
   mainBot.turnToUniversalAngleGyro(150, 20, 30, 10, nullptr);
-  wait(2000, msec);
   mainBot.alignToGoalVision(RED, true, forward, 5, 20);
-  wait(500, msec);
-  mainBot.goForwardVision(RED, 100, forward, 7, 10, nullptr, nullptr, 0.2);
+  mainBot.goForwardVision(RED, 40, forward, 7, 10, nullptr, nullptr, 0.2);
   mainBot.alignToGoalVision(RED, true, forward, 5, 20);
   
-  log("Part 6");
-  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE, 100);
+  log("Part 6: Spaghetti Arm 2: Revenge of Linguini");
+  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE, 50);
   mainBot.openClaw();
-  mainBot.driveStraightGyro(7, 20, forward, 5, 10);
+  mainBot.driveStraightGyro(10, 20, forward, 5, 10);
   mainBot.closeClaw();
-  wait(250, msec);
-  mainBot.arm.moveArmToPosition(ArmGraph::PLACE_GOAL_WITH_YELLOW, 100);
-  log("Part 7");
-  mainBot.turnToUniversalAngleGyro(180, 55, 20, 5);
-  mainBot.driveStraightGyro(96, 100, reverse, 10, 24);
+  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_2, 100);
 
+  log("Part 7: Filthy Acts At A Reasonable Price");
+  mainBot.turnToUniversalAngleGyro(180, 20, 20, 5);
+  mainBot.driveStraightGyro(75, 100, reverse, 10, 24);
+  mainBot.turnToUniversalAngleGyro(150, 20, 30, 3);
+  //mainBot.turnToAngleGyro(false, 30, 20, 30, 3);
+  wait(2000, msec);
 
-
+  log("Part 8: Where The Fuck Am I");
+  mainBot.driveCurved(35, 20, reverse, 10, 0, 0.25);
 
   // setFrontClamp(true);
   // moveArmToPosition(PLACE_GOAL, 100);
