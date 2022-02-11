@@ -280,6 +280,9 @@ void concurrentTest() {
 }
 
 void oldAuton(void) {
+
+  while (mainBot.gyroSensor.isCalibrating()) wait(20, msec);
+
   std::function<bool(void)> armFunc = std::bind(&ArmGraph::armMovementAuton, &mainBot.arm);
   mainBot.setBackClamp(true);
   log("Part 1");
@@ -287,20 +290,20 @@ void oldAuton(void) {
   wait(250, msec);
   
   mainBot.goForwardVision(YELLOW, 50, reverse, 25, 10, nullptr, nullptr, 0.5);
-  mainBot.driveStraight(10, 100, reverse, 5, 5, true);
+  mainBot.driveStraightGyro(10, 100, reverse, 5, 5);
 
   mainBot.setBackClamp(false);
   wait(250,msec);
   log("Part 2");
   //guarantee the correct angle
-  mainBot.turnToUniversalAngleGyro(325, 100, 30, 5);
+  mainBot.turnToUniversalAngleGyro(315, 20, 30, 5);
   
-  mainBot.driveStraight(24, 100, forward, 5, 5, true);
+  mainBot.driveStraightGyro(24, 100, forward, 5, 5);
   log("Part 3");
   mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_3);
-  mainBot.turnToUniversalAngleGyro(225, 50, 30, 10, nullptr);
+  mainBot.turnToUniversalAngleGyro(225, 20, 30, 10, nullptr);
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_3, 40);
-  wait(1000,msec);
+  wait(500,msec);
   log("Part 4");
   mainBot.alignToGoalVision(YELLOW, false, forward, 10);
   
@@ -314,19 +317,28 @@ void oldAuton(void) {
 
   log("Part 5");
 
-  mainBot.driveCurved(15, 100, forward, 5, 25, true);
+  mainBot.driveStraightGyro(20, 100, forward, 5, 5);
+  mainBot.turnToUniversalAngleGyro(150, 20, 30, 10, nullptr);
+  wait(2000, msec);
+  mainBot.alignToGoalVision(RED, true, forward, 5, 20);
+  wait(500, msec);
+  mainBot.goForwardVision(RED, 100, forward, 7, 10, nullptr, nullptr, 0.2);
+  mainBot.alignToGoalVision(RED, true, forward, 5, 20);
   
-  mainBot.goForwardVision(RED, 100, forward, 35, 10, nullptr, nullptr, 0.35);
-  mainBot.alignToGoalVision(RED, true, forward,5);
   log("Part 6");
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE, 100);
   mainBot.openClaw();
-  mainBot.driveStraightGyro(15, 40, forward, 5, 10);
+  mainBot.driveStraightGyro(7, 20, forward, 5, 10);
   mainBot.closeClaw();
+  wait(250, msec);
   mainBot.arm.moveArmToPosition(ArmGraph::PLACE_GOAL_WITH_YELLOW, 100);
   log("Part 7");
   mainBot.turnToUniversalAngleGyro(180, 55, 20, 5);
   mainBot.driveStraightGyro(96, 100, reverse, 10, 24);
+
+
+
+
   // setFrontClamp(true);
   // moveArmToPosition(PLACE_GOAL, 100);
   // openClaw();

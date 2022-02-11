@@ -116,7 +116,7 @@ void Robot::setBackClamp(bool intaking) {
 // Run every tick
 void Robot::teleop() {
   driveTeleop();
-  arm.armMovement(true, 40);
+  arm.armMovement(true, 60);
   clawMovement();
   goalClamp();
 
@@ -285,6 +285,9 @@ void Robot::driveStraightGyro(float distInches, float speed, directionType dir, 
 void Robot::turnToAngleGyro(bool clockwise, float angleDegrees, float maxSpeed, int startSlowDownDegrees,
 int timeout, std::function<bool(void)> func) {
 
+  if (startSlowDownDegrees > angleDegrees) startSlowDownDegrees = angleDegrees;
+  if (maxSpeed < TURN_MIN_SPEED) maxSpeed = TURN_MIN_SPEED; 
+
 
   float speed;
 
@@ -311,11 +314,12 @@ int timeout, std::function<bool(void)> func) {
       // before hitting theshhold, speed is constant at starting speed
       speed = maxSpeed;
     } else {
-      float delta = (angleDegrees - currDegrees) / (angleDegrees - startSlowDownDegrees); // starts at 1 @deg=startSlowDeg, becomes 0 @deg = final
-      speed = TURN_MIN_SPEED + delta * (speed - TURN_MIN_SPEED);
+      float delta = (angleDegrees - currDegrees) / startSlowDownDegrees; // starts at 1 @deg=startSlowDeg, becomes 0 @deg = final
+      speed = TURN_MIN_SPEED + delta * (maxSpeed - TURN_MIN_SPEED);
     }
 
-    log("%d %f %f", clockwise? 1:0, speed, currDegrees);
+    float delta = (angleDegrees - currDegrees) / (angleDegrees - startSlowDownDegrees);
+    logController("%d %f %f", clockwise? 1:0, speed, delta);
     setLeftVelocity(clockwise ? forward : reverse, speed);
     setRightVelocity(clockwise ? reverse : forward, speed);
     wait(20, msec);
@@ -394,10 +398,9 @@ digital_in* limitSwitch, std::function<bool(void)> func, float pModMult) {
   
 }
 
-void Robot::alignToGoalVision(Goal goal, bool clockwise, directionType cameraDirection, int timeout) {
+void Robot::alignToGoalVision(Goal goal, bool clockwise, directionType cameraDirection, int timeout, float maxSpeed) {
 
   // spin speed is proportional to distance from center, but must be bounded between MIN_SPEED and MAX_SPEED
-  const float MAX_SPEED = 40;
 
   updateCamera(goal);
   vision *camera = (cameraDirection == forward) ? &frontCamera : &backCamera;
@@ -434,7 +437,7 @@ void Robot::alignToGoalVision(Goal goal, bool clockwise, directionType cameraDir
       mod = spinSign;
     }
 
-    float speed = (mod > 0 ? 1 : -1) * TURN_MIN_SPEED + mod * (MAX_SPEED - TURN_MIN_SPEED);
+    float speed = (mod > 0 ? 1 : -1) * TURN_MIN_SPEED + mod * (maxSpeed - TURN_MIN_SPEED);
 
     setLeftVelocity(reverse, speed);
     setRightVelocity(forward, speed);

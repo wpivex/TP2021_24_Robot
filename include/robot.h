@@ -76,7 +76,7 @@ class Robot {
 
     void goForwardVision(Goal goal, float speed, directionType dir, float maximumDistance, int timeout, 
                         digital_in* limitSwitch, std::function<bool(void)> func = {}, float pModMult = 0.2);
-    void alignToGoalVision(Goal goal, bool clockwise, directionType cameraDirection, int timeout);
+    void alignToGoalVision(Goal goal, bool clockwise, directionType cameraDirection, int timeout, float maxSpeed = 40);
     void updateCamera(Goal goal);
 
     void driveStraightGyro(float distInches, float speed, directionType dir, int timeout, float slowDownInches,
