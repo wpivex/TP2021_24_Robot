@@ -85,6 +85,8 @@ class Robot {
                         int timeout, float tolerance = 1, std::function<bool(void)> func = {});
     void turnToUniversalAngleGyro(float universalAngleDegrees, float maxSpeed, int startSlowDownDegrees, 
                         int timeout, float tolerance = 1, std::function<bool(void)> func = {});
+    void gyroTurnU(float universalAngleDegrees);
+    void gyroTurn(bool clockwise, float angleDegrees);
 
     void callibrateGyro();
 

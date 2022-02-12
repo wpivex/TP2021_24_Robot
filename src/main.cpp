@@ -73,9 +73,10 @@ void sideFirst() {
 }
 */
 
-void matchAuto() {
+int matchAuto() {
   Goal startingPlatformColor = RED;
   Goal oppositeColor = BLUE;
+  bool pickUpGoal = false;
   
   std::function<bool(void)> armFunc = std::bind(&ArmGraph::armMovementAuton, &mainBot.arm);
 
@@ -90,14 +91,17 @@ void matchAuto() {
   
   mainBot.goForwardVision(YELLOW, 50, reverse, 25, 10, nullptr, armFunc, 0.5);
   mainBot.driveStraightGyro(10, 100, reverse, 5, 5,armFunc);
+  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_2);
   mainBot.setBackClamp(false);
   wait(125, msec);
   log("Part 2: Ctrl+Z");
   //guarantee the correct angle
-  mainBot.turnToUniversalAngleGyro(315, 10, 30, 5);
+  // mainBot.turnToUniversalAngleGyro(315, 10, 30, 5);
+  mainBot.gyroTurnU(315);
   
   mainBot.driveStraightGyro(20, 100, forward, 5, 5);
-  mainBot.turnToUniversalAngleGyro(225, 20, 30, 10);
+  // mainBot.turnToUniversalAngleGyro(225, 20, 30, 10);
+  mainBot.gyroTurnU(225);
   log("Part 3: The Right Way");
 
   mainBot.alignToGoalVision(YELLOW, false, forward, 10, 20);
@@ -109,32 +113,26 @@ void matchAuto() {
 
   log("Part 4: Red Dead Redemption");
   mainBot.driveStraightGyro(15, 100, reverse, 5, 5,nullptr);
-
-  mainBot.turnToUniversalAngleGyro(0, 30, 180, 10);
+  // mainBot.turnToUniversalAngleGyro(0, 30, 180, 10);
+  mainBot.gyroTurnU(0);
   mainBot.driveStraightGyro(20, 100, forward, 5, 5,nullptr);
-
-  mainBot.turnToUniversalAngleGyro(270, 20, 30, 10);
+  // mainBot.turnToUniversalAngleGyro(270, 20, 30, 10);
+  mainBot.gyroTurnU(270);
   
-  mainBot.alignToGoalVision(RED, true, forward, 10, 20);  
-  mainBot.driveStraightGyro(15, 100, forward, 5, 5,nullptr);
-
   log("Part 5: Claw Machine");
+  mainBot.alignToGoalVision(RED, true, forward, 10, 20);  
+  mainBot.driveStraightGyro(3, 20, forward, 5, 3,nullptr);
+  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE);
   mainBot.openClaw();
-  mainBot.alignToGoalVision(RED, true, forward, 10, 20);
-  mainBot.arm.setArmDestination(ArmGraph::INTAKE);
-  mainBot.arm.armMovementAuton();
-  mainBot.driveStraightGyro(5, 35, forward, 5, 5);
+  mainBot.driveStraightGyro(2, 20, forward, 5, 2,nullptr);
   mainBot.closeClaw();
 
   log("Part 6: Sluuuuuuuurrrrrrrrppppppppp");
-  // mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_3);
-  // mainBot.arm.armMovementAuton();
-  // mainBot.setFrontClamp(true);
-  // mainBot.arm.setArmDestination(ArmGraph::PLACE_GOAL_WITH_YELLOW);
-  // mainBot.arm.armMovementAuton();
-  // mainBot.setFrontClamp(false);
-
-
+  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_3);
+  mainBot.driveStraight(10, 20, reverse, 5, 10);
+  
+  log("Fin.");
+  return 1;
 }
 
 
@@ -179,7 +177,7 @@ void concurrentTest() {
 
 }
 
-void skillsAuto(void) {
+int skillsAuto(void) {
 
   while (mainBot.gyroSensor.isCalibrating()) wait(20, msec);
 
@@ -195,12 +193,14 @@ void skillsAuto(void) {
   wait(250, msec);
   log("Part 2: Ctrl+Z");
   //guarantee the correct angle
-  mainBot.turnToUniversalAngleGyro(315, 10, 30, 5);
+  // mainBot.turnToUniversalAngleGyro(315, 10, 30, 5);
+  mainBot.gyroTurnU(315);
   
-  mainBot.driveStraightGyro(20, 100, forward, 5, 5);
+  mainBot.driveStraightGyro(22, 100, forward, 5, 5);
   log("Part 3: Spaghetti Arm");
   mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_2);
-  mainBot.turnToUniversalAngleGyro(225, 20, 30, 10);
+  // mainBot.turnToUniversalAngleGyro(225, 20, 30, 10);
+  mainBot.gyroTurnU(223);
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_2, 100);
   log("Part 4: The Right Way");
 
@@ -217,12 +217,14 @@ void skillsAuto(void) {
   log("Part 5: Red Dead Redemption");
 
   mainBot.driveStraightGyro(18, 40, forward, 5, 5);
-  mainBot.turnToUniversalAngleGyro(180, 20, 30, 10);
+  // mainBot.turnToUniversalAngleGyro(180, 20, 30, 10);
+  mainBot.gyroTurnU(180);
   mainBot.driveStraight(10, 20, forward, 5, 5);
-  mainBot.turnToUniversalAngleGyro(150, 20, 30, 10);
-  mainBot.alignToGoalVision(RED, true, forward, 5, 20);
+  // mainBot.turnToUniversalAngleGyro(150, 20, 30, 10);
+  mainBot.gyroTurnU(150);
+  mainBot.alignToGoalVision(RED, true, forward, 5, 10);
   mainBot.goForwardVision(RED, 40, forward, 7, 10, nullptr, nullptr, 0.2);
-  mainBot.alignToGoalVision(RED, true, forward, 5, 20);
+  mainBot.alignToGoalVision(RED, true, forward, 5, 10);
   
   log("Part 6: Spaghetti Arm 2: Revenge of Linguini");
   mainBot.openClaw();
@@ -233,12 +235,17 @@ void skillsAuto(void) {
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_1, 100);
 
   log("Part 7: Filthy Acts At A Reasonable Price");
-  mainBot.turnToUniversalAngleGyro(330, 20, 30, 3);
-  mainBot.alignToGoalVision(BLUE, true, forward, 10,20);
-  mainBot.turnToAngleGyro(true, 35, 20, 35, 5); //angle slightly off, much better now with setHeading
-  mainBot.gyroSensor.setHeading(0, degrees); //this works somehow
-  mainBot.driveStraight(96, 100, reverse, 7, 24); // I no longer trust gyro straight for long distances
-  mainBot.turnToUniversalAngleGyro(90, 20, 30, 3);
+  mainBot.gyroTurnU(50);
+  
+  // mainBot.turnToUniversalAngleGyro(330, 20, 30, 3);
+  
+  // mainBot.alignToGoalVision(BLUE, true, forward, 10, 20);
+  // // mainBot.turnToAngleGyro(true, 7, 10, 35, 5); //angle slightly off, much better now with setHeading
+  // mainBot.gyroTurn(true, 7);
+  // mainBot.gyroSensor.setHeading(0, degrees); //this works somehow
+  mainBot.driveStraight(150, 100, forward, 7, 24); // I no longer trust gyro straight for long distances
+  // mainBot.turnToUniversalAngleGyro(90, 20, 30, 3);
+  //mainBot.gyroTurnU(90);
   // wait(2000, msec);
 
   log("Part 8: Where The Fuck Am I");
@@ -258,21 +265,28 @@ void skillsAuto(void) {
   // setFrontClamp(false);
 
   // turn and climb
+  return 1;
 }
 
-void vcatTesting() {
-  mainBot.turnToUniversalAngleGyro(0, 30, 90, 10);
-  mainBot.turnToUniversalAngleGyro(90, 30, 90, 10);
+int vcatTesting() {
+  mainBot.setFrontClamp(false);
+  mainBot.setBackClamp(false);
+  // mainBot.turnToUniversalAngleGyro(90, 30, 90, 10);
+  mainBot.gyroTurnU(90);
   wait(1000,msec);
-  mainBot.turnToUniversalAngleGyro(180, 30, 90, 10);
+  // mainBot.turnToUniversalAngleGyro(180, 30, 90, 10);
+  mainBot.gyroTurnU(180);
   wait(1000,msec);
-  mainBot.turnToUniversalAngleGyro(270, 30, 90, 10);
+  // mainBot.turnToUniversalAngleGyro(270, 30, 90, 10);
+  mainBot.gyroTurnU(270);
   wait(1000,msec);
-  mainBot.turnToUniversalAngleGyro(90, 30, 180, 5);
+  // mainBot.turnToUniversalAngleGyro(90, 30, 180, 5);
+  mainBot.gyroTurnU(90);
   wait(1000,msec);
+  return 0;
 }
 
-void autonomous() { thread auto1(skillsAuto); }
+void autonomous() { task auto1(skillsAuto); }
 
 void logGyro() {
   mainBot.gyroSensor.resetRotation();
