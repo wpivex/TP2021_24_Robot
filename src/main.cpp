@@ -73,170 +73,70 @@ void sideFirst() {
 }
 */
 
-void skillsVCAT() {
+void matchAuto() {
   Goal startingPlatformColor = RED;
   Goal oppositeColor = BLUE;
+  
+  std::function<bool(void)> armFunc = std::bind(&ArmGraph::armMovementAuton, &mainBot.arm);
 
-
-  // a function reference to mainBot arm's armMovement() function
-  std::function<bool(void)> armFunc = std::bind(&ArmGraph::armMovementAuton, &mainBot.arm); 
+  while (mainBot.gyroSensor.isCalibrating()) wait(20, msec);
 
   // Drive curved while moving arm to a raised position without blocking vision sensor
-  mainBot.arm.setArmDestination(ArmGraph::ABOVE_GOAL);
-  mainBot.driveCurved(15, 100, forward, 10, 0, -0.65, true, armFunc); // distance, speed, direction, seconds, slowdown, turn, stopafter, function
-  mainBot.arm.moveArmToPosition(ArmGraph::ABOVE_GOAL);
+  mainBot.setBackClamp(true);
+  log("Part 1: Starting in the Middle");
+  mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_2);
+  mainBot.driveCurved(20, 100, reverse, 10, 0, 0.33, true, armFunc);
   
-  // Go to center goal
-  mainBot.goForwardVision(YELLOW, 50, forward, 16, 10, nullptr, nullptr, 1.5);
-  mainBot.openClaw(false); // open claw non blocking
-  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE);
   
-  mainBot.driveStraightGyro(14, 20, forward, 10, 0);
-  mainBot.closeClaw();
-
-  // // Go to platform and elevate center goal on platform
-  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_2); // wait for arm to lift off the ground for clearance
-  mainBot.turnToUniversalAngleGyro(195, 100, 20, 10); // turn to platform, slowdown at 20 degrees to destination
+  mainBot.goForwardVision(YELLOW, 50, reverse, 25, 10, nullptr, armFunc, 0.5);
+  mainBot.driveStraightGyro(10, 100, reverse, 5, 5,armFunc);
+  mainBot.setBackClamp(false);
+  wait(125, msec);
+  log("Part 2: Ctrl+Z");
+  //guarantee the correct angle
+  mainBot.turnToUniversalAngleGyro(315, 10, 30, 5);
   
-  // TODO: limit switch detection
+  mainBot.driveStraightGyro(20, 100, forward, 5, 5);
+  mainBot.turnToUniversalAngleGyro(225, 20, 30, 10);
+  log("Part 3: The Right Way");
+
+  mainBot.alignToGoalVision(YELLOW, false, forward, 10, 20);
+  mainBot.setFrontClamp(true);
+  wait(125, msec);
+  mainBot.goForwardVision(YELLOW, 100, forward, 26, 10, nullptr, nullptr, 0.35);
+  mainBot.setFrontClamp(false);
+  wait(125,msec);
+
+  log("Part 4: Red Dead Redemption");
+  mainBot.driveStraightGyro(15, 100, reverse, 5, 5,nullptr);
+
+  mainBot.turnToUniversalAngleGyro(0, 30, 180, 10);
+  mainBot.driveStraightGyro(20, 100, forward, 5, 5,nullptr);
+
+  mainBot.turnToUniversalAngleGyro(270, 20, 30, 10);
   
-  mainBot.driveStraightGyro(20, 60, forward, 10, 10); // Head to platform, slowdown at 10 inches to destination
-  mainBot.arm.moveArmToPosition(ArmGraph::PLATFORM_HEIGHT, 40); // Lower goal to paltform
-  wait(250, msec);
-  mainBot.openClaw(); // place goal
+  mainBot.alignToGoalVision(RED, true, forward, 10, 20);  
+  mainBot.driveStraightGyro(15, 100, forward, 5, 5,nullptr);
 
-  // Get right goal
-  mainBot.driveStraightGyro(5, 100, reverse, 10, 2); // go back a little for clearance
-  mainBot.turnToUniversalAngleGyro(30, 100, 10, 10, armFunc); // turn to right goal while moving arm to intaking
-  mainBot.alignToGoalVision(YELLOW, false, forward, 5);
-  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE); // finish the arm movement to intaking if it's not done
-  // TODO: limit switch detection
-  mainBot.goForwardVision(YELLOW, 18, forward, 16, 10, nullptr);
-  mainBot.closeClaw();
-
-  // Go to platform and place right goal
-  mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_2); // a little above platform level
-  mainBot.turnToUniversalAngleGyro(210, 100, 20, 10, armFunc); // turn to platform, slowdown at 20 degrees to destination
-  mainBot.driveStraightGyro(24, 20, forward, 10, 10, armFunc); // Head to platform, slowdown at 10 inches to destination
-  mainBot.arm.moveArmToPosition(ArmGraph::PLATFORM_HEIGHT); // Lower goal to paltform
-  mainBot.openClaw(); // place goal
-
-  // Get blue goal
-  mainBot.driveStraightGyro(5, 100, reverse, 10, 2); // go back a little for clearance
-  mainBot.arm.setArmDestination(ArmGraph::INTAKE); // to prepare to obtain blue goal
-  mainBot.turnToUniversalAngleGyro(90, 100, 30, 10);
-  // TODO: limit switch detection
-  mainBot.goForwardVision(oppositeColor, 80, forward, 20, 10, nullptr, armFunc); // Travel the majority of the route to blue fast
-  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE); // finish moving arm to intake if not done
-  mainBot.goForwardVision(oppositeColor, 30, forward, 10, 10, nullptr);
-  mainBot.closeClaw();
-
-  // Align with right wall
-  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_3); // move arm up for enough clearance to wall align
-  mainBot.driveStraightTimed(60, forward, 2);
-  mainBot.driveStraightGyro(10, 100, reverse, 10, 2); // go back a little for clearance
-
-  // Head towards other side of field to drop red goal off and pick up blue goal
-  mainBot.turnToUniversalAngleGyro(0, 100, 30, 10);
-  mainBot.arm.setArmDestination(ArmGraph::PLATFORM_HEIGHT); // to prepare to drop off red goal
-  mainBot.driveStraightGyro(60, 100, forward, 10, 10, armFunc); // cross field
-  mainBot.openClaw(); // drop red goal
-  mainBot.driveStraightGyro(10, 80, reverse, 5, 5);
-
-  // Turn to red and pick it up
+  log("Part 5: Claw Machine");
+  mainBot.openClaw();
+  mainBot.alignToGoalVision(RED, true, forward, 10, 20);
   mainBot.arm.setArmDestination(ArmGraph::INTAKE);
-  mainBot.turnToAngleGyro(true, 45, 80, 10, 5, armFunc); // initial turn to red
-  mainBot.turnToUniversalAngleGyro(315, 100, 10, 10);
-  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE); // finish lowering arm to intake if not done
-  mainBot.alignToGoalVision(startingPlatformColor, false, forward, 5); // align to red
-  // TODO: limit switch detection
-  mainBot.goForwardVision(startingPlatformColor, 30, forward, 20, 10, nullptr); // go to red
+  mainBot.arm.armMovementAuton();
+  mainBot.driveStraightGyro(5, 35, forward, 5, 5);
   mainBot.closeClaw();
 
-  // Drag red out of platform slowly without raising arm (which would tip platform)
-  mainBot.driveStraight(15, 40, reverse, 10, 5);
-  mainBot.arm.moveArmToPosition(ArmGraph::PLATFORM_HEIGHT);
+  log("Part 6: Sluuuuuuuurrrrrrrrppppppppp");
+  // mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_3);
+  // mainBot.arm.armMovementAuton();
+  // mainBot.setFrontClamp(true);
+  // mainBot.arm.setArmDestination(ArmGraph::PLACE_GOAL_WITH_YELLOW);
+  // mainBot.arm.armMovementAuton();
+  // mainBot.setFrontClamp(false);
 
-  // wall align with top wall
-  mainBot.turnToAngleGyro(true, 180, 100, -1, 5);
-  mainBot.turnToUniversalAngleGyro(180, 100, 30, 10);
-  mainBot.driveStraightTimed(60, reverse, 2);
 
-  // Head back home with red
-  mainBot.driveStraightGyro(60, 100, forward, 10, 10);
-  
 }
 
-/*
-void skills() {
-  // Get center goal
-  mainBot.openClaw();
-  mainBot.moveArmToPosition(mainBot.ABOVE_MIDDLE, 100);
-  mainBot.driveCurved(forward, 20, -54);
-  mainBot.goForwardVision(false, 30, 18, 15, 0);
-  mainBot.moveArmToPosition(mainBot.INTAKING, 100);
-  mainBot.driveStraight(20, 7);
-  mainBot.closeClaw();
-
-  // Place center goal
-  mainBot.moveArmToPosition(mainBot.ABOVE_MIDDLE, 100);
-  mainBot.turnToAngle(100, 125, true, reverse);
-  mainBot.driveStraight(60, 20);
-  mainBot.moveArmToPosition(mainBot.PLATFORM_LEVEL, 70);
-  mainBot.openClaw();
-
-  // Get right goal
-  mainBot.driveStraight(100, -5);
-  mainBot.turnToAngle(100, 160, true, reverse);
-  mainBot.turnAndAlignVision(false, 0, 0.05, false);
-  mainBot.openClaw();
-  mainBot.moveArmToPosition(mainBot.INTAKING, 100);
-  mainBot.goForwardVision(false, 20, 16, 15, 0);
-  mainBot.closeClaw();
-  mainBot.moveArmToPosition(mainBot.ABOVE_MIDDLE, 100);
-
-  // Place right goal
-  mainBot.turnToAngle(100, -147, true, forward);
-  mainBot.driveStraight(20, 24);
-  mainBot.moveArmToPosition(mainBot.PLATFORM_LEVEL, 65);
-  mainBot.openClaw();
-
-  // Get red goal
-  mainBot.driveStraight(100, -10);
-  mainBot.turnToAngle(100, -110, true, forward);
-  mainBot.turnAndAlignVision(true, 1, 0.1, false);
-  mainBot.openClaw();
-  mainBot.goForwardVision(false, 100, 60, 25, 1);
-  mainBot.moveArmToPosition(mainBot.INTAKING, 100);
-  mainBot.driveStraight(20, 5);
-  mainBot.closeClaw();
-  mainBot.moveArmToPosition(mainBot.ABOVE_MIDDLE, 100);
-
-  // Place red goal
-  mainBot.turnToAngle(100, 180, true, forward);
-  mainBot.driveStraight(100, 35);
-  mainBot.turnToAngle(100, 50, true, forward);
-  mainBot.driveStraight(25, 35);
-  mainBot.moveArmToPosition(mainBot.PLATFORM_LEVEL, 65);
-  mainBot.openClaw();
-
-  // Get blue goal
-  mainBot.driveStraight(100, -5);
-  mainBot.turnToAngle(100, 90, true, reverse);
-  mainBot.turnAndAlignVision(true, 2, 0.1, false);
-  mainBot.goForwardVision(false, 100, 25, 35, 2);
-  mainBot.moveArmToPosition(mainBot.INTAKING, 100);
-  mainBot.driveStraight(20, 5);
-  mainBot.closeClaw();
-
-  // Run with blue goal
-  mainBot.moveArmToPosition(mainBot.ABOVE_MIDDLE, 100);
-  mainBot.turnToAngle(100, 100, true, reverse);
-  mainBot.driveStraight(100, 50);
-}
-
-int tetherAuto(void) { return 0; }
-*/
 
 void testArmValues() {
   mainBot.fourBarLeft.setBrake(coast);
@@ -279,7 +179,7 @@ void concurrentTest() {
 
 }
 
-void oldAuton(void) {
+void skillsAuto(void) {
 
   while (mainBot.gyroSensor.isCalibrating()) wait(20, msec);
 
@@ -299,9 +199,9 @@ void oldAuton(void) {
   
   mainBot.driveStraightGyro(20, 100, forward, 5, 5);
   log("Part 3: Spaghetti Arm");
-  mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_3);
-  mainBot.turnToUniversalAngleGyro(225, 20, 30, 10, nullptr);
-  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_3, 100);
+  mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_2);
+  mainBot.turnToUniversalAngleGyro(225, 20, 30, 10);
+  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_2, 100);
   log("Part 4: The Right Way");
 
   mainBot.alignToGoalVision(YELLOW, false, forward, 10);
@@ -309,35 +209,48 @@ void oldAuton(void) {
   wait(250, msec);
   mainBot.goForwardVision(YELLOW, 100, forward, 26, 10, nullptr, nullptr, 0.35);
   mainBot.setFrontClamp(false);
+  wait(250,msec);
   
 
   //Note: Parts 1-4 are the same for skills and normal match autons. 
 
   log("Part 5: Red Dead Redemption");
 
-  mainBot.driveStraightGyro(20, 40, forward, 5, 5);
-  mainBot.turnToUniversalAngleGyro(150, 20, 30, 10, nullptr);
+  mainBot.driveStraightGyro(18, 40, forward, 5, 5);
+  mainBot.turnToUniversalAngleGyro(180, 20, 30, 10);
+  mainBot.driveStraight(10, 20, forward, 5, 5);
+  mainBot.turnToUniversalAngleGyro(150, 20, 30, 10);
   mainBot.alignToGoalVision(RED, true, forward, 5, 20);
   mainBot.goForwardVision(RED, 40, forward, 7, 10, nullptr, nullptr, 0.2);
   mainBot.alignToGoalVision(RED, true, forward, 5, 20);
   
   log("Part 6: Spaghetti Arm 2: Revenge of Linguini");
-  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE, 50);
   mainBot.openClaw();
-  mainBot.driveStraightGyro(10, 20, forward, 5, 10);
+  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE, 50);
+  mainBot.driveStraightGyro(5, 20, forward, 5, 10);
   mainBot.closeClaw();
-  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_2, 100);
+  mainBot.driveStraight(5, 20, reverse, 2, 3);
+  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_1, 100);
 
   log("Part 7: Filthy Acts At A Reasonable Price");
-  mainBot.turnToUniversalAngleGyro(180, 20, 20, 5);
-  mainBot.driveStraightGyro(75, 100, reverse, 10, 24);
-  mainBot.turnToUniversalAngleGyro(150, 20, 30, 3);
-  //mainBot.turnToAngleGyro(false, 30, 20, 30, 3);
-  wait(2000, msec);
+  mainBot.turnToUniversalAngleGyro(330, 20, 30, 3);
+  mainBot.alignToGoalVision(BLUE, true, forward, 10,20);
+  mainBot.turnToAngleGyro(true, 35, 20, 35, 5); //angle slightly off, much better now with setHeading
+  mainBot.gyroSensor.setHeading(0, degrees); //this works somehow
+  mainBot.driveStraight(96, 100, reverse, 7, 24); // I no longer trust gyro straight for long distances
+  mainBot.turnToUniversalAngleGyro(90, 20, 30, 3);
+  // wait(2000, msec);
 
   log("Part 8: Where The Fuck Am I");
-  mainBot.driveCurved(35, 20, reverse, 10, 0, 0.25);
-
+  // mainBot.driveCurved(35, 20, reverse, 10, 0, 0.15);
+  // mainBot.turnToUniversalAngleGyro(90, 10, 10, 5);
+  // mainBot.driveStraightGyro(10,20,forward,10,10,nullptr);
+  // mainBot.turnToUniversalAngleGyro(93, 10, 10, 5);
+  // mainBot.arm.setArmDestination(ArmGraph::INTAKE);
+  // mainBot.arm.armMovementAuton();
+  //mainBot.driveStraight(36,50,forward,10,10,nullptr);
+  
+  
   // setFrontClamp(true);
   // moveArmToPosition(PLACE_GOAL, 100);
   // openClaw();
@@ -348,25 +261,18 @@ void oldAuton(void) {
 }
 
 void vcatTesting() {
-  //mainBot.driveStraight(50, 80, forward, 20, 10);
-  //mainBot.driveStraightGyro(80, 80, forward, 20, 10);
-  // mainBot.callibrateGyro();
-  // mainBot.turnToAngleGyro(true, 90, 100, 30, 20);
-  // while(true) {
-  //   log(mainBot.gyroSensor.rotation());
-  // }
-  // mainBot.driveStraightTimed(50, forward, 2, true);
-  // mainBot.driveStraight(300, 100, forward, 1, 0);
-  // mainBot.driveCurved(30, 80, forward, 1000, 10, 0.5);
-  // mainBot.goForwardVision(RED, 20, forward, 40, 100000, nullptr);
-  // mainBot.alignToGoalVision(YELLOW, false, forward, 10000);
-  // mainBot.arm.setArmPosition(ArmGraph::PLATFORM_HEIGHT);
-  mainBot.arm.moveArmToPosition(ArmGraph::PLACE_GOAL_WITH_YELLOW);
-  //mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_3);
-  mainBot.arm.moveArmToPosition(ArmGraph::PLATFORM_HEIGHT);
+  mainBot.turnToUniversalAngleGyro(0, 30, 90, 10);
+  mainBot.turnToUniversalAngleGyro(90, 30, 90, 10);
+  wait(1000,msec);
+  mainBot.turnToUniversalAngleGyro(180, 30, 90, 10);
+  wait(1000,msec);
+  mainBot.turnToUniversalAngleGyro(270, 30, 90, 10);
+  wait(1000,msec);
+  mainBot.turnToUniversalAngleGyro(90, 30, 180, 5);
+  wait(1000,msec);
 }
 
-void autonomous() { thread auto1(oldAuton); }
+void autonomous() { thread auto1(skillsAuto); }
 
 void logGyro() {
   mainBot.gyroSensor.resetRotation();

@@ -100,7 +100,7 @@ void Robot::goalClamp() {
 
 void Robot::clawMovement() {
   if (buttons.pressed(CLAW_TOGGLE)) {
-    claw.rotateTo(isClawOpen? 500 : MAX_CLAW, deg, 100, velocityUnits::pct, false);
+    claw.rotateTo(isClawOpen? 2000 : MAX_CLAW, deg, 100, velocityUnits::pct, false);
       isClawOpen = !isClawOpen;
   }
 }
@@ -282,8 +282,10 @@ void Robot::driveStraightGyro(float distInches, float speed, directionType dir, 
 // angleDegrees indicates the angle to turn to.
 // startSlowDownDegrees is some absolute angle less than angleDegrees, where gyro proportional control starts
 // maxSpeed is the starting speed of the turn. Will slow down once past startSlowDownDegrees theshhold
-void Robot::turnToAngleGyro(bool clockwise, float angleDegrees, float maxSpeed, int startSlowDownDegrees,
-int timeout, std::function<bool(void)> func) {
+void Robot::turnToAngleGyro(bool clockwise, float angleDegrees, float maxSpeed, int startSlowDownDegrees, 
+int timeout, float tolerance, std::function<bool(void)> func) {
+
+  //angleDegrees *= .94;
 
   if (startSlowDownDegrees > angleDegrees) startSlowDownDegrees = angleDegrees;
   if (maxSpeed < TURN_MIN_SPEED) maxSpeed = TURN_MIN_SPEED; 
@@ -298,9 +300,13 @@ int timeout, std::function<bool(void)> func) {
   gyroSensor.resetRotation();
   log("about to loop");
 
-  float currDegrees = 0; // always positive with abs
 
-  while (currDegrees < angleDegrees && !isTimeout(startTime, timeout)) {
+
+  float currDegrees = 0; // always positive with abs
+  float delta = 0;
+  float prevDegrees = 0;
+  bool slowEnough = false;
+  while ((fabs(currDegrees - angleDegrees) > tolerance /*|| !slowEnough*/) && !isTimeout(startTime, timeout)) {
     // if there is a concurrent function to run, run it
     if (func) {
       if (func()) {
@@ -310,18 +316,20 @@ int timeout, std::function<bool(void)> func) {
     }
 
     currDegrees = fabs(gyroSensor.rotation());
+
     if (currDegrees < angleDegrees - startSlowDownDegrees) {
       // before hitting theshhold, speed is constant at starting speed
       speed = maxSpeed;
     } else {
-      float delta = (angleDegrees - currDegrees) / startSlowDownDegrees; // starts at 1 @deg=startSlowDeg, becomes 0 @deg = final
-      speed = TURN_MIN_SPEED + delta * (maxSpeed - TURN_MIN_SPEED);
+      delta = (angleDegrees - currDegrees) / startSlowDownDegrees; // starts at 1 @deg=startSlowDeg, becomes 0 @deg = final
+      speed = TURN_MIN_SPEED + fabs(delta) * (maxSpeed - TURN_MIN_SPEED);
     }
-
-    float delta = (angleDegrees - currDegrees) / (angleDegrees - startSlowDownDegrees);
+    float trueSpeed = fabs((prevDegrees-currDegrees)/.02); //Difference in position across 20 msec, in degrees/sec
+    slowEnough = trueSpeed < 1;
     logController("%d %f %f", clockwise? 1:0, speed, delta);
-    setLeftVelocity(clockwise ? forward : reverse, speed);
-    setRightVelocity(clockwise ? reverse : forward, speed);
+    setLeftVelocity(clockwise^(delta<0) ? forward : reverse, speed);
+    setRightVelocity(clockwise^(delta<0) ? reverse : forward, speed);
+    prevDegrees = currDegrees;
     wait(20, msec);
   }
 
@@ -330,7 +338,7 @@ int timeout, std::function<bool(void)> func) {
 }
 
 void Robot::turnToUniversalAngleGyro(float universalAngleDegrees, float maxSpeed, int startSlowDownDegrees,
-int timeout, std::function<bool(void)> func) {
+int timeout, float tolerance, std::function<bool(void)> func) {
   float universalHeading = gyroSensor.heading(degrees);
   float turnAngle = fabs(universalHeading-universalAngleDegrees);
   bool clockwise = universalHeading < universalAngleDegrees;
@@ -338,7 +346,7 @@ int timeout, std::function<bool(void)> func) {
     clockwise = !clockwise;
     turnAngle = 360 - turnAngle;
   }
-  turnToAngleGyro(clockwise, turnAngle, maxSpeed, startSlowDownDegrees, timeout);
+  turnToAngleGyro(clockwise, turnAngle, maxSpeed, startSlowDownDegrees, timeout, tolerance);
 }
 
 
@@ -459,8 +467,8 @@ void Robot::openClaw(bool waitForCompletion) {
 void Robot::closeClaw() {
   int clawTimeout = vex::timer::system();
   while(true) {
-    if (vex::timer::system() - clawTimeout > 1000) { return; }
-    claw.rotateTo(500, deg, 100, velocityUnits::pct, false);
+    if (vex::timer::system() - clawTimeout > 2000) { return; }
+    claw.rotateTo(2000, deg, 100, velocityUnits::pct, false);
     wait(20, msec);
   }
   isClawOpen = false;
