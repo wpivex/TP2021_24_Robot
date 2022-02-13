@@ -14,9 +14,15 @@ struct Goal {
   vex::vision::signature sig;
 };
 
-const struct Goal YELLOW = {0, 13, vex::vision::signature (1, 1849, 2799, 2324, -3795, -3261, -3528, 2.500, 0)};
-const struct Goal RED = {1, 56, vex::vision::signature (1, 5767, 9395, 7581, -685, 1, -342, 3.000, 0)};
-const struct Goal BLUE = {2, 67, vex::vision::signature (1, -2675, -1975, -2324, 8191, 14043, 11116, 3.000, 0)};
+// COMP FIELD
+// const struct Goal YELLOW = {0, 21, vex::vision::signature (1, 2023, 3393, 2708, -3631, -3185, -3408, 2.500, 0)};
+// const struct Goal RED = {1, 41, vex::vision::signature (1, 8435, 10495, 9464, -1029, -641, -836, 3.000, 0)};
+// const struct Goal BLUE = {2, 52, vex::vision::signature (1, -2657, -1837, -2247, 7385, 11983, 9684, 3.000, 0)};
+
+// SKILLS
+const struct Goal YELLOW = {0, 25, vex::vision::signature (1, 2401, 3421, 2911, -3187, -2789, -2988, 2.500, 0)};
+const struct Goal RED = {1, 50, vex::vision::signature (1, 7787, 9783, 8785, -773, -457, -615, 3.000, 0)};
+const struct Goal BLUE = {2, 102, vex::vision::signature (1, -2617, -1735, -2176, 6659, 12361, 9510, 3.000, 0)};
 
 
 static const float VISION_CENTER_X = 157.0;

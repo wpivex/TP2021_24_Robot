@@ -410,7 +410,7 @@ void Robot::gyroTurn(bool clockwise, float angleDegrees) {
 
   float K_PROPORTIONAL = 0.625;
   float K_DERIVATIVE = 0.00625;
-  float tolerance = 2;
+  float tolerance = 3;
 
   float timeout = 5;
   float speed;

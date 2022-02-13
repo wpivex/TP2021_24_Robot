@@ -85,13 +85,9 @@ int matchAuto() {
   // Drive curved while moving arm to a raised position without blocking vision sensor
   mainBot.setBackClamp(true);
   log("Part 1: Starting in the Middle");
-  mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_2);
-  mainBot.driveCurved(20, 100, reverse, 10, 0, 0.33, true, armFunc);
-  
-  
-  mainBot.goForwardVision(YELLOW, 50, reverse, 25, 10, nullptr, armFunc, 0.5);
-  mainBot.driveStraightGyro(10, 100, reverse, 5, 5,armFunc);
-  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_2);
+  mainBot.driveCurved(20, 100, reverse, 10, 0, 0.33, true);
+  mainBot.goForwardVision(YELLOW, 50, reverse, 25, 10, nullptr, nullptr, 0.5);
+  mainBot.driveStraightGyro(10, 100, reverse, 5, 5);
   mainBot.setBackClamp(false);
   wait(125, msec);
   log("Part 2: Ctrl+Z");
@@ -99,7 +95,9 @@ int matchAuto() {
   // mainBot.turnToUniversalAngleGyro(315, 10, 30, 5);
   mainBot.gyroTurnU(315);
   
-  mainBot.driveStraightGyro(20, 100, forward, 5, 5);
+  mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_2);
+  mainBot.driveStraightGyro(20, 100, forward, 5, 5, armFunc);
+  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_2);
   // mainBot.turnToUniversalAngleGyro(225, 20, 30, 10);
   mainBot.gyroTurnU(225);
   log("Part 3: The Right Way");
@@ -229,13 +227,14 @@ int skillsAuto(void) {
   log("Part 6: Spaghetti Arm 2: Revenge of Linguini");
   mainBot.openClaw();
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE, 50);
+  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE, 35);
   mainBot.driveStraightGyro(5, 20, forward, 5, 10);
   mainBot.closeClaw();
   mainBot.driveStraight(5, 20, reverse, 2, 3);
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_1, 100);
 
   log("Part 7: Filthy Acts At A Reasonable Price");
-  mainBot.gyroTurnU(35);
+  mainBot.gyroTurnU(25);
   
   // mainBot.turnToUniversalAngleGyro(330, 20, 30, 3);
   
@@ -243,10 +242,12 @@ int skillsAuto(void) {
   // // mainBot.turnToAngleGyro(true, 7, 10, 35, 5); //angle slightly off, much better now with setHeading
   // mainBot.gyroTurn(true, 7);
   // mainBot.gyroSensor.setHeading(0, degrees); //this works somehow
-  mainBot.driveStraight(120, 100, forward, 7, 24); // I no longer trust gyro straight for long distances
+  mainBot.driveStraight(50, 100, forward, 7, 24); // I no longer trust gyro straight for long distances
+  mainBot.driveStraightTimed(30, forward, 4);
   mainBot.arm.moveArmToPosition(ArmGraph::PLATFORM_HEIGHT, 100);
   mainBot.openClaw();
   mainBot.arm.moveArmToPosition(ArmGraph::ABOVE_GOAL,100);
+  mainBot.driveStraight(3, 20, reverse, 2, 3);
   mainBot.gyroTurnU(90);
   mainBot.driveStraightGyro(48, 100, forward, 5, 16);
 
@@ -303,7 +304,7 @@ void logGyro() {
 
 void userControl(void) { task controlLoop1(mainTeleop); }
 
-void autonomous() { task auto1(matchAuto); }
+void autonomous() { task auto1(skillsAuto); }
 
 int main() {
   Competition.bStopAllTasksBetweenModes = true;
