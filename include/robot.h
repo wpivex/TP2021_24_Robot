@@ -90,7 +90,7 @@ class Robot {
 
     void callibrateGyro();
 
-    void openClaw(bool waitForCompletion = true);
+    void openClaw();
     void closeClaw();
     void goalClamp();
     void setFrontClamp(bool intaking);

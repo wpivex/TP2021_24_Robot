@@ -521,8 +521,12 @@ void Robot::alignToGoalVision(Goal goal, bool clockwise, directionType cameraDir
 }
 
 
-void Robot::openClaw(bool waitForCompletion) {
-  claw.rotateTo(MAX_CLAW, deg, 100, velocityUnits::pct, waitForCompletion);
+void Robot::openClaw() {
+  int clawTimeout = vex::timer::system();
+  while(vex::timer::system() - clawTimeout < 2000 && claw.rotation(degrees) > MAX_CLAW) {
+    claw.rotateTo(MAX_CLAW, deg, 100, velocityUnits::pct, false);
+    wait(20, msec);
+  }
   isClawOpen = true;
 }
 

@@ -11,6 +11,7 @@ competition Competition;
 Robot mainBot = Robot(&Controller1, IS_SKILLS);
 
 
+
 int mainTeleop() {
 
   // In teleop, arm should default to this position
@@ -25,7 +26,7 @@ int mainTeleop() {
   return 0;
 }
 
-void userControl(void) { task controlLoop1(mainTeleop); }
+
 
 /*
 
@@ -76,7 +77,6 @@ void sideFirst() {
 int matchAuto() {
   Goal startingPlatformColor = RED;
   Goal oppositeColor = BLUE;
-  bool pickUpGoal = false;
   
   std::function<bool(void)> armFunc = std::bind(&ArmGraph::armMovementAuton, &mainBot.arm);
 
@@ -235,7 +235,7 @@ int skillsAuto(void) {
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_1, 100);
 
   log("Part 7: Filthy Acts At A Reasonable Price");
-  mainBot.gyroTurnU(50);
+  mainBot.gyroTurnU(35);
   
   // mainBot.turnToUniversalAngleGyro(330, 20, 30, 3);
   
@@ -243,7 +243,13 @@ int skillsAuto(void) {
   // // mainBot.turnToAngleGyro(true, 7, 10, 35, 5); //angle slightly off, much better now with setHeading
   // mainBot.gyroTurn(true, 7);
   // mainBot.gyroSensor.setHeading(0, degrees); //this works somehow
-  mainBot.driveStraight(150, 100, forward, 7, 24); // I no longer trust gyro straight for long distances
+  mainBot.driveStraight(120, 100, forward, 7, 24); // I no longer trust gyro straight for long distances
+  mainBot.arm.moveArmToPosition(ArmGraph::PLATFORM_HEIGHT, 100);
+  mainBot.openClaw();
+  mainBot.arm.moveArmToPosition(ArmGraph::ABOVE_GOAL,100);
+  mainBot.gyroTurnU(90);
+  mainBot.driveStraightGyro(48, 100, forward, 5, 16);
+
   // mainBot.turnToUniversalAngleGyro(90, 20, 30, 3);
   //mainBot.gyroTurnU(90);
   // wait(2000, msec);
@@ -286,7 +292,6 @@ int vcatTesting() {
   return 0;
 }
 
-void autonomous() { task auto1(skillsAuto); }
 
 void logGyro() {
   mainBot.gyroSensor.resetRotation();
@@ -296,31 +301,27 @@ void logGyro() {
   }
 }
 
+void userControl(void) { task controlLoop1(mainTeleop); }
+
+void autonomous() { task auto1(vcatTesting); }
+
 int main() {
+  Competition.bStopAllTasksBetweenModes = true;
 
-  // mainBot.callibrateGyro(); 
-  // testArmValues(); 
+  mainBot.setBackClamp(false);
+  mainBot.setFrontClamp(false);
 
-  // logGyro();
-
-  // mainBot.setBackClamp(false);
-  // mainBot.setFrontClamp(false);
-
-  // // Reset location of arm
+  // Reset location of arm
   mainBot.arm.initArmPosition();
   mainBot.callibrateGyro();
-
-  // vcatTesting();
 
   Competition.autonomous(autonomous);
   Competition.drivercontrol(userControl);
   // testArmValues();
 
-  // test concurrent
-  //concurrentTest();
-
-
   while (true) {
     wait(20, msec);
   }
+
 }
+
