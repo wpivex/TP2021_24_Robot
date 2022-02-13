@@ -303,7 +303,7 @@ void logGyro() {
 
 void userControl(void) { task controlLoop1(mainTeleop); }
 
-void autonomous() { task auto1(vcatTesting); }
+void autonomous() { task auto1(matchAuto); }
 
 int main() {
   Competition.bStopAllTasksBetweenModes = true;
