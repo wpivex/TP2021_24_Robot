@@ -122,7 +122,6 @@ void Robot::callibrateGyro() {
 }
 
 
-
 void Robot::driveStraightTimed(float speed, directionType dir, int timeout, bool stopAfter, std::function<bool(void)> func) {
   driveStraight(0, speed, dir, timeout, 0, stopAfter, func);
 }
@@ -233,8 +232,8 @@ void Robot::goForwardU(float distInches, float maxSpeed, float uDirection, float
   if (correction < -180) correction += 360;
   gyroSensor.setRotation(correction, degrees);
 
-  PID anglePID(1, 0, 0);
-  PID distPID(1, 0, 0, maxSpeed, 3, 10); // bounded by speed, exit condition is when target distance is reached
+  PID anglePID(GTURN_24);
+  PID distPID(DIST_24);
 
   float currentDist, speed;
 
@@ -257,7 +256,7 @@ void Robot::goForwardU(float distInches, float maxSpeed, float uDirection, float
       speed = maxSpeed * (fabs(currentDist) / rampUp);
       logController("ramp up");
     } else {
-      speed = distPID.tick(finalDist - currentDist);
+      speed = distPID.tick(finalDist - currentDist, maxSpeed);
       logController("PID");
     }
     
@@ -275,145 +274,85 @@ void Robot::goForwardU(float distInches, float maxSpeed, float uDirection, float
 }
 
 // Go forward in whatever direction it was already in
-void Robot::goForward(float distInches, float speed, float rampUpInches, int timeout, std::function<bool(void)> func) {
+void Robot::goForward(float distInches, float maxSpeed, float rampUpInches, int timeout, std::function<bool(void)> func) {
 
-  goForwardU(distInches, speed, gyroSensor.heading(), rampUpInches, timeout, func);
+  goForwardU(distInches, maxSpeed, gyroSensor.heading(), rampUpInches, timeout, func);
 
 }
-// Move forward/backward with proportional gyro feedback.
-// finalDegrees is the delta yaw angle at the end of the curve
-void Robot::driveStraightGyro(float distInches, float speed, directionType dir, int timeout, float slowDownInches, std::function<bool(void)> func) {
 
+// Curve forward/backward with PID to target
+// Does not use gyro sensor. 
+// distInches is positive if forward, negative if reverse
+void Robot::goCurve(float distInches, float maxSpeed, float turnPercent, float rampUpInches, int timeout, std::function<bool(void)> func) {
+
+  float rampUp = distanceToDegrees(rampUpInches);
   float finalDist = distanceToDegrees(distInches);
-  float slowDown = distanceToDegrees(slowDownInches);
-
 
   int startTime = vex::timer::system();
   leftMotorA.resetPosition();
   rightMotorA.resetPosition();
-  gyroSensor.resetRotation();
 
-  const float GYRO_CONSTANT = 0.01;
-  bool hasSetToDone = false;
+  PID distPID(DIST_24);
 
-  // finalDist is 0 if we want driveTimed instead of drive some distance
-  float currentDist = 0;
-  while ((finalDist == 0 || currentDist < finalDist) && !isTimeout(startTime, timeout)) {
+  float currentDist, speed;
+
+
+  // Repeat until either arrived at target or timed out
+  while (!distPID.isCompleted() && !isTimeout(startTime, timeout)) {
 
     // if there is a concurrent function to run, run it
     if (func) {
       bool done = func();
-      log("running concurrent %d %d", done ? 1 : 0, hasSetToDone ? 1 : 0);
       if (done) {
         // if func is done, make it empty
         func = {};
-        hasSetToDone = true;
       }
     }
 
-    currentDist = (fabs(leftMotorA.position(degrees)) + fabs(rightMotorA.position(degrees))) / 2;
+    currentDist = (leftMotorA.position(degrees) + rightMotorA.position(degrees)) / 2;
 
-     // from 0 to 1 indicating proportion of velocity. Starts out constant at 1 until it hits the slowDown interval,
-     // where then it linearly decreases to 0
-    float proportion = slowDown == 0 ? 1 : fmin(1, 1 - (currentDist - (finalDist - slowDown)) / slowDown);
-    float baseSpeed = FORWARD_MIN_SPEED + (speed-FORWARD_MIN_SPEED) * proportion;
-
-    float gyroCorrection = gyroSensor.rotation() * GYRO_CONSTANT;
-
-
-    // reduce baseSpeed so that the faster motor always capped at max speed
-    baseSpeed = fmin(baseSpeed, 100 - baseSpeed*gyroCorrection);
-
-    float left = baseSpeed*(1 - gyroCorrection);
-    float right = baseSpeed*(1 + gyroCorrection);
-    setLeftVelocity(dir, left);
-    setRightVelocity(dir, right);
-    //log("%f %f %f", gyroCorrection, left, right);
+    if (fabs(currentDist) < rampUp) { // initial acceleration
+      speed = maxSpeed * (fabs(currentDist) / rampUp);
+      logController("ramp up");
+    } else {
+      speed = distPID.tick(finalDist - currentDist, maxSpeed);
+      logController("PID");
+    }
     
+
+    setLeftVelocity(forward, speed * (1 + turnPercent));
+    setRightVelocity(forward, speed * (1 + turnPercent));
+
     wait(20, msec);
   }
-
+  logController("done");
   stopLeft();
   stopRight();
-  
+
 }
 
-// BOTH angleDegrees AND startSlowDownDegrees SHOULD BE POSITIVE
-// angleDegrees indicates the angle to turn to.
-// startSlowDownDegrees is some absolute angle less than angleDegrees, where gyro proportional control starts
-// maxSpeed is the starting speed of the turn. Will slow down once past startSlowDownDegrees theshhold
-void Robot::turnToAngleGyro(bool clockwise, float angleDegrees, float maxSpeed, int startSlowDownDegrees, 
-int timeout, float tolerance, std::function<bool(void)> func) {
+vision* Robot::getCamera(directionType dir, Goal goal) {
+  vision* camera = (dir == forward) ? &frontCamera : &backCamera;
+  camera->setBrightness(goal.bright);
+  camera->setSignature(goal.sig);
+  return camera;
+}
 
-  //angleDegrees *= .94;
+void Robot::goVision(float distInches, float maxSpeed, float rampUpInches, Goal goal, directionType cameraDir, int timeout, std::function<bool(void)> func) {
 
-  if (startSlowDownDegrees > angleDegrees) startSlowDownDegrees = angleDegrees;
-  if (maxSpeed < TURN_MIN_SPEED) maxSpeed = TURN_MIN_SPEED; 
+  vision *camera = getCamera(cameraDir, goal);
 
-
-  float speed;
-
-  log("initing");
   int startTime = vex::timer::system();
   leftMotorA.resetPosition();
   rightMotorA.resetPosition();
-  gyroSensor.resetRotation();
-  log("about to loop");
 
+  PID vPID(VTURN_24);
 
+  // still writing pls hold
 
-  float currDegrees = 0; // always positive with abs
-  float delta = 0;
-  float prevDegrees = 0;
-  bool slowEnough = false;
-  while ((fabs(currDegrees - angleDegrees) > tolerance /*|| !slowEnough*/) && !isTimeout(startTime, timeout)) {
-    // if there is a concurrent function to run, run it
-    if (func) {
-      if (func()) {
-        // if func is done, make it empty
-        func = {};
-      }
-    }
-
-    currDegrees = fabs(gyroSensor.rotation());
-
-    if (currDegrees < angleDegrees - startSlowDownDegrees || startSlowDownDegrees == 0) {
-      // before hitting theshhold, speed is constant at starting speed
-      speed = maxSpeed;
-    } else {
-      delta = (angleDegrees - currDegrees) / startSlowDownDegrees; // starts at 1 @deg=startSlowDeg, becomes 0 @deg = final
-      speed = TURN_MIN_SPEED + fabs(delta) * (maxSpeed - TURN_MIN_SPEED);
-    }
-    float trueSpeed = fabs((prevDegrees-currDegrees)/.02); //Difference in position across 20 msec, in degrees/sec
-    slowEnough = trueSpeed < 1;
-    logController("%d %f %f", clockwise? 1:0, speed, delta);
-    setLeftVelocity(clockwise^(delta<0) ? forward : reverse, speed);
-    setRightVelocity(clockwise^(delta<0) ? reverse : forward, speed);
-    prevDegrees = currDegrees;
-    wait(20, msec);
-  }
-
-  stopLeft();
-  stopRight();
-}
-
-void Robot::turnToUniversalAngleGyro(float universalAngleDegrees, float maxSpeed, int startSlowDownDegrees,
-int timeout, float tolerance, std::function<bool(void)> func) {
-  float universalHeading = gyroSensor.heading(degrees);
-  float turnAngle = fabs(universalHeading-universalAngleDegrees);
-  bool clockwise = universalHeading < universalAngleDegrees;
-  if (turnAngle > 180) {
-    clockwise = !clockwise;
-    turnAngle = 360 - turnAngle;
-  }
-  turnToAngleGyro(clockwise, turnAngle, maxSpeed, startSlowDownDegrees, timeout, tolerance);
 }
 
 
-void Robot::updateCamera(Goal goal) {
-  backCamera = vision(PORT15, goal.bright, goal.sig);
-  frontCamera = vision(PORT13, goal.bright, goal.sig);
-}
 
 // Go forward until the maximum distance is hit, the timeout is reached, or limitSwitch is turned on (collision with goal)
 // for indefinite timeout, set to -1
@@ -465,6 +404,7 @@ digital_in* limitSwitch, std::function<bool(void)> func, float pModMult) {
   stopRight();
   
 }
+
 
 void Robot::gyroTurn(bool clockwise, float angleDegrees) {
 

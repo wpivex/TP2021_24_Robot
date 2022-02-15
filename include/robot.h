@@ -64,10 +64,19 @@ class Robot {
 
     void setControllerMapping(ControllerMapping mapping);
 
-    void goForwardU(float distInches, float speed, float uDirection, float rampUpInches = 0, 
+    vision* getCamera(directionType dir, Goal goal);
+
+    void goForwardU(float distInches, float maxSpeed, float uDirection, float rampUpInches = 0, 
       int timeout = 5, std::function<bool(void)> func = {});
-    void goForward(float distInches, float speed, float rampUpInches = 0, 
+    void goForward(float distInches, float maxSpeed, float rampUpInches = 0, 
       int timeout = 5, std::function<bool(void)> func = {});
+
+    void goCurve(float distInches, float maxSpeed, float turnPercent, float rampUpInches = 0, 
+      int timeout = 5, std::function<bool(void)> func = {});
+
+    void goVision(float distInches, float maxSpeed, float rampUpInches, Goal goal, 
+    directionType cameraDir, int timeout = 5, std::function<bool(void)> func = {});
+
 
     void smartDrive(float distInches, float speed, directionType left, directionType right, int timeout, float slowDownInches, 
                     float turnPercent, bool stopAfter, std::function<bool(void)> func);
