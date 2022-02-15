@@ -211,6 +211,75 @@ float slowDownInches, float turnPercent, bool stopAfter, std::function<bool(void
 
 }
 
+// Go forward towards some universal direction
+// Trapezoidal motion profiling with rampUp and slowDown.
+// rampUp defaults to 0; slowDown defaults to the entire run after rampUp
+// Two PID controllers used for left/right correction going straight, and for slowing down to target
+// Linear increase in speed for rampUpInches
+// distInches should be positive for forwards, negative for reverse
+void Robot::goForwardU(float distInches, float maxSpeed, float uDirection, float rampUpInches, int timeout, std::function<bool(void)> func) {
+
+
+  float rampUp = distanceToDegrees(rampUpInches);
+  float finalDist = distanceToDegrees(distInches);
+
+  int startTime = vex::timer::system();
+  leftMotorA.resetPosition();
+  rightMotorA.resetPosition();
+
+  // Set gyro direction 
+  float correction = gyroSensor.heading() - uDirection;
+  if (correction > 180) correction -= 360;
+  if (correction < -180) correction += 360;
+  gyroSensor.setRotation(correction, degrees);
+
+  PID anglePID(1, 0, 0);
+  PID distPID(1, 0, 0, maxSpeed, 3, 10); // bounded by speed, exit condition is when target distance is reached
+
+  float currentDist, speed;
+
+
+  // Repeat until either arrived at target or timed out
+  while (!distPID.isCompleted() && !isTimeout(startTime, timeout)) {
+
+    // if there is a concurrent function to run, run it
+    if (func) {
+      bool done = func();
+      if (done) {
+        // if func is done, make it empty
+        func = {};
+      }
+    }
+
+    currentDist = (leftMotorA.position(degrees) + rightMotorA.position(degrees)) / 2;
+
+    if (fabs(currentDist) < rampUp) { // initial acceleration
+      speed = maxSpeed * (fabs(currentDist) / rampUp);
+      logController("ramp up");
+    } else {
+      speed = distPID.tick(finalDist - currentDist);
+      logController("PID");
+    }
+    
+    float angleCorrection = anglePID.tick(gyroSensor.rotation());
+
+    setLeftVelocity(forward, speed + angleCorrection);
+    setRightVelocity(forward, speed - angleCorrection);
+
+    wait(20, msec);
+  }
+  logController("done");
+  stopLeft();
+  stopRight();
+
+}
+
+// Go forward in whatever direction it was already in
+void Robot::goForward(float distInches, float speed, float rampUpInches, int timeout, std::function<bool(void)> func) {
+
+  goForwardU(distInches, speed, gyroSensor.heading(), rampUpInches, timeout, func);
+
+}
 // Move forward/backward with proportional gyro feedback.
 // finalDegrees is the delta yaw angle at the end of the curve
 void Robot::driveStraightGyro(float distInches, float speed, directionType dir, int timeout, float slowDownInches, std::function<bool(void)> func) {
