@@ -64,15 +64,6 @@ void Robot::setControllerMapping(ControllerMapping mapping) {
 
 }
 
-// take in axis value between -100 to 100, discard (-5 to 5) values, divide by 100, and cube
-// output is num between -1 and 1
-float normalize(float axisValue) {
-  if (fabs(axisValue) <= 5) {
-    return 0;
-  }
-  return pow(axisValue / 100.0, 3);
-
-}
 
 void Robot::driveTeleop() {
 
