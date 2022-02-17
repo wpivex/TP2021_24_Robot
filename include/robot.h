@@ -1,5 +1,4 @@
 #pragma once
-#include "ArmGraph.h"
 #include "ArmGraph.cpp"
 #include "Buttons.cpp"
 #include <string>

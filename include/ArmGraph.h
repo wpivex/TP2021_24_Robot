@@ -1,6 +1,6 @@
 #pragma once
 #include "vex.h"
-#include "PIDController.h";
+#include "PIDController.h"
 #include "Buttons.h"
 #include <vector>
 #include <list>
@@ -73,6 +73,8 @@ class ArmGraph {
 
     bool arrived = true;
     bool arrivedFinal = true;
+    bool arrivedChain = true;
+    bool arrivedFour = true;
 
     bool chainBarDone;
 

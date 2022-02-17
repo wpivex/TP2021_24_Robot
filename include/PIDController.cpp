@@ -1,4 +1,5 @@
 #include "PIDController.h"
+#include "constants.h"
 
 PID::PID(float kp, float ki, float kd, float TOLERANCE, float REPEATED) {
 
@@ -13,8 +14,8 @@ PID::PID(float kp, float ki, float kd, float TOLERANCE, float REPEATED) {
 
 // bound is // max/min value of output. Useful for stuff like capping speed
 float PID::tick(float error, float bound) {
-  float integral = prevIntegral * 0.02;
-  float derivative = (error - prevError) / 0.02;
+  float integral = prevIntegral + error;
+  float derivative = error - prevError;
 
   float output = K_p * error + K_i * integral + K_d * derivative;
   prevError = error;
@@ -26,6 +27,7 @@ float PID::tick(float error, float bound) {
   // If bound is not 0 (meaning unbounded), output should be clamped between -bound and +bound
   if (bound != UNBOUNDED) output = fmax(-bound, fmin(bound, output));
 
+  logController("%f", output);
   return output;
 }
 

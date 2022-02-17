@@ -75,63 +75,63 @@ void sideFirst() {
 */
 
 int matchAuto() {
-  Goal startingPlatformColor = RED;
-  Goal oppositeColor = BLUE;
+  // Goal startingPlatformColor = RED;
+  // Goal oppositeColor = BLUE;
   
-  //std::function<bool(void)> armFunc = std::bind(&ArmGraph::armMovementAuton, &mainBot.arm);
+  // //std::function<bool(void)> armFunc = std::bind(&ArmGraph::armMovementAuton, &mainBot.arm);
 
-  while (mainBot.gyroSensor.isCalibrating()) wait(20, msec);
+  // while (mainBot.gyroSensor.isCalibrating()) wait(20, msec);
 
-  // Drive curved while moving arm to a raised position without blocking vision sensor
-  mainBot.setBackClamp(true);
-  log("Part 1: Starting in the Middle");
-  mainBot.driveCurved(20, 100, reverse, 5, 0, 0.33, true);
-  mainBot.goForwardVision(YELLOW, 50, reverse, 25, 5, nullptr, nullptr, 0.5);
-  mainBot.driveStraightGyro(10, 100, reverse, 5, 5);
-  mainBot.setBackClamp(false);
-  wait(125, msec);
-  log("Part 2: Ctrl+Z");
-  //guarantee the correct angle
-  // mainBot.turnToUniversalAngleGyro(315, 10, 30, 5);
-  mainBot.gyroTurnU(315);
+  // // Drive curved while moving arm to a raised position without blocking vision sensor
+  // mainBot.setBackClamp(true);
+  // log("Part 1: Starting in the Middle");
+  // mainBot.driveCurved(20, 100, reverse, 5, 0, 0.33, true);
+  // mainBot.goForwardVision(YELLOW, 50, reverse, 25, 5, nullptr, nullptr, 0.5);
+  // mainBot.driveStraightGyro(10, 100, reverse, 5, 5);
+  // mainBot.setBackClamp(false);
+  // wait(125, msec);
+  // log("Part 2: Ctrl+Z");
+  // //guarantee the correct angle
+  // // mainBot.turnToUniversalAngleGyro(315, 10, 30, 5);
+  // mainBot.gyroTurnU(315);
   
-  mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_2);
-  mainBot.driveStraightGyro(20, 100, forward, 5, 5, nullptr);
-  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_2);
-  // mainBot.turnToUniversalAngleGyro(225, 20, 30, 10);
-  mainBot.gyroTurnU(225);
-  log("Part 3: The Right Way");
+  // mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_2);
+  // mainBot.driveStraightGyro(20, 100, forward, 5, 5, nullptr);
+  // mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_2);
+  // // mainBot.turnToUniversalAngleGyro(225, 20, 30, 10);
+  // mainBot.gyroTurnU(225);
+  // log("Part 3: The Right Way");
 
-  mainBot.alignToGoalVision(YELLOW, false, forward, 5, 20);
-  mainBot.setFrontClamp(true);
-  wait(125, msec);
-  mainBot.goForwardVision(YELLOW, 100, forward, 26, 5, nullptr, nullptr, 0.35);
-  mainBot.setFrontClamp(false);
-  wait(125,msec);
+  // mainBot.alignToGoalVision(YELLOW, false, forward, 5, 20);
+  // mainBot.setFrontClamp(true);
+  // wait(125, msec);
+  // mainBot.goForwardVision(YELLOW, 100, forward, 26, 5, nullptr, nullptr, 0.35);
+  // mainBot.setFrontClamp(false);
+  // wait(125,msec);
 
-  log("Part 4: Red Dead Redemption");
-  mainBot.driveStraightGyro(15, 100, reverse, 5, 5);
-  // mainBot.turnToUniversalAngleGyro(0, 30, 180, 10);
-  mainBot.gyroTurnU(0);
-  // mainBot.driveStraightGyro(20, 100, forward, 5, 5,nullptr);
-  // // mainBot.turnToUniversalAngleGyro(270, 20, 30, 10);
-  // mainBot.gyroTurnU(270);
-  mainBot.driveStraight(35, 40, forward, 5, 20);
-  // mainBot.turnToAngleGyro(true, 90, 50, 90, 5);
+  // log("Part 4: Red Dead Redemption");
+  // mainBot.driveStraightGyro(15, 100, reverse, 5, 5);
+  // // mainBot.turnToUniversalAngleGyro(0, 30, 180, 10);
+  // mainBot.gyroTurnU(0);
+  // // mainBot.driveStraightGyro(20, 100, forward, 5, 5,nullptr);
+  // // // mainBot.turnToUniversalAngleGyro(270, 20, 30, 10);
+  // // mainBot.gyroTurnU(270);
+  // mainBot.driveStraight(35, 40, forward, 5, 20);
+  // // mainBot.turnToAngleGyro(true, 90, 50, 90, 5);
   
-  log("Part 5: Claw Machine");
-  // mainBot.alignToGoalVision(RED, true, forward, 10, 20);  
-  // mainBot.driveStraightGyro(3, 20, forward, 5, 3,nullptr);
-  // mainBot.arm.moveArmToPosition(ArmGraph::INTAKE);
-  // mainBot.openClaw();
-  // mainBot.driveStraightGyro(2, 20, forward, 5, 2,nullptr);
-  // mainBot.closeClaw();
+  // log("Part 5: Claw Machine");
+  // // mainBot.alignToGoalVision(RED, true, forward, 10, 20);  
+  // // mainBot.driveStraightGyro(3, 20, forward, 5, 3,nullptr);
+  // // mainBot.arm.moveArmToPosition(ArmGraph::INTAKE);
+  // // mainBot.openClaw();
+  // // mainBot.driveStraightGyro(2, 20, forward, 5, 2,nullptr);
+  // // mainBot.closeClaw();
 
-  // log("Part 6: Sluuuuuuuurrrrrrrrppppppppp");
-  // mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_3);
-  // mainBot.driveStraight(10, 20, reverse, 5, 10);
+  // // log("Part 6: Sluuuuuuuurrrrrrrrppppppppp");
+  // // mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_3);
+  // // mainBot.driveStraight(10, 20, reverse, 5, 10);
   
-  log("Fin.");
+  // log("Fin.");
   return 1;
 }
 

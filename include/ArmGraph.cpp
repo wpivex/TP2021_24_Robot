@@ -1,7 +1,8 @@
 #include "ArmGraph.h"
+#include "PIDController.cpp"
 
 
-ArmGraph::ArmGraph() : fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0), fourPID(1,0,0), chainPID(1,0,0) {}
+ArmGraph::ArmGraph() : fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0), fourPID(0.3,0,0.3), chainPID(0.35,0,0.1) {}
 
 void ArmGraph::init(Buttons* bh, vex::motor chainL, vex::motor chainR, vex::motor fourL, vex::motor fourR) {
   buttons = bh;
@@ -119,7 +120,9 @@ void ArmGraph::calculatePIDVelocities(float maxSpeed, float fourError, float cha
   fourBarVelocity = fmin(maxSpeed, fmax(-maxSpeed, fourPID.tick(fourError)));
   chainBarVelocity = fmin(maxSpeed, fmax(-maxSpeed, chainPID.tick(chainError)));
 
-  arrivedFinal = fabs(fourError) < LAST_MARGIN && fabs(chainError) < LAST_MARGIN;
+  arrivedChain = fabs(chainError) < LAST_MARGIN;
+  arrivedFour = fabs(fourError) < LAST_MARGIN;
+  arrivedFinal = arrivedChain && arrivedFour;
 }
 
 // LOOK HOW SHORT AND CLEAN THIS IS
@@ -158,7 +161,17 @@ bool ArmGraph::armMovement(bool buttonInput, float baseSpeed) {
     }
   }
 
-  if (arrivedFinal) return true;
+  if (arrivedChain) {
+    chainBarLeft.stop(hold);
+    chainBarRight.stop(hold);
+  }
+  if (arrivedFour) {
+    fourBarLeft.stop(hold);
+    fourBarRight.stop(hold);
+  }
+  if (arrivedFinal) {
+    return true;
+  };
 
   
   log("%d %d  |  %s", targetNode, arrived ? 1 : 0, pathStr.c_str());

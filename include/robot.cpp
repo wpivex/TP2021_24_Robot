@@ -106,10 +106,10 @@ void Robot::setBackClamp(bool intaking) {
 
 // Run every tick
 void Robot::teleop() {
-  driveTeleop();
-  arm.armMovement(true, 60);
+  // driveTeleop();
+  arm.armMovement(true, 30);
   clawMovement();
-  goalClamp();
+  // goalClamp();
 
   buttons.updateButtonState();
 
