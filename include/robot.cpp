@@ -506,19 +506,19 @@ void Robot::closeClaw() {
 
 
 void Robot::setLeftVelocity(directionType d, double percent) {
-  leftMotorA.spin(d, percent, pct);
-  leftMotorB.spin(d, percent, pct);
-  leftMotorC.spin(d, percent, pct);
-  leftMotorD.spin(d, percent, pct);
-  leftMotorE.spin(d, percent, pct);
+  leftMotorA.spin(d, percent * MAX_VOLTS, voltageUnits::volt);
+  leftMotorB.spin(d, percent * MAX_VOLTS, voltageUnits::volt);
+  leftMotorC.spin(d, percent * MAX_VOLTS, voltageUnits::volt);
+  leftMotorD.spin(d, percent * MAX_VOLTS, voltageUnits::volt);
+  leftMotorE.spin(d, percent * MAX_VOLTS, voltageUnits::volt);
 }
 
 void Robot::setRightVelocity(directionType d, double percent) {
-  rightMotorA.spin(d, percent, pct);
-  rightMotorB.spin(d, percent, pct);
-  rightMotorC.spin(d, percent, pct);
-  rightMotorD.spin(d, percent, pct);
-  rightMotorE.spin(d, percent, pct);
+  rightMotorA.spin(d, percent * MAX_VOLTS, voltageUnits::volt);
+  rightMotorB.spin(d, percent * MAX_VOLTS, voltageUnits::volt);
+  rightMotorC.spin(d, percent * MAX_VOLTS, voltageUnits::volt);
+  rightMotorD.spin(d, percent * MAX_VOLTS, voltageUnits::volt);
+  rightMotorE.spin(d, percent * MAX_VOLTS, voltageUnits::volt);
 }
 
 void Robot::stopLeft() {

@@ -2,7 +2,7 @@
 #include "PIDController.cpp"
 
 
-ArmGraph::ArmGraph() : fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0), fourPID(0.3,0,0.3), chainPID(0.35,0,0.1) {}
+ArmGraph::ArmGraph() : fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0), fourPID(ARM_FOUR), chainPID(ARM_CHAIN) {}
 
 void ArmGraph::init(Buttons* bh, vex::motor chainL, vex::motor chainR, vex::motor fourL, vex::motor fourR) {
   buttons = bh;
@@ -114,15 +114,11 @@ void ArmGraph::calculateVelocities(float baseSpeed, float currFour, float currCh
 // For going to the last node, use PID capped with maxSpeed for fast and accurate motion towards target
 void ArmGraph::calculatePIDVelocities(float maxSpeed, float fourError, float chainError) {
 
-  float LAST_MARGIN = 5; // margin of error to last node
-
   // do not exceed maxSpeed in either direction
   fourBarVelocity = fmin(maxSpeed, fmax(-maxSpeed, fourPID.tick(fourError)));
   chainBarVelocity = fmin(maxSpeed, fmax(-maxSpeed, chainPID.tick(chainError)));
 
-  arrivedChain = fabs(chainError) < LAST_MARGIN;
-  arrivedFour = fabs(fourError) < LAST_MARGIN;
-  arrivedFinal = arrivedChain && arrivedFour;
+  arrivedFinal = fourPID.isCompleted() && chainPID.isCompleted();
 }
 
 // LOOK HOW SHORT AND CLEAN THIS IS
@@ -160,32 +156,26 @@ bool ArmGraph::armMovement(bool buttonInput, float baseSpeed) {
         calculateVelocities(baseSpeed, four, chain);
     }
   }
-
-  if (arrivedChain) {
-    chainBarLeft.stop(hold);
-    chainBarRight.stop(hold);
-  }
-  if (arrivedFour) {
-    fourBarLeft.stop(hold);
-    fourBarRight.stop(hold);
-  }
-  if (arrivedFinal) {
-    return true;
-  };
-
   
   log("%d %d  |  %s", targetNode, arrived ? 1 : 0, pathStr.c_str());
 
   // use PID instead of constant velocities when going to last node
   if (targetArmPathIndex == armPath.size() - 1) calculatePIDVelocities(baseSpeed, angles[targetNode][0] - four, angles[targetNode][1] - chain);
 
-  fourBarLeft.spin(forward, fourBarVelocity, vex::velocityUnits::pct);
-  fourBarRight.spin(forward, fourBarVelocity, vex::velocityUnits::pct);
+  if (arrivedFinal) {
+    arrived = true;
 
-  chainBarLeft.spin(forward, chainBarVelocity, velocityUnits::pct);
-  chainBarRight.spin(forward, chainBarVelocity, velocityUnits::pct);
+    fourBarLeft.stop();
+    fourBarRight.stop();
+    chainBarLeft.stop();
+    chainBarRight.stop();
+    
+  } else {
+    setFourVelocity(forward, fourBarVelocity);
+    setChainVelocity(forward, chainBarVelocity);
 
-  arrived = fabs(four - angles[targetNode][0]) < MARGIN;
+    arrived = fabs(four - angles[targetNode][0]) < MARGIN;
+  }
 
   return arrivedFinal;
 
@@ -299,5 +289,15 @@ void ArmGraph::generateShortestPath(int start, int dest) {
   std::reverse(armPath.begin(),armPath.end());
   pathStr = getPathStr();
 
+}
 
+// Set in volts to circumvent internal PID (which detracts from our custom PID)
+void ArmGraph::setFourVelocity(directionType d, double percent) {
+  fourBarLeft.spin(d, percent * MAX_VOLTS, voltageUnits::volt);
+  fourBarRight.spin(d, percent * MAX_VOLTS, voltageUnits::volt);
+}
+
+void ArmGraph::setChainVelocity(directionType d, double percent) {
+  chainBarLeft.spin(d, percent * MAX_VOLTS, voltageUnits::volt);
+  chainBarRight.spin(d, percent * MAX_VOLTS, voltageUnits::volt);
 }
