@@ -9,7 +9,7 @@ struct PID_STRUCT {
 };
 
 static const struct PID_STRUCT DIST_24 = {1, 0, 0, 3, 10}; // going forward/curving for PID on stopping to target
-static const struct PID_STRUCT GTURN_24 = {1, 0, 0, 3, 10}; // gyro turn corrections, used both when going forward and turning to angle
+static const struct PID_STRUCT GTURN_24 = {0.625, 0, 0.00625, 3, 10}; // gyro turn corrections, used both when going forward and turning to angle
 static const struct PID_STRUCT VTURN_24 = {1, 0, 0, 3, 10}; // vision turn corrections, used both with vision forward and vision aling
 
 class PID {

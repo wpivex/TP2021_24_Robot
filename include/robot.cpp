@@ -338,47 +338,28 @@ vision* Robot::getCamera(directionType dir, Goal goal) {
   return camera;
 }
 
-void Robot::goVision(float distInches, float maxSpeed, float rampUpInches, Goal goal, directionType cameraDir, int timeout, std::function<bool(void)> func) {
+// Go forward with vision tracking towards goal
+// PID for distance and for correction towards goal
+// distInches is positive if forward, negative if reverse
+void Robot::goVision(float distInches, float maxSpeed, Goal goal, directionType cameraDir, float rampUpInches,
+ int timeout, std::function<bool(void)> func) {
 
   vision *camera = getCamera(cameraDir, goal);
+  
+  float finalDist = distanceToDegrees(distInches);
+  float rampUp = distanceToDegrees(rampUpInches);
+  float currentDist, speed, correction;
 
   int startTime = vex::timer::system();
   leftMotorA.resetPosition();
   rightMotorA.resetPosition();
 
   PID vPID(VTURN_24);
+  PID distPID(DIST_24);
+  
 
-  // still writing pls hold
+  while (!distPID.isCompleted() && !isTimeout(startTime, timeout)) {
 
-}
-
-
-
-// Go forward until the maximum distance is hit, the timeout is reached, or limitSwitch is turned on (collision with goal)
-// for indefinite timeout, set to -1
-void Robot::goForwardVision(Goal goal, float speed, directionType dir, float maxDistanceInches, int timeout, 
-digital_in* limitSwitch, std::function<bool(void)> func, float pModMult) {
-
-  int pMod = speed * pModMult;
-  float baseSpeed = fmin(speed, 100 - pMod);
-
-  float totalDist = distanceToDegrees(maxDistanceInches);
-  float dist = 0;
-
-  updateCamera(goal);
-
-  vision *camera = (dir == forward) ? &frontCamera : &backCamera;
-
-  int startTime = vex::timer::system();
-  leftMotorA.resetPosition();
-  rightMotorA.resetPosition();
-
-  int sign = (dir == forward) ? 1 : -1;
-
-  // forward until the maximum distance is hit, the timeout is reached, or limitSwitch is turned on
-  while (dist < totalDist && !isTimeout(startTime, timeout) && (limitSwitch == nullptr || !limitSwitch->value())) {
-    // log("Start of loop");
-    // if there is a concurrent function to run, run it
     if (func) {
       if (func()) {
         // if func is done, make it empty
@@ -386,34 +367,37 @@ digital_in* limitSwitch, std::function<bool(void)> func, float pModMult) {
       }
     }
 
-    // log("Before snapshot");
     camera->takeSnapshot(goal.sig);
     
-    if(camera->largestObject.exists) {
-      log("%d", camera->largestObject.centerX);
-      float mod = pMod * (VISION_CENTER_X-camera->largestObject.centerX) / VISION_CENTER_X;
-      setLeftVelocity(dir, baseSpeed - mod*sign);
-      setRightVelocity(dir, baseSpeed + mod*sign);
+    correction = 0; // between -1 and 1
+    if(camera->largestObject.exists)  correction = vPID.tick(VISION_CENTER_X - camera->largestObject.centerX);
+
+    currentDist = (leftMotorA.position(degrees) + rightMotorA.position(degrees)) / 2;
+
+    if (fabs(currentDist) < rampUp) { // initial acceleration
+      speed = maxSpeed * (fabs(currentDist) / rampUp);
+      logController("ramp up");
+    } else {
+      speed = distPID.tick(finalDist - currentDist, maxSpeed);
+      logController("PID + vision");
     }
 
+    setLeftVelocity(forward, speed + correction);
+    setRightVelocity(forward, speed - correction);
+
     wait(20, msec);
-    dist = fabs((leftMotorA.position(degrees) + rightMotorA.position(degrees)) / 2.0);
   }
 
-  stopLeft();
-  stopRight();
-  
 }
 
 
-void Robot::gyroTurn(bool clockwise, float angleDegrees) {
+// angleDegrees is positive if clockwise, negative if counterclockwise
+void Robot::goTurn(float angleDegrees) {
 
-  float K_PROPORTIONAL = 0.625;
-  float K_DERIVATIVE = 0.00625;
-  float tolerance = 3;
+  PID anglePID(GTURN_24);
 
   float timeout = 5;
-  float speed;
+  float speed, currDegrees;
 
   log("initing");
   int startTime = vex::timer::system();
@@ -422,35 +406,15 @@ void Robot::gyroTurn(bool clockwise, float angleDegrees) {
   gyroSensor.resetRotation();
   log("about to loop");
 
-  float currDegrees = 0; // always positive with abs
-  float delta = 0;
-  float delta_prev = 0;
-  float delta_dir = 0;
 
-  int NUM_VALID_THRESHOLD = 10;
-  int numValid = 0;
+  while (!anglePID.isCompleted() && !isTimeout(startTime, timeout)) {
 
-  while (numValid < NUM_VALID_THRESHOLD && !isTimeout(startTime, timeout)) {
+    speed = anglePID.tick(angleDegrees - gyroSensor.rotation());
 
-    currDegrees = fabs(gyroSensor.rotation());
-
-    delta = angleDegrees - currDegrees;
-    delta_dir = (delta - delta_prev)/0.02;
-
-    speed = delta * K_PROPORTIONAL + delta_dir * K_DERIVATIVE;
-    
-
-    //logController("%d %f %f", clockwise? 1:0, speed, delta);
-    logController("%f %f", delta*K_PROPORTIONAL, delta_dir*K_DERIVATIVE);
-    setLeftVelocity(clockwise ? forward : reverse, speed);
-    setRightVelocity(clockwise ? reverse : forward, speed);
-
-    delta_prev = delta;
+    setLeftVelocity(forward, speed);
+    setRightVelocity(reverse, speed);
 
     wait(20, msec);
-    if (fabs(currDegrees - angleDegrees) < tolerance) numValid++;
-    else numValid = 0;
-    //logController("%d %f", numValid, delta);
   }
 
   stopLeft();

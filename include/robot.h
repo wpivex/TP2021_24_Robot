@@ -74,8 +74,10 @@ class Robot {
     void goCurve(float distInches, float maxSpeed, float turnPercent, float rampUpInches = 0, 
       int timeout = 5, std::function<bool(void)> func = {});
 
-    void goVision(float distInches, float maxSpeed, float rampUpInches, Goal goal, 
-    directionType cameraDir, int timeout = 5, std::function<bool(void)> func = {});
+    void goVision(float distInches, float maxSpeed, Goal goal, directionType cameraDir, 
+    float rampUpInches = 0, int timeout = 5, std::function<bool(void)> func = {});
+
+    void goTurn(float angleDegrees);
 
 
     void smartDrive(float distInches, float speed, directionType left, directionType right, int timeout, float slowDownInches, 
