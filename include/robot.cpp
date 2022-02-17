@@ -498,7 +498,7 @@ void Robot::alignToGoalVision(Goal goal, bool clockwise, directionType cameraDir
       mod = (VISION_CENTER_X-camera->largestObject.centerX) / VISION_CENTER_X;
 
       // If goal is [left side of screen if clockwise, right side of scree if counterclockwise], that means it's arrived at center and is aligned
-      if (fabs(mod) <= 0.05) {
+      if (fabs(mod) <= 0.075) {
         break;
       }
 
