@@ -1,5 +1,6 @@
 #pragma once
 #include "vex.h"
+#include "PIDController.h";
 #include "Buttons.h"
 #include <vector>
 #include <list>
@@ -58,6 +59,8 @@ class ArmGraph {
     int teleopMap [NUM_NODES];
 
     bool nodeEnabled[NUM_NODES];
+
+    PID fourPID, chainPID;
       
     std::vector<int> adj[NUM_NODES];
     std::vector<int> togglableEdge[NUM_NODES];
@@ -74,12 +77,12 @@ class ArmGraph {
     bool chainBarDone;
 
     float fourBarVelocity, chainBarVelocity;
-    directionType fourDir, chainDir;
 
     int startTimeout = vex::timer::system();
     int startNode;
 
-    void calculateVelocities(float baseSpeed);
+    void calculateVelocities(float baseSpeed, float currFour, float currChain);
+    void calculatePIDVelocities(float maxSpeed, float fourError, float chainError);
 
     void addEdge(int u, int v, bool togglable);
     void generateShortestPath(int start, int dest);
