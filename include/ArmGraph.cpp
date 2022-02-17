@@ -293,11 +293,11 @@ void ArmGraph::generateShortestPath(int start, int dest) {
 
 // Set in volts to circumvent internal PID (which detracts from our custom PID)
 void ArmGraph::setFourVelocity(directionType d, double percent) {
-  fourBarLeft.spin(d, percent * MAX_VOLTS, voltageUnits::volt);
-  fourBarRight.spin(d, percent * MAX_VOLTS, voltageUnits::volt);
+  fourBarLeft.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
+  fourBarRight.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
 }
 
 void ArmGraph::setChainVelocity(directionType d, double percent) {
-  chainBarLeft.spin(d, percent * MAX_VOLTS, voltageUnits::volt);
-  chainBarRight.spin(d, percent * MAX_VOLTS, voltageUnits::volt);
+  chainBarLeft.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
+  chainBarRight.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
 }
