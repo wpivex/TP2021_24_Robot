@@ -59,7 +59,7 @@ class Robot {
 
     enum ControllerMapping {DEFAULT_MAPPING};
     ControllerMapping cMapping;
-    Buttons::Button FRONT_CLAMP_TOGGLE, BACK_CLAMP_TOGGLE, CLAW_TOGGLE; 
+    Buttons::Button FRONT_CLAMP_TOGGLE, BACK_CLAMP_TOGGLE, CLAW_TOGGLE, ARM_TOGGLE; 
 
     void setControllerMapping(ControllerMapping mapping);
 
@@ -77,6 +77,8 @@ class Robot {
     void setRightVelocity(directionType d, double percent);
     void stopLeft();
     void stopRight();
+    void setBrakeType(brakeType b);
+    void setMaxArmTorque(float c);
 
     vision* getCamera(directionType dir, Goal goal);
 
@@ -137,6 +139,8 @@ class Robot {
     // State variables for claw
     float MAX_CLAW = -256;
     bool isClawOpen = false;
+
+    bool armHold = false;
 
     bool isSkills;
 };

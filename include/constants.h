@@ -19,6 +19,11 @@ struct Goal {
 // const struct Goal RED = {1, 41, vex::vision::signature (1, 8435, 10495, 9464, -1029, -641, -836, 3.000, 0)};
 // const struct Goal BLUE = {2, 52, vex::vision::signature (1, -2657, -1837, -2247, 7385, 11983, 9684, 3.000, 0)};
 
+namespace ARM_CURRENT {
+  const static float LOW = 0.1;
+  const static float HIGH = 10.0;
+}
+
 // SKILLS
 const struct Goal YELLOW = {0, 25, vex::vision::signature (1, 2401, 3421, 2911, -3187, -2789, -2988, 2.500, 0)};
 const struct Goal RED = {1, 50, vex::vision::signature (1, 7787, 9783, 8785, -773, -457, -615, 3.000, 0)};

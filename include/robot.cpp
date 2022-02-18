@@ -45,11 +45,8 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
   chainBarLeft.setBrake(hold);
   chainBarRight.setBrake(hold);
 
-  fourBarLeft.setMaxTorque(0.1, currentUnits::amp);
-  fourBarRight.setMaxTorque(0.1, currentUnits::amp);
-  chainBarLeft.setMaxTorque(0.1, currentUnits::amp);
-  chainBarRight.setMaxTorque(0.1, currentUnits::amp);
   claw.setBrake(hold);
+  setBrakeType(coast);
 
   setControllerMapping(DEFAULT_MAPPING);
 
@@ -65,12 +62,23 @@ void Robot::setControllerMapping(ControllerMapping mapping) {
     FRONT_CLAMP_TOGGLE = Buttons::L1;
     BACK_CLAMP_TOGGLE = Buttons::R1;
     CLAW_TOGGLE = Buttons::UP;
+    ARM_TOGGLE = Buttons::R2;
   } 
 
 }
 
 
 void Robot::driveTeleop() {
+
+  if (buttons.pressed(ARM_TOGGLE)) {
+    if (armHold) {
+      setMaxArmTorque(ARM_CURRENT::LOW);
+      setBrakeType(hold);
+    } else {
+      setMaxArmTorque(ARM_CURRENT::HIGH);
+      setBrakeType(coast);
+    }
+  }
 
   if(driveType == TANK) {
     setLeftVelocity(forward,buttons.axis(Buttons::LEFT_VERTICAL));
@@ -535,4 +543,25 @@ void Robot::stopRight() {
   rightMotorC.stop();
   rightMotorD.stop();
   rightMotorE.stop();
+}
+
+void Robot::setBrakeType(brakeType b) {
+  leftMotorA.setBrake(b);
+  leftMotorB.setBrake(b);
+  leftMotorC.setBrake(b);
+  leftMotorD.setBrake(b);
+  leftMotorE.setBrake(b);
+
+  rightMotorA.setBrake(b);
+  rightMotorB.setBrake(b);
+  rightMotorC.setBrake(b);
+  rightMotorD.setBrake(b);
+  rightMotorE.setBrake(b);
+}
+
+void Robot::setMaxArmTorque(float c) {
+  fourBarLeft.setMaxTorque(c, currentUnits::amp);
+  fourBarRight.setMaxTorque(c, currentUnits::amp);
+  chainBarLeft.setMaxTorque(c, currentUnits::amp);
+  chainBarRight.setMaxTorque(c, currentUnits::amp);
 }

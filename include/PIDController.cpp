@@ -12,6 +12,10 @@ PID::PID(float kp, float ki, float kd, float TOLERANCE, int REPEATED) {
   K_d = kd;
 }
 
+PID::PID(PID_STRUCT data) {
+  PID(data.p, data.i, data.d, data.t, data.r);
+}
+
 // bound is // max/min value of output. Useful for stuff like capping speed
 float PID::tick(float error, float bound) {
   float integral = prevIntegral + error;
@@ -29,10 +33,6 @@ float PID::tick(float error, float bound) {
 
   logController("%d %f", repeated, output);
   return output;
-}
-
-PID::PID(PID_STRUCT data) {
-  PID(data.p, data.i, data.d, data.t, data.r);
 }
 
 // Call to check whether PID has converged to a value. Use with stuff like arm movement and aligns/turns but not with stuff like driving straight
