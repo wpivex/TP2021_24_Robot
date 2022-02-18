@@ -63,8 +63,24 @@ class Robot {
 
     void setControllerMapping(ControllerMapping mapping);
 
+    void callibrateGyro();
+
+    void openClaw();
+    void closeClaw();
+    void goalClamp();
+    void setFrontClamp(bool intaking);
+    void setBackClamp(bool intaking);
+
+    void userControl( void );
+    void teleop( void );
+    void setLeftVelocity(directionType d, double percent);
+    void setRightVelocity(directionType d, double percent);
+    void stopLeft();
+    void stopRight();
+
     vision* getCamera(directionType dir, Goal goal);
 
+    // --------- NEW FUNCTIONS -----------
     void goForwardU(float distInches, float maxSpeed, float uDirection, float rampUpInches = 0, 
       int timeout = 5, std::function<bool(void)> func = {});
     void goForward(float distInches, float maxSpeed, float rampUpInches = 0, 
@@ -77,8 +93,10 @@ class Robot {
     float rampUpInches = 0, int timeout = 5, std::function<bool(void)> func = {});
 
     void goTurn(float angleDegrees);
+    void goTurnU(float universalAngleDegrees);
+    bool goTurnVision(Goal goal, bool defaultClockwise, directionType cameraDir, float maxTurnAngle);
 
-
+    // -------- OLD FUNCTIONS -----------
     void smartDrive(float distInches, float speed, directionType left, directionType right, int timeout, float slowDownInches, 
                     float turnPercent, bool stopAfter, std::function<bool(void)> func);
     void driveTurn(float degrees, float speed, bool isClockwise, int timeout, float slowDownInches = 10, 
@@ -103,22 +121,7 @@ class Robot {
     void gyroTurnU(float universalAngleDegrees);
     void gyroTurn(bool clockwise, float angleDegrees);
 
-    void callibrateGyro();
-
-    void openClaw();
-    void closeClaw();
-    void goalClamp();
-    void setFrontClamp(bool intaking);
-    void setBackClamp(bool intaking);
-
-    void userControl( void );
-    void teleop( void );
-    void setLeftVelocity(directionType d, double percent);
-    void setRightVelocity(directionType d, double percent);
-    void goUltrasoundDistance(float dist);
-    void stopLeft();
-    void stopRight();
-    void intakeOverGoal(int color);
+    
 
   private:
 

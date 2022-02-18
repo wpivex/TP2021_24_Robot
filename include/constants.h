@@ -24,6 +24,8 @@ const struct Goal YELLOW = {0, 25, vex::vision::signature (1, 2401, 3421, 2911, 
 const struct Goal RED = {1, 50, vex::vision::signature (1, 7787, 9783, 8785, -773, -457, -615, 3.000, 0)};
 const struct Goal BLUE = {2, 102, vex::vision::signature (1, -2617, -1735, -2176, 6659, 12361, 9510, 3.000, 0)};
 
+const float MAX_VOLTS = 12.0; // maximum volts for vex motors
+
 
 static const float VISION_CENTER_X = 157.0;
 static const float DIST_BETEWEEN_WHEELS = 15.0;

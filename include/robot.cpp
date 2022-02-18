@@ -216,6 +216,8 @@ float slowDownInches, float turnPercent, bool stopAfter, std::function<bool(void
 
 }
 
+// ------------ NEW CODEBASE --------------
+
 // Go forward towards some universal direction
 // Trapezoidal motion profiling with rampUp and slowDown.
 // rampUp defaults to 0; slowDown defaults to the entire run after rampUp
@@ -376,7 +378,7 @@ void Robot::goVision(float distInches, float maxSpeed, Goal goal, directionType 
     camera->takeSnapshot(goal.sig);
     
     correction = 0; // between -1 and 1
-    if(camera->largestObject.exists)  correction = vPID.tick(VISION_CENTER_X - camera->largestObject.centerX);
+    if(camera->largestObject.exists)  correction = vPID.tick((VISION_CENTER_X - camera->largestObject.centerX) / VISION_CENTER_X);
 
     currentDist = (leftMotorA.position(degrees) + rightMotorA.position(degrees)) / 2;
 
@@ -396,6 +398,43 @@ void Robot::goVision(float distInches, float maxSpeed, Goal goal, directionType 
 
 }
 
+// Returns true if aligned to goal, false if timed out or maxTurnAngle reached
+bool Robot::goTurnVision(Goal goal, bool defaultClockwise, directionType cameraDir, float maxTurnAngle) {
+
+  float delta;
+  int timeout = 5;
+  int startTime = vex::timer::system();
+  vision *camera = getCamera(cameraDir, goal);
+
+  gyroSensor.resetRotation();
+
+  PID vPID(VTURN_24);
+
+  while (!vPID.isCompleted()) {
+
+    // failure exit conditions
+    if (isTimeout(startTime, timeout) || fabs(gyroSensor.rotation()) > maxTurnAngle) return false;
+
+    camera->takeSnapshot(goal.sig);
+    
+    // correction is between -1 and 1. Positive if overshooting to right, negative if overshooting to left
+    if(camera->largestObject.exists)  delta = (VISION_CENTER_X - camera->largestObject.centerX) / VISION_CENTER_X;
+    else delta = defaultClockwise ? -1 : 1;
+
+    float speed = vPID.tick(delta);
+    setLeftVelocity(reverse, speed);
+    setRightVelocity(forward, speed);
+
+    wait(20, msec);
+
+  }
+
+  stopLeft();
+  stopRight();
+
+  // did not exit on failure conditions, so successfully aligned
+  return true;
+}
 
 // angleDegrees is positive if clockwise, negative if counterclockwise
 void Robot::goTurn(float angleDegrees) {
@@ -403,7 +442,7 @@ void Robot::goTurn(float angleDegrees) {
   PID anglePID(GTURN_24);
 
   float timeout = 5;
-  float speed, currDegrees;
+  float speed;
 
   log("initing");
   int startTime = vex::timer::system();
@@ -426,70 +465,15 @@ void Robot::goTurn(float angleDegrees) {
   stopLeft();
   stopRight();
 }
+// Turn to some universal angle based on starting point. Turn direction is determined by smallest angle
+void Robot::goTurnU(float universalAngleDegrees) {
 
-void Robot::gyroTurnU(float universalAngleDegrees) {
-  float universalHeading = gyroSensor.heading(degrees);
-  float turnAngle = fabs(universalHeading-universalAngleDegrees);
-  bool clockwise = universalHeading < universalAngleDegrees;
-  if (turnAngle > 180) {
-    clockwise = !clockwise;
-    turnAngle = 360 - turnAngle;
-  }
-  gyroTurn(clockwise, turnAngle);
+  float turnAngle = gyroSensor.heading(degrees) - universalAngleDegrees;
+  if (turnAngle > 180) turnAngle -= 360;
+  else if (turnAngle < -180) turnAngle += 360;
+
+  goTurn(turnAngle);
 }
-
-void Robot::alignToGoalVision(Goal goal, bool clockwise, directionType cameraDirection, int timeout, float maxSpeed) {
-
-  // spin speed is proportional to distance from center, but must be bounded between MIN_SPEED and MAX_SPEED
-
-  updateCamera(goal);
-  vision *camera = (cameraDirection == forward) ? &frontCamera : &backCamera;
-
-  int startTime = vex::timer::system();
-  leftMotorA.resetPosition();
-  rightMotorA.resetPosition();
-
-  // // At the initial snapshot we check where goal is seen. If so, we set our direction to be towards the goal and stop when we pass the center.
-  // // Otherwise, the spin will default to the direction specified by the 'clockwise' parameter
-  // camera->takeSnapshot(goal.sig);
-  // if (camera->largestObject.exists) {
-  //   clockwise = (camera->largestObject.centerX / VISION_CENTER_X) > VISION_CENTER_X;
-  // }
-
-  int spinSign = clockwise ? -1 : 1;
-
-  while (!isTimeout(startTime, timeout)) {
-
-    camera->takeSnapshot(goal.sig);
-
-    float mod;
-    if (camera->largestObject.exists) {
-      // log("%d", camera->largestObject.centerX);
-      mod = (VISION_CENTER_X-camera->largestObject.centerX) / VISION_CENTER_X;
-
-      // If goal is [left side of screen if clockwise, right side of scree if counterclockwise], that means it's arrived at center and is aligned
-      if (fabs(mod) <= 0.075) {
-        break;
-      }
-
-    } else {
-      // If largest object not detected, then spin in the specified direction
-      mod = spinSign;
-    }
-
-    float speed = (mod > 0 ? 1 : -1) * TURN_MIN_SPEED + mod * (maxSpeed - TURN_MIN_SPEED);
-
-    setLeftVelocity(reverse, speed);
-    setRightVelocity(forward, speed);
-    wait(20, msec);
-  }
-
-  log("D0ne");
-
-  stopLeft();
-  stopRight();
-}
-
 
 void Robot::openClaw() {
   int clawTimeout = vex::timer::system();
@@ -512,19 +496,19 @@ void Robot::closeClaw() {
 
 
 void Robot::setLeftVelocity(directionType d, double percent) {
-  leftMotorA.spin(d, percent, pct);
-  leftMotorB.spin(d, percent, pct);
-  leftMotorC.spin(d, percent, pct);
-  leftMotorD.spin(d, percent, pct);
-  leftMotorE.spin(d, percent, pct);
+  leftMotorA.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
+  leftMotorB.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
+  leftMotorC.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
+  leftMotorD.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
+  leftMotorE.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
 }
 
 void Robot::setRightVelocity(directionType d, double percent) {
-  rightMotorA.spin(d, percent, pct);
-  rightMotorB.spin(d, percent, pct);
-  rightMotorC.spin(d, percent, pct);
-  rightMotorD.spin(d, percent, pct);
-  rightMotorE.spin(d, percent, pct);
+  rightMotorA.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
+  rightMotorB.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
+  rightMotorC.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
+  rightMotorD.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
+  rightMotorE.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
 }
 
 void Robot::stopLeft() {

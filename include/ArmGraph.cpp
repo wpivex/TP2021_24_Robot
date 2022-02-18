@@ -112,7 +112,6 @@ void ArmGraph::calculateVelocities(float baseSpeed) {
   fourDir = (fourBarLeft.rotation(vex::degrees) < angles[targetNode][0]) ? forward : reverse;
   chainDir = (chainBarLeft.rotation(vex::degrees) < angles[targetNode][1]) ? forward : reverse;
 
-
 }
 
 // LOOK HOW SHORT AND CLEAN THIS IS
@@ -293,5 +292,15 @@ void ArmGraph::generateShortestPath(int start, int dest) {
   std::reverse(armPath.begin(),armPath.end());
   pathStr = getPathStr();
 
+}
 
+// Set in volts to circumvent internal PID (which detracts from our custom PID)
+void ArmGraph::setFourVelocity(directionType d, double percent) {
+  fourBarLeft.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
+  fourBarRight.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
+}
+
+void ArmGraph::setChainVelocity(directionType d, double percent) {
+  chainBarLeft.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
+  chainBarRight.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
 }
