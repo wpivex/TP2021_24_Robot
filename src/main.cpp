@@ -396,9 +396,14 @@ void logGyro() {
   }
 }
 
+int testTurn() {
+  mainBot.goTurn(90);
+  return 0;
+}
+
 void userControl(void) { task controlLoop1(mainTeleop); }
 
-void autonomous() { task auto1(matchAuto); }
+void autonomous() { task auto1(testTurn); }
 
 int main() {
   Competition.bStopAllTasksBetweenModes = true;

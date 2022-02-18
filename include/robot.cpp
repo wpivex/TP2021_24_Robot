@@ -439,9 +439,9 @@ bool Robot::goTurnVision(Goal goal, bool defaultClockwise, directionType cameraD
 // angleDegrees is positive if clockwise, negative if counterclockwise
 void Robot::goTurn(float angleDegrees) {
 
-  PID anglePID(GTURN_24);
+  PID anglePID(1.25, 0, 0.3, 3, 10);
 
-  float timeout = 5;
+  float timeout = 10;
   float speed;
 
   log("initing");
@@ -451,16 +451,18 @@ void Robot::goTurn(float angleDegrees) {
   gyroSensor.resetRotation();
   log("about to loop");
 
-
   while (!anglePID.isCompleted() && !isTimeout(startTime, timeout)) {
 
     speed = anglePID.tick(angleDegrees - gyroSensor.rotation());
+
+    logController("wtf %f", speed);
 
     setLeftVelocity(forward, speed);
     setRightVelocity(reverse, speed);
 
     wait(20, msec);
   }
+  logController("wtf done");
 
   stopLeft();
   stopRight();
@@ -496,6 +498,10 @@ void Robot::closeClaw() {
 
 
 void Robot::setLeftVelocity(directionType d, double percent) {
+  if (percent < 0) {
+    d = (d == forward) ? reverse : forward;
+    percent = -percent;
+  }
   leftMotorA.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
   leftMotorB.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
   leftMotorC.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
@@ -504,6 +510,10 @@ void Robot::setLeftVelocity(directionType d, double percent) {
 }
 
 void Robot::setRightVelocity(directionType d, double percent) {
+  if (percent < 0) {
+    d = (d == forward) ? reverse : forward;
+    percent = -percent;
+  }
   rightMotorA.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
   rightMotorB.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
   rightMotorC.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
