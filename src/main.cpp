@@ -74,6 +74,99 @@ void sideFirst() {
 }
 */
 
+void oldFourGoalSkills() {
+  mainBot.openClaw();
+  mainBot.arm.moveArmToPosition(ArmGraph::ABOVE_GOAL);
+  mainBot.driveCurved(20, 100, reverse, 5, 0, 0.33, true);
+  mainBot.goVision(18, 30, YELLOW, reverse, 0, 5);
+  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE);
+  mainBot.goForward(-7, 20);
+  mainBot.closeClaw();
+
+  // Place center goal
+  mainBot.arm.moveArmToPosition(ArmGraph::ABOVE_GOAL);
+  // mainBot.turnToAngle(100, 125, true, reverse); // UNIVERSAL
+  mainBot.goForward(20, 60);
+  mainBot.arm.moveArmToPosition(ArmGraph::PLATFORM_HEIGHT, 70);
+  mainBot.openClaw();
+
+  // Get right goal
+  mainBot.goForward(-5, 100);
+  // mainBot.turnToAngle(100, 160, true, reverse); // UNIVERSAL
+  mainBot.alignToGoalVision(YELLOW, false, forward, 5, 20);
+  mainBot.setFrontClamp(true);
+  wait(125, msec);
+  mainBot.goForwardVision(YELLOW, 100, forward, 26, 5, nullptr, nullptr, 0.35);
+  mainBot.setFrontClamp(false);
+  wait(125,msec);
+
+  log("Part 4: Red Dead Redemption");
+  mainBot.driveStraightGyro(15, 100, reverse, 5, 5);
+  // mainBot.turnToUniversalAngleGyro(0, 30, 180, 10);
+  mainBot.gyroTurnU(0);
+  // mainBot.driveStraightGyro(20, 100, forward, 5, 5,nullptr);
+  // // mainBot.turnToUniversalAngleGyro(270, 20, 30, 10);
+  // mainBot.gyroTurnU(270);
+  mainBot.driveStraight(35, 40, forward, 5, 20);
+  // mainBot.turnToAngleGyro(true, 90, 50, 90, 5);
+  
+  log("Part 5: Claw Machine");
+  mainBot.alignToGoalVision(RED, true, forward, 10, 20);  
+  mainBot.driveStraightGyro(3, 20, forward, 5, 3,nullptr);
+  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE);
+  mainBot.openClaw();
+  mainBot.driveStraightGyro(2, 20, forward, 5, 2,nullptr);
+  mainBot.closeClaw();
+
+  log("Part 6: Sluuuuuuuurrrrrrrrppppppppp");
+  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_3);
+  mainBot.driveStraight(10, 20, reverse, 5, 10);
+
+
+
+
+
+  // // Place right goal
+  // mainBot.turnToAngle(100, -147, true, forward); // UNIVERSAL
+  // mainBot.goForward(24, 20);
+  // mainBot.arm.moveArmToPosition(ArmGraph::PLATFORM_HEIGHT, 65);
+  // mainBot.openClaw();
+
+  // // Get red goal
+  // mainBot.goForward(10, 100);
+  // // mainBot.turnToAngle(100, -110, true, forward); // UNIVERSAL
+  // mainBot.turnAndAlignVision(true, 1, 0.1, false);
+  // mainBot.openClaw();
+  // mainBot.goForwardVision(false, 100, 60, 25, 1);
+  // mainBot.goVision(16, 20, RED, reverse, 0, 5);
+  // mainBot.arm.moveArmToPosition(ArmGraph::INTAKE);
+  // mainBot.goForward(5, 20);
+  // mainBot.closeClaw();
+  // mainBot.arm.moveArmToPosition(ArmGraph::ABOVE_GOAL);
+
+  // // Place red goal
+  // // mainBot.turnToAngle(100, 180, true, forward); // UNIVERSAL
+  // mainBot.goForward(35, 100);
+  // // mainBot.turnToAngle(100, 50, true, forward); // UNIVERSAL
+  // mainBot.goForward(35, 25);
+  // mainBot.arm.moveArmToPosition(ArmGraph::PLATFORM_HEIGHT, 65);
+  // mainBot.openClaw();
+
+  // // Get blue goal
+  // mainBot.goForward(5, 100);
+  // // mainBot.turnToAngle(100, 90, true, reverse); // UNIVERSAL
+  // mainBot.turnAndAlignVision(true, 2, 0.1, false);
+  // mainBot.goForwardVision(false, 100, 25, 35, 2);
+  // mainBot.arm.moveArmToPosition(ArmGraph::INTAKE, 100);
+  // mainBot.goForward(5, 20);
+  // mainBot.closeClaw();
+
+  // // Run with blue goal
+  // mainBot.arm.moveArmToPosition(ArmGraph::ABOVE_GOAL);
+  // // mainBot.turnToAngle(100, 100, true, reverse); // UNIVERSAL
+  // mainBot.goForward(50, 100);
+}
+
 int matchAuto() {
   // Goal startingPlatformColor = RED;
   // Goal oppositeColor = BLUE;

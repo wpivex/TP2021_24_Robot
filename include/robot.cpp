@@ -44,6 +44,11 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
   fourBarRight.setBrake(hold);
   chainBarLeft.setBrake(hold);
   chainBarRight.setBrake(hold);
+
+  fourBarLeft.setMaxTorque(0.1, currentUnits::amp);
+  fourBarRight.setMaxTorque(0.1, currentUnits::amp);
+  chainBarLeft.setMaxTorque(0.1, currentUnits::amp);
+  chainBarRight.setMaxTorque(0.1, currentUnits::amp);
   claw.setBrake(hold);
 
   setControllerMapping(DEFAULT_MAPPING);
@@ -106,10 +111,11 @@ void Robot::setBackClamp(bool intaking) {
 
 // Run every tick
 void Robot::teleop() {
-  // driveTeleop();
-  arm.armMovement(true, 30);
-  clawMovement();
-  // goalClamp();
+  driveTeleop();
+  // arm.armMovement(true, 100);
+  // clawMovement();
+  goalClamp();
+  // logController("%f", leftMotorA.current(currentUnits::amp));
 
   buttons.updateButtonState();
 
