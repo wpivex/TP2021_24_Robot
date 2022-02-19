@@ -234,75 +234,61 @@ float slowDownInches, float turnPercent, bool stopAfter, std::function<bool(void
 
 }
 
-// ------------ NEW CODEBASE --------------
+// Go forward in whatever direction it was already in
+void Robot::goForward(float distInches, float speed, float slowDownInches, int timeout, std::function<bool(void)> func) {
 
-// Go forward towards some universal direction
-// Trapezoidal motion profiling with rampUp and slowDown.
-// rampUp defaults to 0; slowDown defaults to the entire run after rampUp
-// Two PID controllers used for left/right correction going straight, and for slowing down to target
-// Linear increase in speed for rampUpInches
-// distInches should be positive for forwards, negative for reverse
-void Robot::goForwardU(float distInches, float maxSpeed, float uDirection, float rampUpInches, int timeout, std::function<bool(void)> func) {
+  float finalDist = distanceToDegrees(fabs(distInches));
+  float slowDown = distanceToDegrees(slowDownInches);
 
-
-  float rampUp = distanceToDegrees(rampUpInches);
-  float finalDist = distanceToDegrees(distInches);
 
   int startTime = vex::timer::system();
   leftMotorA.resetPosition();
   rightMotorA.resetPosition();
+  gyroSensor.resetRotation();
 
-  // Set gyro direction 
-  float correction = gyroSensor.heading() - uDirection;
-  if (correction > 180) correction -= 360;
-  if (correction < -180) correction += 360;
-  gyroSensor.setRotation(correction, degrees);
+  const float GYRO_CONSTANT = 0.01;
+  bool hasSetToDone = false;
 
-  PID anglePID(GTURN_24);
-  PID distPID(DIST_24);
-
-  float currentDist, speed;
-
-
-  // Repeat until either arrived at target or timed out
-  while (!distPID.isCompleted() && !isTimeout(startTime, timeout)) {
+  // finalDist is 0 if we want driveTimed instead of drive some distance
+  float currentDist = 0;
+  while ((finalDist == 0 || currentDist < finalDist) && !isTimeout(startTime, timeout)) {
 
     // if there is a concurrent function to run, run it
     if (func) {
       bool done = func();
+      log("running concurrent %d %d", done ? 1 : 0, hasSetToDone ? 1 : 0);
       if (done) {
         // if func is done, make it empty
         func = {};
+        hasSetToDone = true;
       }
     }
 
-    currentDist = (leftMotorA.position(degrees) + rightMotorA.position(degrees)) / 2;
+    currentDist = (fabs(leftMotorA.position(degrees)) + fabs(rightMotorA.position(degrees))) / 2;
 
-    if (fabs(currentDist) < rampUp) { // initial acceleration
-      speed = maxSpeed * (fabs(currentDist) / rampUp);
-      logController("ramp up");
-    } else {
-      speed = distPID.tick(finalDist - currentDist, maxSpeed);
-      logController("PID");
-    }
+     // from 0 to 1 indicating proportion of velocity. Starts out constant at 1 until it hits the slowDown interval,
+     // where then it linearly decreases to 0
+    float proportion = slowDown == 0 ? 1 : fmin(1, 1 - (currentDist - (finalDist - slowDown)) / slowDown);
+    logController("%f", proportion);
+    float baseSpeed = FORWARD_MIN_SPEED + (speed-FORWARD_MIN_SPEED) * proportion;
+
+    float gyroCorrection = gyroSensor.rotation() * GYRO_CONSTANT;
+
+
+    // reduce baseSpeed so that the faster motor always capped at max speed
+    baseSpeed = fmin(baseSpeed, 100 - baseSpeed*gyroCorrection);
+
+    float left = baseSpeed*(1 - gyroCorrection);
+    float right = baseSpeed*(1 + gyroCorrection);
+    setLeftVelocity(distInches > 0? forward : reverse, left);
+    setRightVelocity(distInches > 0? forward : reverse, right);
+    //log("%f %f %f", gyroCorrection, left, right);
     
-    float angleCorrection = anglePID.tick(gyroSensor.rotation());
-
-    setLeftVelocity(forward, speed + angleCorrection);
-    setRightVelocity(forward, speed - angleCorrection);
-
     wait(20, msec);
   }
-  logController("done");
+
   stopLeft();
   stopRight();
-
-}
-
-// Go forward in whatever direction it was already in
-void Robot::goForward(float distInches, float maxSpeed, float rampUpInches, int timeout, std::function<bool(void)> func) {
-
-  goForwardU(distInches, maxSpeed, gyroSensor.heading(), rampUpInches, timeout, func);
 
 }
 
@@ -387,7 +373,7 @@ void Robot::goVision(float distInches, float maxSpeed, Goal goal, directionType 
   leftMotorA.resetPosition();
   rightMotorA.resetPosition();
 
-  PID vPID(VTURN_24);
+  PID vPID(70, 0, 0.2, 0.1, 10, 10);
   PID distPID(DIST_24);
   
 
