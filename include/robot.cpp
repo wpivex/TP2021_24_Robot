@@ -5,7 +5,7 @@
 // Motor ports Left: 1R, 2F, 3F,  20T Right: 12R, 11F, 13F
 // gear ratio is 60/36
 Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftMotorD(0), leftMotorE(0), rightMotorA(0), rightMotorB(0), 
-  rightMotorC(0), rightMotorD(0), rightMotorE(0), fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0), claw(0), frontCamera(PORT13), 
+  rightMotorC(0), rightMotorD(0), rightMotorE(0), fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0), claw(0), frontCamera(PORT10), 
   backCamera(PORT15), gyroSensor(PORT4), arm(), buttons(c) {
 
     log("hello");
@@ -13,10 +13,10 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
   isSkills = _isSkills;
 
   leftMotorA = motor(PORT1, ratio18_1, true); 
-  leftMotorB = motor(PORT2, ratio18_1, true);
+  leftMotorB = motor(PORT6, ratio18_1, true);
   leftMotorC = motor(PORT3, ratio18_1, true);
-  leftMotorD = motor(PORT5, ratio18_1, true);
-  leftMotorE = motor(PORT6, ratio18_1, true);
+  leftMotorD = motor(PORT4, ratio18_1, true);
+  leftMotorE = motor(PORT5, ratio18_1, true);
   leftDrive = motor_group(leftMotorA, leftMotorB, leftMotorC, leftMotorD, leftMotorE);
 
   rightMotorA = motor(PORT16, ratio18_1, false);
@@ -27,13 +27,13 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
   rightMotorE = motor(PORT20, ratio18_1, false);
   rightDrive = motor_group(rightMotorA, rightMotorB, rightMotorC, rightMotorD, rightMotorE);
 
-  fourBarLeft = motor(PORT10, ratio18_1, false);
+  fourBarLeft = motor(PORT13, ratio18_1, false);
   fourBarRight = motor(PORT14, ratio18_1, true);
   chainBarLeft = motor(PORT8, ratio18_1, false);
   chainBarRight = motor(PORT7, ratio18_1, true);
   claw = motor(PORT12, ratio18_1, false);
 
-  gyroSensor = inertial(PORT4);
+  gyroSensor = inertial(PORT11);
 
   arm.init(&buttons, chainBarLeft, chainBarRight, fourBarLeft, fourBarRight);
 
@@ -357,11 +357,16 @@ void Robot::goCurve(float distInches, float maxSpeed, float turnPercent, float r
 
 }
 
-vision* Robot::getCamera(directionType dir, Goal goal) {
-  vision* camera = (dir == forward) ? &frontCamera : &backCamera;
-  camera->setBrightness(goal.bright);
-  camera->setSignature(goal.sig);
+vision Robot::getCamera(directionType dir, Goal goal) {
+  vision camera = vision((dir == forward) ? PORT10 : PORT15, goal.bright, goal.sig);
+  // camera->setBrightness(goal.bright);
+  // camera->setSignature(goal.sig);
   return camera;
+}
+
+void Robot::updateCamera(Goal goal) {
+  backCamera = vision(PORT15, goal.bright, goal.sig);
+  frontCamera = vision(PORT10, goal.bright, goal.sig);
 }
 
 // Go forward with vision tracking towards goal
@@ -370,7 +375,9 @@ vision* Robot::getCamera(directionType dir, Goal goal) {
 void Robot::goVision(float distInches, float maxSpeed, Goal goal, directionType cameraDir, float rampUpInches,
  int timeout, std::function<bool(void)> func) {
 
-  vision *camera = getCamera(cameraDir, goal);
+  updateCamera(goal);
+
+  vision *camera = (cameraDir == forward) ? &frontCamera : &backCamera;
   
   float finalDist = distanceToDegrees(distInches);
   float rampUp = distanceToDegrees(rampUpInches);
@@ -420,20 +427,24 @@ void Robot::goVision(float distInches, float maxSpeed, Goal goal, directionType 
 bool Robot::goTurnVision(Goal goal, bool defaultClockwise, directionType cameraDir, float maxTurnAngle) {
 
   float delta;
-  int timeout = 5;
+  int timeout = 1000;
   int startTime = vex::timer::system();
-  vision *camera = getCamera(cameraDir, goal);
+  updateCamera(goal);
+
+  vision *camera = (cameraDir == forward) ? &frontCamera : &backCamera;
 
   gyroSensor.resetRotation();
 
-  PID vPID(VTURN_24);
+  PID vPID(70, 0, 0.2, 0.1, 10, 10); // took out struct for now because that needs to be fixed
 
   while (!vPID.isCompleted()) {
 
     // failure exit conditions
+    // logController("%f", fabs(gyroSensor.rotation()) > maxTurnAngle);
     if (isTimeout(startTime, timeout) || fabs(gyroSensor.rotation()) > maxTurnAngle) return false;
 
     camera->takeSnapshot(goal.sig);
+    logController("%d", camera->largestObject.centerX);
     
     // correction is between -1 and 1. Positive if overshooting to right, negative if overshooting to left
     if(camera->largestObject.exists)  delta = (VISION_CENTER_X - camera->largestObject.centerX) / VISION_CENTER_X;
@@ -457,7 +468,7 @@ bool Robot::goTurnVision(Goal goal, bool defaultClockwise, directionType cameraD
 // angleDegrees is positive if clockwise, negative if counterclockwise
 void Robot::goTurn(float angleDegrees) {
 
-  PID anglePID(3, 0.00, 0.05, 2, 5, 10);
+  PID anglePID(2, 0.00, 0.05, 2, 5, 10);
   //PID anglePID(GTURN_24);
 
   float timeout = 5;

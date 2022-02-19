@@ -80,7 +80,7 @@ class Robot {
     void setBrakeType(brakeType b);
     void setMaxArmTorque(float c);
 
-    vision* getCamera(directionType dir, Goal goal);
+    vision getCamera(directionType dir, Goal goal);
 
     // --------- NEW FUNCTIONS -----------
     void goForwardU(float distInches, float maxSpeed, float uDirection, float rampUpInches = 0, 
