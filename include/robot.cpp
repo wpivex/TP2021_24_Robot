@@ -457,9 +457,10 @@ bool Robot::goTurnVision(Goal goal, bool defaultClockwise, directionType cameraD
 // angleDegrees is positive if clockwise, negative if counterclockwise
 void Robot::goTurn(float angleDegrees) {
 
-  PID anglePID(1.25, 0, 0.3, 3, 10);
+  PID anglePID(3, 0.00, 0.05, 2, 5, 10);
+  //PID anglePID(GTURN_24);
 
-  float timeout = 10;
+  float timeout = 5;
   float speed;
 
   log("initing");
@@ -473,7 +474,7 @@ void Robot::goTurn(float angleDegrees) {
 
     speed = anglePID.tick(angleDegrees - gyroSensor.rotation());
 
-    logController("wtf %f", speed);
+    //logController("wtf %f", speed);
 
     setLeftVelocity(forward, speed);
     setRightVelocity(reverse, speed);

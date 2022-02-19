@@ -398,6 +398,10 @@ void logGyro() {
 
 int testTurn() {
   mainBot.goTurn(90);
+  wait(1000, msec);
+  mainBot.goTurn(-180);
+  wait(1000, msec);
+  mainBot.goTurn(30);
   return 0;
 }
 
