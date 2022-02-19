@@ -32,6 +32,7 @@ class ArmGraph {
     void moveArmToPosition(Arm armPos, float baseSpeed = 100);
     bool armMovement(bool buttonInput = true, float baseSpeed = 100);
     bool armMovementAuton();
+    bool isMoving();
 
     void setFourVelocity(directionType d, double percent);
     void setChainVelocity(directionType d, double percent);

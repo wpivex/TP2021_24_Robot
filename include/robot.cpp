@@ -70,15 +70,8 @@ void Robot::setControllerMapping(ControllerMapping mapping) {
 
 void Robot::driveTeleop() {
 
-  if (buttons.pressed(ARM_TOGGLE)) {
-    if (armHold) {
-      setMaxArmTorque(ARM_CURRENT::LOW);
-      setBrakeType(hold);
-    } else {
-      setMaxArmTorque(ARM_CURRENT::HIGH);
-      setBrakeType(coast);
-    }
-  }
+  if (armHold) setBrakeType(hold);
+  else setBrakeType(coast);
 
   if(driveType == TANK) {
     setLeftVelocity(forward,buttons.axis(Buttons::LEFT_VERTICAL));
@@ -117,10 +110,27 @@ void Robot::setBackClamp(bool intaking) {
   backGoal.set(intaking);
 }
 
+void Robot::armTeleop() {
+
+  if (armHold) setMaxArmTorque(ARM_CURRENT::LOW);
+  else {
+    if (arm.isMoving()) setMaxArmTorque(ARM_CURRENT::HIGH);
+    else setMaxArmTorque(ARM_CURRENT::MID);
+  }
+
+  arm.armMovement(true, 100);
+
+}
+
 // Run every tick
 void Robot::teleop() {
+
+  if (buttons.pressed(ARM_TOGGLE)) {
+      armHold = !armHold;
+  }
+
   driveTeleop();
-  // arm.armMovement(true, 100);
+  armTeleop();
   // clawMovement();
   goalClamp();
   // logController("%f", leftMotorA.current(currentUnits::amp));

@@ -21,6 +21,7 @@ struct Goal {
 
 namespace ARM_CURRENT {
   const static float LOW = 0.1;
+  const static float MID = 1.0;
   const static float HIGH = 10.0;
 }
 

@@ -129,6 +129,7 @@ class Robot {
 
 
     void driveTeleop();
+    void armTeleop();
     void pneumaticsTeleop();
     void clawMovement();
     

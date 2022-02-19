@@ -57,6 +57,11 @@ void ArmGraph::init(Buttons* bh, vex::motor chainL, vex::motor chainR, vex::moto
   addEdge(PLACE_GOAL_WITH_YELLOW, INTAKE_TO_PLACE_INTER_4, true);
   addEdge(INTAKE_TO_PLACE_INTER_1, PLACE_GOAL_WITH_YELLOW, true);
 
+  chainBarLeft.setBrake(hold);
+  chainBarRight.setBrake(hold);
+  fourBarLeft.setBrake(hold);
+  fourBarRight.setBrake(hold);
+
 
   // Initialize starting position and path
   targetNode = START;
@@ -69,6 +74,10 @@ void ArmGraph::initArmPosition() {
   chainBarRight.resetPosition();
   fourBarRight.resetPosition();
 
+}
+
+bool ArmGraph::isMoving() {
+  return !arrivedFinal;
 }
 
 // Set destination for arm, so that nonblocking armMovement can be called later in a loop
@@ -99,26 +108,28 @@ void ArmGraph::calculateVelocities(float baseSpeed) {
   fourStart = fourBarLeft.position(vex::degrees);
   chainStart = chainBarLeft.position(vex::degrees);
 
-  fourBarVelocity = baseSpeed;
+  float dChain = fabs(chainStart - angles[targetNode][1]);
+  float dFour = fabs(fourStart - angles[targetNode][0]);
 
-  // Execute motor rotation towards target!
-  chainBarVelocity = baseSpeed * fabs((chainStart - angles[targetNode][1])/(fourStart - angles[targetNode][0]));
-
-  // normalize values if chainBarVelocity exceeds 100, so fourbar would move slower
-  if (chainBarVelocity > baseSpeed) {
-    fourBarVelocity *= baseSpeed / chainBarVelocity;
+  if (dFour > dChain) {
+    fourBarVelocity = baseSpeed;
+    chainBarVelocity = baseSpeed * dChain / dFour;
+  } else {
     chainBarVelocity = baseSpeed;
+    fourBarVelocity = baseSpeed * dFour / dChain;
   }
+
   fourDir = (fourBarLeft.rotation(vex::degrees) < angles[targetNode][0]) ? forward : reverse;
   chainDir = (chainBarLeft.rotation(vex::degrees) < angles[targetNode][1]) ? forward : reverse;
 
 }
 
 // LOOK HOW SHORT AND CLEAN THIS IS
+// Future Ansel: I lied this is pain
 // buttonInput is whether armMovement should be reading the controller button presses
 bool ArmGraph::armMovement(bool buttonInput, float baseSpeed) {
 
-  float MARGIN = 20; // margin of error for if robot arm is in vicinity of target node
+  float MARGIN = 21.0; // margin of error for if robot arm is in vicinity of target node
 
   // Timeout, revert to the last position, if teleop
   if (buttonInput && vex::timer::system() - startTimeout > ARM_TIMEOUT) {
@@ -146,40 +157,39 @@ bool ArmGraph::armMovement(bool buttonInput, float baseSpeed) {
     }
   }
 
-  if (arrivedFinal) return true;
-
-  
-  log("%d %d  |  %s", targetNode, arrived ? 1 : 0, pathStr.c_str());
-
-  // Calculate whether motor has arrived to intended target within some margin of error
-  int delta1 = fabs(fourBarLeft.rotation(vex::degrees) - angles[targetNode][0]);
-  int delta2 = fabs(chainBarLeft.rotation(vex::degrees) - angles[targetNode][1]);
-  //log("%d %d %d %d", delta1, delta2, fourBarDone ? 1 : 0, chainBarDone ? 1 : 0);
-
-  fourBarLeft.spin(fourDir, fourBarVelocity, vex::velocityUnits::pct);
-  fourBarRight.spin(fourDir, fourBarVelocity, vex::velocityUnits::pct);
-    
-  if (!chainBarDone && delta2 >= MARGIN) {
-    chainBarLeft.spin(chainDir, chainBarVelocity, vex::velocityUnits::pct);
-    chainBarRight.spin(chainDir, chainBarVelocity, vex::velocityUnits::pct);
-  } else {
-    chainBarDone = true;
-    if (targetArmPathIndex != armPath.size() - 1) {
-      chainBarLeft.stop();
-      chainBarRight.stop();
-    }
-  }
-
-  arrived = delta1 < MARGIN;
-  
-  arrivedFinal = arrived && targetArmPathIndex == armPath.size() - 1;
 
   if (arrivedFinal) {
-    chainBarLeft.rotateTo(angles[targetNode][1], vex::degrees, fourBarVelocity, vex::velocityUnits::pct, false);
-    chainBarRight.rotateTo(angles[targetNode][1], vex::degrees, fourBarVelocity, vex::velocityUnits::pct, false);
-    fourBarLeft.rotateTo(angles[targetNode][0], vex::degrees, chainBarVelocity, vex::velocityUnits::pct, false);
-    fourBarRight.rotateTo(angles[targetNode][0], vex::degrees, chainBarVelocity, vex::velocityUnits::pct, false);
+    chainBarLeft.stop();
+    chainBarRight.stop();
+    fourBarLeft.stop();
+    fourBarRight.stop();
+    return true;
   }
+
+
+  // Calculate whether motor has arrived to intended target within some margin of error
+  //int delta1 = fabs(fourBarLeft.rotation(vex::degrees) - angles[targetNode][0]);
+  //int delta2 = fabs(chainBarLeft.rotation(vex::degrees) - angles[targetNode][1]);
+  //log("%d %d %d %d", delta1, delta2, fourBarDone ? 1 : 0, chainBarDone ? 1 : 0);
+
+  if (targetArmPathIndex == armPath.size() - 1) {
+    fourBarLeft.rotateTo(angles[targetNode][0], vex::degrees, fourBarVelocity, vex::velocityUnits::pct, false);
+    fourBarRight.rotateTo(angles[targetNode][0], vex::degrees, fourBarVelocity, vex::velocityUnits::pct, false);
+  } else {
+    fourBarLeft.spin(fourDir, fourBarVelocity, vex::velocityUnits::pct);
+    fourBarRight.spin(fourDir, fourBarVelocity, vex::velocityUnits::pct);
+  }
+
+  chainBarLeft.rotateTo(angles[targetNode][1], vex::degrees, chainBarVelocity, vex::velocityUnits::pct, false);
+  chainBarRight.rotateTo(angles[targetNode][1], vex::degrees, chainBarVelocity, vex::velocityUnits::pct, false);
+
+
+  arrived = fabs(fourBarLeft.rotation(vex::degrees) - angles[targetNode][0]) < MARGIN;
+  
+  arrivedFinal = arrived && (targetArmPathIndex == armPath.size() - 1);
+
+  log("%d %d %d |  %s", targetNode, arrived ? 1 : 0, arrivedFinal ? 1 : 0, pathStr.c_str());
+
   return arrivedFinal;
 
 }
