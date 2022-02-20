@@ -403,7 +403,9 @@ int testTurn() {
   // // wait(1000, msec);
   // mainBot.goTurn(30);
   // mainBot.goTurnVision(YELLOW, true, forward, 359);
-  mainBot.goForward(48, 100, 48, 10);
+  // mainBot.goForward(48, 100, 0, 48, 10);
+  // mainBot.goVision(100, 100, YELLOW, forward);
+  mainBot.driveCurved(20, 100, reverse, 5, 0, 0.33, true);
   logController("EEEEE");
   return 0;
 }

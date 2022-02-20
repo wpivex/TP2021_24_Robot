@@ -357,11 +357,25 @@ void Robot::goVision(float distInches, float maxSpeed, Goal goal, directionType 
 
     float speed = trap.get( (leftMotorA.position(degrees) + rightMotorA.position(degrees)) / 2 );
 
-    setLeftVelocity(forward, speed + correction);
-    setRightVelocity(forward, speed - correction);
+    float left = speed - (fabs(speed) / 50) * correction;
+    float right =  speed + (fabs(speed) / 50) * correction;
+
+    if (fabs(left) > 100) {
+      right = right * fabs(100 / left);
+      left = fmin(100, fmax(-100, left));
+    } else if (fabs(right) > 100) {
+      left = left * fabs(100 / right);
+      right = fmin(100, fmax(-100, right));
+    }
+
+    setLeftVelocity(forward, left);
+    setRightVelocity(forward, right);
 
     wait(20, msec);
   }
+
+  stopLeft();
+  stopRight();
 
 }
 
@@ -369,7 +383,7 @@ void Robot::goVision(float distInches, float maxSpeed, Goal goal, directionType 
 bool Robot::goTurnVision(Goal goal, bool defaultClockwise, directionType cameraDir, float maxTurnAngle) {
 
   float delta;
-  int timeout = 1000;
+  int timeout = 1000; // fix once PID is fine
   int startTime = vex::timer::system();
   updateCamera(goal);
 
@@ -377,7 +391,7 @@ bool Robot::goTurnVision(Goal goal, bool defaultClockwise, directionType cameraD
 
   gyroSensor.resetRotation();
 
-  PID vPID(70, 0, 0.2, 0.1, 10, 10); // took out struct for now because that needs to be fixed
+  PID vPID(60, 0, 0.1, 0.1, 5, 20); // took out struct for now because that needs to be fixed
 
   while (!vPID.isCompleted()) {
 
@@ -386,13 +400,12 @@ bool Robot::goTurnVision(Goal goal, bool defaultClockwise, directionType cameraD
     if (isTimeout(startTime, timeout) || fabs(gyroSensor.rotation()) > maxTurnAngle) return false;
 
     camera->takeSnapshot(goal.sig);
-    logController("%d", camera->largestObject.centerX);
     
     // correction is between -1 and 1. Positive if overshooting to right, negative if overshooting to left
     if(camera->largestObject.exists)  delta = (VISION_CENTER_X - camera->largestObject.centerX) / VISION_CENTER_X;
     else delta = defaultClockwise ? -1 : 1;
 
-    float speed = vPID.tick(delta);
+    float speed = vPID.tick(delta, 100);
     setLeftVelocity(reverse, speed);
     setRightVelocity(forward, speed);
 

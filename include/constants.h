@@ -47,7 +47,7 @@ static const int ARM_TIMEOUT = 3000;
 
 
 static inline float distanceToDegrees(float distInches) {
-  return distInches * 360 / 2 / M_PI / (4 / 2) * 15 / 14; // 4 in diameter wheels
+  return distInches * 360 / 2 / M_PI / (4 / 2); // 4 in diameter wheels
 }
 
 
