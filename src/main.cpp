@@ -403,15 +403,14 @@ int testTurn() {
   // // wait(1000, msec);
   // mainBot.goTurn(30);
   // mainBot.goTurnVision(YELLOW, true, forward, 359);
-  mainBot.setBrakeType(hold);
   mainBot.goForward(48, 100, 48, 10);
   logController("EEEEE");
   return 0;
 }
 
-void userControl(void) { task controlLoop1(mainTeleop); }
+void userControl(void) { mainBot.setBrakeType(coast); task controlLoop1(mainTeleop); }
 
-void autonomous() { task auto1(testTurn); }
+void autonomous() { mainBot.setBrakeType(hold); task auto1(testTurn); }
 
 int main() {
   Competition.bStopAllTasksBetweenModes = true;

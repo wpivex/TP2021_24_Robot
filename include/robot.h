@@ -1,5 +1,6 @@
 #pragma once
 #include "ArmGraph.cpp"
+#include "TrapezoidalController.h"
 #include "Buttons.cpp"
 #include <string>
 #include <fstream>
@@ -83,16 +84,15 @@ class Robot {
     vision getCamera(directionType dir, Goal goal);
 
     // --------- NEW FUNCTIONS -----------
-    void goForwardU(float distInches, float maxSpeed, float uDirection, float rampUpInches = 0, 
-      int timeout = 5, std::function<bool(void)> func = {});
-    void goForward(float distInches, float maxSpeed, float rampUpInches = 0, 
+
+    void goForward(float distInches, float maxSpeed, float rampUpInches = 0, float slowDownInches = 5,
       int timeout = 5, std::function<bool(void)> func = {});
 
-    void goCurve(float distInches, float maxSpeed, float turnPercent, float rampUpInches = 0, 
+    void goCurve(float distInches, float maxSpeed, float turnPercent, float rampUpInches = 0, float slowDownInches = 5,
       int timeout = 5, std::function<bool(void)> func = {});
 
     void goVision(float distInches, float maxSpeed, Goal goal, directionType cameraDir, 
-    float rampUpInches = 0, int timeout = 5, std::function<bool(void)> func = {});
+    float rampUpInches = 0, float slowDownInches = 5, int timeout = 5, std::function<bool(void)> func = {});
 
     void goTurn(float angleDegrees);
     void goTurnU(float universalAngleDegrees);

@@ -62,24 +62,41 @@ static inline bool isTimeout(int startTime, int timeout) {
   return timeout != -1 && vex::timer::system() >= startTime + timeout*1000;
 }
 
-// log output to controller display the way you would with printf
+
+
+// log output to controller
 template <class ... Args>
-static inline void logController(const char *format, Args ... args) {
+static inline void logController(char *format, Args ... args) {
 
   Controller1.Screen.clearScreen();
-  Controller1.Screen.setCursor(1, 1);
-  Controller1.Screen.print(format, args...);
+  int row = 1;
+
+  char* pch = strtok (format,"\n");
+  while (pch != NULL)
+  {
+    Controller1.Screen.setCursor(row, 1);
+    Controller1.Screen.print(pch, args...);
+    pch = strtok (NULL, "\n");
+    row++;
+  }
 
 }
 
 // log output to brain display the way you would with printf
 template <class ... Args>
-static inline void log(const char *format, Args ... args) {
+static inline void log(char *format, Args ... args) {
 
   Brain.Screen.clearScreen();
-  Brain.Screen.setCursor(1, 1);
-  Brain.Screen.print(format, args...);
+  int row = 1;
 
+  char* pch = strtok (format,"\n");
+  while (pch != NULL)
+  {
+    Brain.Screen.setCursor(row, 1);
+    Brain.Screen.print(pch, args...);
+    pch = strtok (NULL, "\n");
+    row++;
+  }
 }
 
 #endif
