@@ -1,6 +1,6 @@
 #pragma once
 #include "ArmGraph.cpp"
-#include "TrapezoidalController.h"
+#include "TrapezoidalController.cpp"
 #include "Buttons.cpp"
 #include <string>
 #include <fstream>

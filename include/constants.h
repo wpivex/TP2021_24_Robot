@@ -66,7 +66,9 @@ static inline bool isTimeout(int startTime, int timeout) {
 
 // log output to controller
 template <class ... Args>
-static inline void logController(char *format, Args ... args) {
+static inline void logController(const char *f, Args ... args) {
+
+  char *format = (char*)f;
 
   Controller1.Screen.clearScreen();
   int row = 1;
@@ -84,7 +86,9 @@ static inline void logController(char *format, Args ... args) {
 
 // log output to brain display the way you would with printf
 template <class ... Args>
-static inline void log(char *format, Args ... args) {
+static inline void log(const char *f, Args ... args) {
+
+  char *format = (char*)f;
 
   Brain.Screen.clearScreen();
   int row = 1;

@@ -29,8 +29,8 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
 
   fourBarLeft = motor(PORT13, ratio18_1, false);
   fourBarRight = motor(PORT14, ratio18_1, true);
-  chainBarLeft = motor(PORT8, ratio18_1, false);
-  chainBarRight = motor(PORT7, ratio18_1, true);
+  chainBarLeft = motor(PORT9, ratio18_1, false);
+  chainBarRight = motor(PORT8, ratio18_1, true);
   claw = motor(PORT12, ratio18_1, false);
 
   gyroSensor = inertial(PORT11);
