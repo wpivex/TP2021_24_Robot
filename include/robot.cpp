@@ -338,7 +338,7 @@ void Robot::updateCamera(Goal goal) {
 // PID for distance and for correction towards goal
 // distInches is positive if forward, negative if reverse
 void Robot::goVision(float distInches, float maxSpeed, Goal goal, directionType cameraDir, float rampUpInches, float slowDownInches,
- int timeout, std::function<bool(void)> func) {
+ int timeout, bool stopAfter, std::function<bool(void)> func) {
 
   updateCamera(goal);
 
@@ -385,9 +385,10 @@ void Robot::goVision(float distInches, float maxSpeed, Goal goal, directionType 
 
     wait(20, msec);
   }
-
-  stopLeft();
-  stopRight();
+  if (stopAfter) {
+    stopLeft();
+    stopRight();
+  }
 
 }
 
@@ -395,7 +396,7 @@ void Robot::goVision(float distInches, float maxSpeed, Goal goal, directionType 
 bool Robot::goTurnVision(Goal goal, bool defaultClockwise, directionType cameraDir, float maxTurnAngle) {
 
   float delta;
-  int timeout = 1000; // fix once PID is fine
+  int timeout = 3; // fix once PID is fine
   int startTime = vex::timer::system();
   updateCamera(goal);
 
@@ -404,7 +405,7 @@ bool Robot::goTurnVision(Goal goal, bool defaultClockwise, directionType cameraD
   gyroSensor.resetRotation();
 
   //PID vPID(70, 0, 0.1, 0.1, 3, 20); // took out struct for now because that needs to be fixed
-  PID vPID(70, 0, 0, 0.1, 3, 30); // took out struct for now because that needs to be fixed
+  PID vPID(70, 0, 0, 0.05, 2, 20); // took out struct for now because that needs to be fixed
 
   while (!vPID.isCompleted()) {
 
@@ -434,7 +435,7 @@ bool Robot::goTurnVision(Goal goal, bool defaultClockwise, directionType cameraD
 }
 
 // angleDegrees is positive if clockwise, negative if counterclockwise
-void Robot::goTurn(float angleDegrees) {
+void Robot::goTurn(float angleDegrees, std::function<bool(void)> func) {
 
   PID anglePID(3, 0.00, 0.05, 2, 3, 25);
   //PID anglePID(GTURN_24);
@@ -451,6 +452,13 @@ void Robot::goTurn(float angleDegrees) {
 
   while (!anglePID.isCompleted() && !isTimeout(startTime, timeout)) {
 
+    if (func) {
+      if (func()) {
+        // if func is done, make it empty
+        func = {};
+      }
+    }
+
     speed = anglePID.tick(angleDegrees - gyroSensor.rotation());
 
     //logController("wtf %f", speed);
@@ -466,13 +474,50 @@ void Robot::goTurn(float angleDegrees) {
   stopRight();
 }
 // Turn to some universal angle based on starting point. Turn direction is determined by smallest angle
-void Robot::goTurnU(float universalAngleDegrees) {
+void Robot::goTurnU(float universalAngleDegrees, std::function<bool(void)> func) {
 
   float turnAngle = universalAngleDegrees - gyroSensor.heading(degrees);
   if (turnAngle > 180) turnAngle -= 360;
   else if (turnAngle < -180) turnAngle += 360;
 
-  goTurn(turnAngle);
+  goTurn(turnAngle, func);
+}
+
+// A fast but inaccurate turning function
+void Robot::goTurnFast(bool isClockwise, float turnDegrees, float maxSpeed, float slowDownDegrees, int timeout, std::function<bool(void)> func) {
+
+  float delta;
+  int startTime = vex::timer::system();
+  leftMotorA.resetPosition();
+  rightMotorA.resetPosition();
+  gyroSensor.resetRotation();
+
+  // Repeat until either arrived at target or timed out
+  while (fabs(gyroSensor.rotation()) < turnDegrees && !isTimeout(startTime, timeout)) {
+
+    if (func) {
+      if (func()) {
+        // if func is done, make it empty
+        func = {};
+      }
+    }
+
+    float angle = fabs(gyroSensor.rotation());
+    if (turnDegrees - angle < slowDownDegrees) delta = (turnDegrees - angle) / slowDownDegrees;
+    else delta = 1;
+
+    float speed = delta * maxSpeed;
+
+    setLeftVelocity(isClockwise ? forward : reverse, speed);
+    setRightVelocity(isClockwise ? reverse : forward, speed);
+
+    wait(20, msec);
+
+  }
+
+  stopLeft();
+  stopRight();
+
 }
 
 void Robot::openClaw() {

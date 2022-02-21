@@ -272,15 +272,17 @@ void concurrentTest() {
 
 int skillsAuto(void) {
 
+  std::function<bool(void)> armFunc = std::bind(&ArmGraph::armMovementAuton, &mainBot.arm);
+
   while (mainBot.gyroSensor.isCalibrating()) wait(20, msec);
   mainBot.gyroSensor.resetHeading();
 
   mainBot.setBackClamp(true);
   log("Part 1: Starting in the Middle");
-  mainBot.driveCurved(20, 100, reverse, 10, 0, 0.33, true);
+  mainBot.driveCurved(20, 100, reverse, 10, 0, 0.36, true);
   
-  mainBot.goVision(25, 50, YELLOW, reverse);
-  mainBot.goForward(-15, 100);
+  mainBot.goVision(25, 50, YELLOW, reverse, 0, 0, 5, false);
+  mainBot.goForward(-17, 100);
 
   mainBot.setBackClamp(false);
   wait(350, msec);
@@ -289,14 +291,14 @@ int skillsAuto(void) {
   // mainBot.turnToUniversalAngleGyro(315, 10, 30, 5);
   //mainBot.goTurnU(315);
   
-  mainBot.goForward(22, 100);
+  mainBot.goForward(28, 100);
   log("Part 3: Spaghetti Arm");
   mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_2);
-  mainBot.goTurnU(223);
+  mainBot.goTurnFast(false, 105, 70, 30, 5, armFunc);
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_2, 100);
   log("Part 4: The Right Way");
 
-  mainBot.goTurnVision(YELLOW, false, forward, 90);
+  //mainBot.goTurnVision(YELLOW, false, forward, 90);
   mainBot.setFrontClamp(true);
   wait(350, msec);
   mainBot.goVision(26, 100, YELLOW, forward);
@@ -307,25 +309,30 @@ int skillsAuto(void) {
   //Note: Parts 1-4 are the same for skills and normal match autons. 
 
   log("Part 5: Red Dead Redemption");
+  mainBot.driveStraight(13, 100, forward, 5, 0, false);
+  mainBot.driveCurved(20, 100, forward, 5, 5, -0.35);
 
-  mainBot.goForward(30, 100);
-  mainBot.goTurnU(180);
-  mainBot.driveStraight(10, 50, forward, 5, 5);
-  mainBot.goTurnU(150);
-  mainBot.goTurnVision(RED, true, forward, 30);
-  mainBot.goVision(7, 40, RED, forward);
-  mainBot.goTurnVision(RED, true, forward, 30);
+  // mainBot.goForward(30, 100);
+  // mainBot.goTurnU(180);
+  // mainBot.driveStraight(10, 50, forward, 5, 5);
+  // mainBot.goTurnU(150);
+  mainBot.goTurnFast(false, 50, 70, 30);
+  wait(1000, msec);
+  // mainBot.goTurnVision(RED, true, forward, 30);
+  mainBot.goVision(10, 30, RED, forward);
+  //mainBot.goTurnVision(RED, true, forward, 30);
   
   log("Part 6: Spaghetti Arm 2: Revenge of Linguini");
   mainBot.openClaw();
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE, 100);
   mainBot.goForward(5, 20);
   mainBot.closeClaw();
-  mainBot.driveStraight(5, 20, reverse, 2, 3);
+  mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_1);
+  mainBot.driveStraight(15, 20, reverse, 2, 3, true, armFunc);
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_1, 100);
 
   log("Part 7: Filthy Acts At A Reasonable Price");
-  mainBot.goTurnU(25);
+  mainBot.goTurnU(0); // drive bak to platform
 
   
   // mainBot.turnToUniversalAngleGyro(330, 20, 30, 3);
@@ -334,14 +341,19 @@ int skillsAuto(void) {
   // // mainBot.turnToAngleGyro(true, 7, 10, 35, 5); //angle slightly off, much better now with setHeading
   // mainBot.gyroTurn(true, 7);
   // mainBot.gyroSensor.setHeading(0, degrees); //this works somehow
-  mainBot.driveStraight(50, 100, forward, 7, 24); // I no longer trust gyro straight for long distances
-  mainBot.driveStraightTimed(30, forward, 4);
-  mainBot.arm.moveArmToPosition(ArmGraph::PLATFORM_HEIGHT, 100);
-  mainBot.openClaw();
-  mainBot.arm.moveArmToPosition(ArmGraph::ABOVE_GOAL,100);
-  mainBot.driveStraight(3, 20, reverse, 2, 3);
-  mainBot.goTurnU(0);
+  mainBot.driveStraight(65, 100, forward, 7, 24); // I no longer trust gyro straight for long distances
+  mainBot.driveStraightTimed(30, forward, 2);
+
+  // localize with walls
+  mainBot.driveStraight(6, 20, reverse, 2, 3);
+  mainBot.goTurnU(90);
+  mainBot.driveStraightTimed(30, reverse, 2);
   mainBot.goForward(48, 100);
+
+  // Head towards platform and get closer to the wall
+  mainBot.goCurve(15, 40, -0.15);
+  mainBot.goCurve(15, 40, 0.15);
+  mainBot.arm.setArmDestination(ArmGraph::INTAKE);
 
   // mainBot.turnToUniversalAngleGyro(90, 20, 30, 3);
   //mainBot.gyroTurnU(90);
