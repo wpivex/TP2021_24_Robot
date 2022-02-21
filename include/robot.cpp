@@ -89,9 +89,21 @@ void Robot::driveTeleop() {
 void Robot::goalClamp() {
 
   if (buttons.pressed(FRONT_CLAMP_TOGGLE)) {
-    frontGoal.set(!frontGoal.value());
+    if(testingArm) {
+      printf("{%f, %f},\n",  fourBarRight.position(degrees), chainBarRight.position(degrees));
+    } else {
+      frontGoal.set(!frontGoal.value());
+    }
   } else if (buttons.pressed(BACK_CLAMP_TOGGLE)) {
-    backGoal.set(!backGoal.value());
+    if(testingArm) {
+    armCoast = !armCoast;
+    fourBarLeft.setBrake(armCoast? coast : hold);
+    fourBarRight.setBrake(armCoast? coast : hold);
+    chainBarLeft.setBrake(armCoast? coast : hold);
+    chainBarRight.setBrake(armCoast? coast : hold);
+    } else {
+      backGoal.set(!backGoal.value());
+    }
   }
 }
 
@@ -131,7 +143,7 @@ void Robot::teleop() {
 
   driveTeleop();
   armTeleop();
-  // clawMovement();
+  clawMovement();
   goalClamp();
   // logController("%f", leftMotorA.current(currentUnits::amp));
 
@@ -357,8 +369,8 @@ void Robot::goVision(float distInches, float maxSpeed, Goal goal, directionType 
 
     float speed = trap.get( (leftMotorA.position(degrees) + rightMotorA.position(degrees)) / 2 );
 
-    float left = speed - (fabs(speed) / 50) * correction;
-    float right =  speed + (fabs(speed) / 50) * correction;
+    float left = speed - (fabs(speed) / 50) * correction * (cameraDir == forward? 1 : -1);
+    float right =  speed + (fabs(speed) / 50) * correction * (cameraDir == forward? 1 : -1);
 
     if (fabs(left) > 100) {
       right = right * fabs(100 / left);
@@ -368,8 +380,8 @@ void Robot::goVision(float distInches, float maxSpeed, Goal goal, directionType 
       right = fmin(100, fmax(-100, right));
     }
 
-    setLeftVelocity(forward, left);
-    setRightVelocity(forward, right);
+    setLeftVelocity(cameraDir, left);
+    setRightVelocity(cameraDir, right);
 
     wait(20, msec);
   }
@@ -391,7 +403,8 @@ bool Robot::goTurnVision(Goal goal, bool defaultClockwise, directionType cameraD
 
   gyroSensor.resetRotation();
 
-  PID vPID(60, 0, 0.1, 0.1, 5, 20); // took out struct for now because that needs to be fixed
+  //PID vPID(70, 0, 0.1, 0.1, 3, 20); // took out struct for now because that needs to be fixed
+  PID vPID(70, 0, 0, 0.1, 3, 30); // took out struct for now because that needs to be fixed
 
   while (!vPID.isCompleted()) {
 
@@ -423,7 +436,7 @@ bool Robot::goTurnVision(Goal goal, bool defaultClockwise, directionType cameraD
 // angleDegrees is positive if clockwise, negative if counterclockwise
 void Robot::goTurn(float angleDegrees) {
 
-  PID anglePID(2, 0.00, 0.05, 2, 5, 10);
+  PID anglePID(3, 0.00, 0.05, 2, 3, 25);
   //PID anglePID(GTURN_24);
 
   float timeout = 5;
@@ -455,7 +468,7 @@ void Robot::goTurn(float angleDegrees) {
 // Turn to some universal angle based on starting point. Turn direction is determined by smallest angle
 void Robot::goTurnU(float universalAngleDegrees) {
 
-  float turnAngle = gyroSensor.heading(degrees) - universalAngleDegrees;
+  float turnAngle = universalAngleDegrees - gyroSensor.heading(degrees);
   if (turnAngle > 180) turnAngle -= 360;
   else if (turnAngle < -180) turnAngle += 360;
 

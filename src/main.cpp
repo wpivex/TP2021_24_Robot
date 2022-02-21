@@ -93,30 +93,30 @@ void oldFourGoalSkills() {
   // Get right goal
   mainBot.goForward(-5, 100);
   // mainBot.turnToAngle(100, 160, true, reverse); // UNIVERSAL
-  mainBot.alignToGoalVision(YELLOW, false, forward, 5, 20);
+  // mainBot.alignToGoalVision(YELLOW, false, forward, 5, 20);
   mainBot.setFrontClamp(true);
   wait(125, msec);
-  mainBot.goForwardVision(YELLOW, 100, forward, 26, 5, nullptr, nullptr, 0.35);
+  // mainBot.goForwardVision(YELLOW, 100, forward, 26, 5, nullptr, nullptr, 0.35);
   mainBot.setFrontClamp(false);
   wait(125,msec);
 
   log("Part 4: Red Dead Redemption");
-  mainBot.driveStraightGyro(15, 100, reverse, 5, 5);
-  // mainBot.turnToUniversalAngleGyro(0, 30, 180, 10);
-  mainBot.gyroTurnU(0);
-  // mainBot.driveStraightGyro(20, 100, forward, 5, 5,nullptr);
-  // // mainBot.turnToUniversalAngleGyro(270, 20, 30, 10);
-  // mainBot.gyroTurnU(270);
-  mainBot.driveStraight(35, 40, forward, 5, 20);
-  // mainBot.turnToAngleGyro(true, 90, 50, 90, 5);
+  // mainBot.driveStraightGyro(15, 100, reverse, 5, 5);
+  // // mainBot.turnToUniversalAngleGyro(0, 30, 180, 10);
+  // mainBot.gyroTurnU(0);
+  // // mainBot.driveStraightGyro(20, 100, forward, 5, 5,nullptr);
+  // // // mainBot.turnToUniversalAngleGyro(270, 20, 30, 10);
+  // // mainBot.gyroTurnU(270);
+  // mainBot.driveStraight(35, 40, forward, 5, 20);
+  // // mainBot.turnToAngleGyro(true, 90, 50, 90, 5);
   
-  log("Part 5: Claw Machine");
-  mainBot.alignToGoalVision(RED, true, forward, 10, 20);  
-  mainBot.driveStraightGyro(3, 20, forward, 5, 3,nullptr);
-  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE);
-  mainBot.openClaw();
-  mainBot.driveStraightGyro(2, 20, forward, 5, 2,nullptr);
-  mainBot.closeClaw();
+  // log("Part 5: Claw Machine");
+  // mainBot.alignToGoalVision(RED, true, forward, 10, 20);  
+  // mainBot.driveStraightGyro(3, 20, forward, 5, 3,nullptr);
+  // mainBot.arm.moveArmToPosition(ArmGraph::INTAKE);
+  // mainBot.openClaw();
+  // mainBot.driveStraightGyro(2, 20, forward, 5, 2,nullptr);
+  // mainBot.closeClaw();
 
   log("Part 6: Sluuuuuuuurrrrrrrrppppppppp");
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_3);
@@ -262,73 +262,71 @@ void testArmValues() {
 
 void concurrentTest() {
 
-  std::function<bool(void)> armFunc = std::bind(&ArmGraph::armMovementAuton, &mainBot.arm);
+  // std::function<bool(void)> armFunc = std::bind(&ArmGraph::armMovementAuton, &mainBot.arm);
 
-  mainBot.arm.setArmDestination(ArmGraph::INTAKE);
-  mainBot.driveStraightGyro(40, 20, reverse, 20, 10, armFunc);
-  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE);
+  // mainBot.arm.setArmDestination(ArmGraph::INTAKE);
+  // mainBot.driveStraightGyro(40, 20, reverse, 20, 10, armFunc);
+  // mainBot.arm.moveArmToPosition(ArmGraph::INTAKE);
 
 }
 
 int skillsAuto(void) {
 
   while (mainBot.gyroSensor.isCalibrating()) wait(20, msec);
+  mainBot.gyroSensor.resetHeading();
 
-  // std::function<bool(void)> armFunc = std::bind(&ArmGraph::armMovementAuton, &mainBot.arm);
   mainBot.setBackClamp(true);
   log("Part 1: Starting in the Middle");
   mainBot.driveCurved(20, 100, reverse, 10, 0, 0.33, true);
   
-  mainBot.goForwardVision(YELLOW, 50, reverse, 25, 10, nullptr, nullptr, 0.5);
-  mainBot.driveStraightGyro(10, 100, reverse, 5, 5);
+  mainBot.goVision(25, 50, YELLOW, reverse);
+  mainBot.goForward(-15, 100);
 
   mainBot.setBackClamp(false);
-  wait(250, msec);
+  wait(350, msec);
   log("Part 2: Ctrl+Z");
   //guarantee the correct angle
   // mainBot.turnToUniversalAngleGyro(315, 10, 30, 5);
-  mainBot.gyroTurnU(315);
+  //mainBot.goTurnU(315);
   
-  mainBot.driveStraightGyro(22, 100, forward, 5, 5);
+  mainBot.goForward(22, 100);
   log("Part 3: Spaghetti Arm");
   mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_2);
-  // mainBot.turnToUniversalAngleGyro(225, 20, 30, 10);
-  mainBot.gyroTurnU(223);
+  mainBot.goTurnU(223);
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_2, 100);
   log("Part 4: The Right Way");
 
-  mainBot.alignToGoalVision(YELLOW, false, forward, 10);
+  mainBot.goTurnVision(YELLOW, false, forward, 90);
   mainBot.setFrontClamp(true);
-  wait(250, msec);
-  mainBot.goForwardVision(YELLOW, 100, forward, 26, 10, nullptr, nullptr, 0.35);
+  wait(350, msec);
+  mainBot.goVision(26, 100, YELLOW, forward);
   mainBot.setFrontClamp(false);
-  wait(250,msec);
+  wait(350,msec);
   
 
   //Note: Parts 1-4 are the same for skills and normal match autons. 
 
   log("Part 5: Red Dead Redemption");
 
-  mainBot.driveStraightGyro(18, 40, forward, 5, 5);
-  // mainBot.turnToUniversalAngleGyro(180, 20, 30, 10);
-  mainBot.gyroTurnU(180);
-  mainBot.driveStraight(10, 20, forward, 5, 5);
-  // mainBot.turnToUniversalAngleGyro(150, 20, 30, 10);
-  mainBot.gyroTurnU(150);
-  mainBot.alignToGoalVision(RED, true, forward, 5, 10);
-  mainBot.goForwardVision(RED, 40, forward, 7, 10, nullptr, nullptr, 0.2);
-  mainBot.alignToGoalVision(RED, true, forward, 5, 10);
+  mainBot.goForward(30, 100);
+  mainBot.goTurnU(180);
+  mainBot.driveStraight(10, 50, forward, 5, 5);
+  mainBot.goTurnU(150);
+  mainBot.goTurnVision(RED, true, forward, 30);
+  mainBot.goVision(7, 40, RED, forward);
+  mainBot.goTurnVision(RED, true, forward, 30);
   
   log("Part 6: Spaghetti Arm 2: Revenge of Linguini");
   mainBot.openClaw();
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE, 100);
-  mainBot.driveStraightGyro(5, 20, forward, 5, 10);
+  mainBot.goForward(5, 20);
   mainBot.closeClaw();
   mainBot.driveStraight(5, 20, reverse, 2, 3);
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_1, 100);
 
   log("Part 7: Filthy Acts At A Reasonable Price");
-  mainBot.gyroTurnU(25);
+  mainBot.goTurnU(25);
+
   
   // mainBot.turnToUniversalAngleGyro(330, 20, 30, 3);
   
@@ -342,8 +340,8 @@ int skillsAuto(void) {
   mainBot.openClaw();
   mainBot.arm.moveArmToPosition(ArmGraph::ABOVE_GOAL,100);
   mainBot.driveStraight(3, 20, reverse, 2, 3);
-  mainBot.gyroTurnU(90);
-  mainBot.driveStraightGyro(48, 100, forward, 5, 16);
+  mainBot.goTurnU(0);
+  mainBot.goForward(48, 100);
 
   // mainBot.turnToUniversalAngleGyro(90, 20, 30, 3);
   //mainBot.gyroTurnU(90);
@@ -372,18 +370,22 @@ int skillsAuto(void) {
 int vcatTesting() {
   mainBot.setFrontClamp(false);
   mainBot.setBackClamp(false);
-  // mainBot.turnToUniversalAngleGyro(90, 30, 90, 10);
-  mainBot.gyroTurnU(90);
+  mainBot.goTurnU(90);
   wait(1000,msec);
-  // mainBot.turnToUniversalAngleGyro(180, 30, 90, 10);
-  mainBot.gyroTurnU(180);
+  mainBot.goTurnU(180);
   wait(1000,msec);
-  // mainBot.turnToUniversalAngleGyro(270, 30, 90, 10);
-  mainBot.gyroTurnU(270);
+  mainBot.goTurnU(270);
   wait(1000,msec);
-  // mainBot.turnToUniversalAngleGyro(90, 30, 180, 5);
-  mainBot.gyroTurnU(90);
+  mainBot.goTurnU(90);
   wait(1000,msec);
+  // mainBot.goTurn(90);
+  // wait(1000,msec);
+  // mainBot.goTurn(180);
+  // wait(1000,msec);
+  // mainBot.goTurn(270);
+  // wait(1000,msec);
+  // mainBot.goTurn(90);
+  // wait(1000,msec);
   return 0;
 }
 
@@ -412,7 +414,7 @@ int testTurn() {
 
 void userControl(void) { mainBot.setBrakeType(coast); task controlLoop1(mainTeleop); }
 
-void autonomous() { mainBot.setBrakeType(hold); task auto1(testTurn); }
+void autonomous() { mainBot.setBrakeType(hold); task auto1(skillsAuto); }
 
 int main() {
   Competition.bStopAllTasksBetweenModes = true;

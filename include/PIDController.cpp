@@ -39,7 +39,7 @@ float PID::tick(float error, float bound) {
     output = fmin(-min, output);
   }
 
-  logController("%d | %d | %d %d %d", (int) error, (int) output, (int) (K_p * error), (int) (K_i * integral), (int) (K_d * derivative));
+  logController("%f | %d | %d %d %d | %d", (float) error, (int) output, (int) (K_p * error), (int) (K_i * integral), (int) (K_d * derivative), repeated);
   return output;
 }
 

@@ -109,19 +109,7 @@ class Robot {
                       float slowDownInches, bool stopAfter = true, std::function<bool(void)> func = {});
     void driveStraightTimed(float speed, directionType dir, int timeMs, bool stopAfter = true, std::function<bool(void)> func = {});
 
-    void goForwardVision(Goal goal, float speed, directionType dir, float maximumDistance, int timeout, 
-                        digital_in* limitSwitch, std::function<bool(void)> func = {}, float pModMult = 0.2);
-    void alignToGoalVision(Goal goal, bool clockwise, directionType cameraDirection, int timeout, float maxSpeed = 20);
     void updateCamera(Goal goal);
-
-    void driveStraightGyro(float distInches, float speed, directionType dir, int timeout, float slowDownInches,
-                            std::function<bool(void)> func = {});
-    void turnToAngleGyro(bool clockwise, float angleDegrees, float maxSpeed, int startSlowDownDegrees, 
-                        int timeout, float tolerance = 1, std::function<bool(void)> func = {});
-    void turnToUniversalAngleGyro(float universalAngleDegrees, float maxSpeed, int startSlowDownDegrees, 
-                        int timeout, float tolerance = 1, std::function<bool(void)> func = {});
-    void gyroTurnU(float universalAngleDegrees);
-    void gyroTurn(bool clockwise, float angleDegrees);
 
     
 
@@ -144,4 +132,5 @@ class Robot {
     bool armHold = false;
 
     bool isSkills;
+    bool armCoast = false;
 };
