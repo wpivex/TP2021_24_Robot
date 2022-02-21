@@ -1,32 +1,22 @@
 #include "TrapezoidalController.h"
 #include "constants.h"
 
-// Regardless of total angle/distance, slowDownDegrees maintains a constant decrease in velocity
-Trapezoid::Trapezoid(bool convertDistDegrees, float distP, float maxSpeedP, float minSpeedP, float rampUpP, float slowDownP, float endSlowP, float marginP) {
+
+Trapezoid::Trapezoid(float distInches, float maxSpeedP, float minSpeedP, float rampUpInches, float slowDownInches) {
 
   dist = 0;
-  direction = (distP > 0 ? 1 : -1);
+  direction = (distInches > 0 ? 1 : -1);
+  finalDist = fabs(distanceToDegrees(distInches));
   maxSpeed = maxSpeedP;
   minSpeed = minSpeedP;
+  rampUp = distanceToDegrees(rampUpInches);
+  slowDown = distanceToDegrees(slowDownInches);
 
-  if (convertDistDegrees) {
-    finalDist = fabs(distanceToDegrees(distP));
-    rampUp = distanceToDegrees(rampUpP);
-    slowDown = distanceToDegrees(slowDownP);
-    endSlow = distanceToDegrees(endSlowP);
-    margin = distanceToDegrees(marginP);
-  } else {
-    finalDist = fabs(distP);
-    rampUp = rampUpP;
-    slowDown = slowDownP;
-    endSlow = endSlowP;
-    margin = marginP;
-  }
-
+  slowDown = fmin(slowDown, finalDist);
+  rampUp = fmin(rampUp, finalDist);
   maxSpeed = fmax(minSpeed, maxSpeed);
   
 }
-
 
 float Trapezoid::get(float currDistance) {
 
@@ -34,15 +24,13 @@ float Trapezoid::get(float currDistance) {
   float delta;
 
   if (dist < rampUp) delta = dist / rampUp;
-  else if (finalDist - dist < endSlow) delta = 0;
-  else if (finalDist - dist < slowDown + endSlow) delta = (finalDist - dist) / slowDown;
+  else if (finalDist - dist < slowDown) delta = (finalDist - dist) / slowDown;
   else delta = 1;
 
   float speed = minSpeed + (maxSpeed - minSpeed) * delta;
-  logController("%d | %f %f", (int) currDistance, delta, speed);
   return direction * speed;
 }
 
 bool Trapezoid::isCompleted() {
-  return dist >= finalDist - margin;
+  return dist >= finalDist;
 }

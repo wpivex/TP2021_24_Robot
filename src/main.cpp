@@ -399,22 +399,22 @@ void logGyro() {
 }
 
 int testTurn() {
-  mainBot.goTurn(90);
-  wait(1000, msec);
-  mainBot.goTurn(-180);
-  wait(1000, msec);
-  mainBot.goTurn(30);
+  // mainBot.goTurn(90);
+  // // wait(1000, msec);
+  // mainBot.goTurn(-180);
+  // // wait(1000, msec);
+  // mainBot.goTurn(30);
   // mainBot.goTurnVision(YELLOW, true, forward, 359);
   // mainBot.goForward(48, 100, 0, 48, 10);
   // mainBot.goVision(100, 100, YELLOW, forward);
-  //mainBot.driveCurved(20, 100, reverse, 5, 0, 0.33, true);
+  mainBot.driveCurved(20, 100, reverse, 5, 0, 0.33, true);
   logController("EEEEE");
   return 0;
 }
 
 void userControl(void) { mainBot.setBrakeType(coast); task controlLoop1(mainTeleop); }
 
-void autonomous() { mainBot.setBrakeType(hold); task auto1(testTurn); }
+void autonomous() { mainBot.setBrakeType(hold); task auto1(skillsAuto); }
 
 int main() {
   Competition.bStopAllTasksBetweenModes = true;

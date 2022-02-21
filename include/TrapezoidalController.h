@@ -4,14 +4,14 @@
 class Trapezoid {
 
   public:
-  Trapezoid(bool convertDistDegrees, float distP, float maxSpeedP, float minSpeedP, float rampUpP, float slowDownP, float endSlowP = 0, float marginP = 0);
+  Trapezoid(float distInches, float maxSpeedP, float minSpeedP, float rampUpInches, float slowDownInches);
   float get(float currDistance);
   bool isCompleted();
   
   private:
 
   float direction;
-  float finalDist, maxSpeed, minSpeed, rampUp, slowDown, endSlow, margin;
+  float finalDist, maxSpeed, minSpeed, rampUp, slowDown;
   float dist = 0;
 
 };
