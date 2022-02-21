@@ -16,7 +16,7 @@ Trapezoid::Trapezoid(bool convertDistDegrees, float distP, float maxSpeedP, floa
     endSlow = distanceToDegrees(endSlowP);
     margin = distanceToDegrees(marginP);
   } else {
-    finalDist = distP;
+    finalDist = fabs(distP);
     rampUp = rampUpP;
     slowDown = slowDownP;
     endSlow = endSlowP;
@@ -39,6 +39,7 @@ float Trapezoid::get(float currDistance) {
   else delta = 1;
 
   float speed = minSpeed + (maxSpeed - minSpeed) * delta;
+  logController("%d | %f %f", (int) currDistance, delta, speed);
   return direction * speed;
 }
 

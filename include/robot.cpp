@@ -433,7 +433,7 @@ bool Robot::goTurnVision(Goal goal, bool defaultClockwise, directionType cameraD
     
     // correction is between -1 and 1. Positive if overshooting to right, negative if overshooting to left
     if(camera->largestObject.exists)  delta = (VISION_CENTER_X - camera->largestObject.centerX) / VISION_CENTER_X;
-    
+
     if (delta * turnDirection < 0.05) break; // one-sided tolerance
 
     if (fabs(delta) < FINISH_SLOW_DOWN) speed = MIN_SPEED;
@@ -457,7 +457,7 @@ bool Robot::goTurnVision(Goal goal, bool defaultClockwise, directionType cameraD
 void Robot::goTurn(float angleDegrees) {
 
   //PID anglePID(3, 0.00, 0.05, 2, 3, 25);
-  Trapezoid trap(false, angleDegrees, 100, 27, 0, 10, 5, 0);
+  Trapezoid trap(false, angleDegrees, 60, 27, 0, 45, 25, 3);
   //PID anglePID(GTURN_24);
 
   float timeout = 5;
@@ -472,7 +472,7 @@ void Robot::goTurn(float angleDegrees) {
 
   while (!trap.isCompleted() && !isTimeout(startTime, timeout)) {
 
-    speed = trap.get(angleDegrees - gyroSensor.rotation());
+    speed = trap.get(gyroSensor.rotation());
 
     //logController("wtf %f", speed);
 
@@ -481,8 +481,7 @@ void Robot::goTurn(float angleDegrees) {
 
     wait(20, msec);
   }
-  logController("wtf done");
-
+  //logController("wtf done");
   stopLeft();
   stopRight();
 }
@@ -538,6 +537,19 @@ void Robot::setRightVelocity(directionType d, double percent) {
   rightMotorC.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
   rightMotorD.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
   rightMotorE.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
+}
+
+void Robot::forceStop() {
+  rightMotorA.spin(forward, 0, voltageUnits::volt);
+  rightMotorB.spin(forward, 0, voltageUnits::volt);
+  rightMotorC.spin(forward, 0, voltageUnits::volt);
+  rightMotorD.spin(forward, 0, voltageUnits::volt);
+  rightMotorE.spin(forward, 0, voltageUnits::volt);
+  leftMotorA.spin(forward, 0, voltageUnits::volt);
+  leftMotorB.spin(forward, 0, voltageUnits::volt);
+  leftMotorC.spin(forward, 0, voltageUnits::volt);
+  leftMotorD.spin(forward, 0, voltageUnits::volt);
+  leftMotorE.spin(forward, 0, voltageUnits::volt);
 }
 
 void Robot::stopLeft() {

@@ -81,6 +81,8 @@ class Robot {
     void setBrakeType(brakeType b);
     void setMaxArmTorque(float c);
 
+    void forceStop();
+
     vision getCamera(directionType dir, Goal goal);
 
     // --------- NEW FUNCTIONS -----------
