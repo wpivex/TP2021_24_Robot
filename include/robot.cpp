@@ -252,7 +252,7 @@ float slowDownInches, float turnPercent, bool stopAfter, std::function<bool(void
 // Trapezoidal motion profiling
 void Robot::goForward(float distInches, float maxSpeed, float rampUpInches, float slowDownInches, int timeout, std::function<bool(void)> func) {
 
-  Trapezoid trap(distInches, maxSpeed, FORWARD_MIN_SPEED, rampUpInches, slowDownInches);
+  Trapezoid trap(true, distInches, maxSpeed, FORWARD_MIN_SPEED, rampUpInches, slowDownInches);
 
   int startTime = vex::timer::system();
   leftMotorA.resetPosition();
@@ -289,7 +289,7 @@ void Robot::goForward(float distInches, float maxSpeed, float rampUpInches, floa
 // distInches is positive if forward, negative if reverse
 void Robot::goCurve(float distInches, float maxSpeed, float turnPercent, float rampUpInches, float slowDownInches, int timeout, std::function<bool(void)> func) {
 
-  Trapezoid trap(distInches, maxSpeed, FORWARD_MIN_SPEED, rampUpInches, slowDownInches);
+  Trapezoid trap(true, distInches, maxSpeed, FORWARD_MIN_SPEED, rampUpInches, slowDownInches);
 
 
   int startTime = vex::timer::system();
@@ -344,7 +344,7 @@ void Robot::goVision(float distInches, float maxSpeed, Goal goal, directionType 
 
   vision *camera = (cameraDir == forward) ? &frontCamera : &backCamera;
   
-  Trapezoid trap(distInches, maxSpeed, FORWARD_MIN_SPEED, rampUpInches, slowDownInches);
+  Trapezoid trap(true, distInches, maxSpeed, FORWARD_MIN_SPEED, rampUpInches, slowDownInches);
 
   int startTime = vex::timer::system();
   leftMotorA.resetPosition();
@@ -404,7 +404,7 @@ bool Robot::goTurnVision(Goal goal, bool defaultClockwise, directionType cameraD
   gyroSensor.resetRotation();
 
   //PID vPID(70, 0, 0.1, 0.1, 3, 20); // took out struct for now because that needs to be fixed
-  PID vPID(70, 0, 0, 0.1, 3, 30); // took out struct for now because that needs to be fixed
+  PID vPID(70, 0, 0, 0.1, 3, 20); // took out struct for now because that needs to be fixed
 
   while (!vPID.isCompleted()) {
 
@@ -436,7 +436,8 @@ bool Robot::goTurnVision(Goal goal, bool defaultClockwise, directionType cameraD
 // angleDegrees is positive if clockwise, negative if counterclockwise
 void Robot::goTurn(float angleDegrees) {
 
-  PID anglePID(3, 0.00, 0.05, 2, 3, 25);
+  //PID anglePID(3, 0.00, 0.05, 2, 3, 25);
+  Trapezoid trap(false, angleDegrees, 100, 27, 0, 10, 5, 0);
   //PID anglePID(GTURN_24);
 
   float timeout = 5;
@@ -449,9 +450,9 @@ void Robot::goTurn(float angleDegrees) {
   gyroSensor.resetRotation();
   log("about to loop");
 
-  while (!anglePID.isCompleted() && !isTimeout(startTime, timeout)) {
+  while (!trap.isCompleted() && !isTimeout(startTime, timeout)) {
 
-    speed = anglePID.tick(angleDegrees - gyroSensor.rotation());
+    speed = trap.get(angleDegrees - gyroSensor.rotation());
 
     //logController("wtf %f", speed);
 
