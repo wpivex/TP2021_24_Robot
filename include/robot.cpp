@@ -394,19 +394,36 @@ void Robot::goVision(float distInches, float maxSpeed, Goal goal, directionType 
 // Returns true if aligned to goal, false if timed out or maxTurnAngle reached
 bool Robot::goTurnVision(Goal goal, bool defaultClockwise, directionType cameraDir, float maxTurnAngle) {
 
-  float delta;
+  float delta = 1;
+  float speed;
   int timeout = 1000; // fix once PID is fine
   int startTime = vex::timer::system();
   updateCamera(goal);
+
+  const float START_SLOW_DOWN = 0.4;
+  const float FINISH_SLOW_DOWN = 0.2;
+  const float MAX_SPEED = 100;
+  const float MIN_SPEED = 25;
 
   vision *camera = (cameraDir == forward) ? &frontCamera : &backCamera;
 
   gyroSensor.resetRotation();
 
   //PID vPID(70, 0, 0.1, 0.1, 3, 20); // took out struct for now because that needs to be fixed
-  PID vPID(70, 0, 0, 0.1, 3, 20); // took out struct for now because that needs to be fixed
+  //PID vPID(70, 0, 0, 0.1, 3, 30); // took out struct for now because that needs to be fixed
 
-  while (!vPID.isCompleted()) {
+  // Initial turn until goal is seen
+  camera->takeSnapshot(goal.sig);
+  while (!camera->largestObject.exists) {
+      setLeftVelocity(defaultClockwise ? forward : reverse, 80);
+      setRightVelocity(defaultClockwise ? reverse : forward, 80);
+      wait(20, msec);
+      camera->takeSnapshot(goal.sig);
+  }
+
+  float turnDirection = VISION_CENTER_X - camera->largestObject.centerX > 0 ? 1 : -1;
+
+  while (true) {
 
     // failure exit conditions
     // logController("%f", fabs(gyroSensor.rotation()) > maxTurnAngle);
@@ -416,11 +433,14 @@ bool Robot::goTurnVision(Goal goal, bool defaultClockwise, directionType cameraD
     
     // correction is between -1 and 1. Positive if overshooting to right, negative if overshooting to left
     if(camera->largestObject.exists)  delta = (VISION_CENTER_X - camera->largestObject.centerX) / VISION_CENTER_X;
-    else delta = defaultClockwise ? -1 : 1;
+    
+    if (delta * turnDirection < 0.05) break; // one-sided tolerance
 
-    float speed = vPID.tick(delta, 100);
-    setLeftVelocity(reverse, speed);
-    setRightVelocity(forward, speed);
+    if (fabs(delta) < FINISH_SLOW_DOWN) speed = MIN_SPEED;
+    else if (fabs(delta) > START_SLOW_DOWN) speed = MAX_SPEED;
+    else speed = MIN_SPEED + (MAX_SPEED - MIN_SPEED) * (fabs(delta) - FINISH_SLOW_DOWN) / (START_SLOW_DOWN - FINISH_SLOW_DOWN);
+    setLeftVelocity(reverse, speed * turnDirection);
+    setRightVelocity(forward, speed * turnDirection);
 
     wait(20, msec);
 

@@ -23,7 +23,6 @@ Trapezoid::Trapezoid(bool convertDistDegrees, float distP, float maxSpeedP, floa
     margin = marginP;
   }
 
-  rampUp = fmin(rampUp, finalDist);
   maxSpeed = fmax(minSpeed, maxSpeed);
   
 }
