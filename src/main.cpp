@@ -283,22 +283,17 @@ int skillsAuto(void) {
 
   // Head towards yellow goal
   mainBot.setBackClamp(true);
-  log("Part 1: Starting in the Middle");
   mainBot.driveCurved(20, 100, reverse, 10, 0, 0.36, false); // arc to goal direction
   mainBot.goVision(25, 70, YELLOW, reverse, 0, 0, 5, false);
-  mainBot.goForward(-17, 100);
-
+  mainBot.driveStraight(12, 100, reverse, 5, 0, false);
   mainBot.setBackClamp(false); // clamp center goal
-  wait(350, msec);
-  log("Part 2: Ctrl+Z");
+  mainBot.driveStraight(5, 100, reverse, 5, 5, true);
 
   // Align for right goal
   mainBot.goForward(28, 100); // go back for approach to second goal
-  log("Part 3: Spaghetti Arm");
   mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_2);
-  mainBot.goTurnFast(false, 98, 70, 30, 5, armFunc); // turn to yellow goal quickly concurrent with arm movement
+  mainBot.goTurnFast(false, 98, 70, 20, 30, 0, 5, armFunc); // turn to yellow goal quickly concurrent with arm movement
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_2, 100); // make sure arm function is finished before moving on
-  log("Part 4: The Right Way");
 
   // Grab right goal
   mainBot.setFrontClamp(true); // open front clamp
@@ -309,51 +304,48 @@ int skillsAuto(void) {
   //Note: Parts 1-4 are the same for skills and normal match autons. [NOW FALSE, ANSEL HAS CHANGED STUFF SO REVISE AUTO]
 
   // Traverse field to red goal
-  log("Part 5: Red Dead Redemption");
   mainBot.driveStraight(13, 100, forward, 5, 0, false); // robot does not stop after function so momentum carries over to driveCurved
   mainBot.driveCurved(20, 100, forward, 5, 5, -0.2);
-  mainBot.goTurnFast(false, 60, 70, 30); // Turn to approximate location to red goal at a distance
+  mainBot.goTurnFast(false, 60, 70, 20, 30); // Turn to approximate location to red goal at a distance
   mainBot.goTurnVision(RED, false, forward, 90);
   mainBot.goVision(7, 30, RED, forward); // Approach red goal
 
   // Pick up red goal  
-  log("Part 6: Spaghetti Arm 2: Revenge of Linguini");
   mainBot.openClaw();
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE, 100); // this cannot be done concurrently as to keep vision clear of arm
-  mainBot.goForward(13, 40);
+  mainBot.goForward(13, 40, 0, 0, 3);
   mainBot.closeClaw(); // grab red goal
   wait(200, msec);
 
   // Back off and go back home
   mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_1);
   mainBot.driveStraight(13, 40, reverse, 2, 3, true, armFunc); // move back while concurrently raising goal
-  log("Part 7: Filthy Acts At A Reasonable Price");
-  mainBot.goTurnU(0, armFunc); // aim back towards platform, parallel to field
+  mainBot.goTurnFastU(0, 70, 28, 40, 20, 4, armFunc); // aim back towards platform, parallel to field
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_1, 100); // make sure concurrent call is finished
 
   // Drive to other side
-  mainBot.driveStraight(84, 100, forward, 7, 10, false);
-  logController("thing");
-  mainBot.driveStraightTimed(40, forward, 2); // localize with home wall
+  mainBot.driveStraight(82, 100, forward, 7, 10, false);
+  mainBot.driveStraightTimed(30, forward, 3); // localize with home wall
 
   // localize position
-  mainBot.driveStraight(4, 20, reverse, 2, 3); // back off for clearance to be able to turn
-  mainBot.goTurnU(90);
-  mainBot.driveStraightTimed(40, reverse, 2); // localize with side wall
+  mainBot.driveStraight(2.5, 20, reverse, 2, 3); // back off for clearance to be able to turn
+  mainBot.goTurnFastU(85, 50, 28, 40, 10, 3);
+  mainBot.driveStraightTimed(30, reverse, 2); // localize with side wall
 
   // Head towards platform and get closer to the wall
-  mainBot.driveCurved(6.5, 50, forward, 5, 5, -1); // S maneuver
-  mainBot.driveCurved(6.5, 50, forward, 5, 5, 1);
-  mainBot.goTurnU(90);
+  mainBot.driveCurved(6.5, 50, forward, 5, 5, -1.1); // S maneuver
+  mainBot.driveCurved(6, 50, forward, 5, 5, 1.1);
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE); // bring platform down
-  mainBot.driveCurved(3, 40, forward, 5, 1, 0.15);
-  mainBot.driveStraight(4, 40, forward, 5, 4);
-  mainBot.driveCurved(3, 40, forward, 5, 1, 0.15);
+  mainBot.driveCurved(3, 50, forward, 5, 1, 0.15);
+  mainBot.driveStraight(10, 50, forward, 5, 4);
+  mainBot.driveCurved(3, 50, forward, 5, 1, 0.15);
   mainBot.setMaxArmTorque(ARM_CURRENT::LOW); // divert all current to motors
-  mainBot.goForward(15, 30);
+  mainBot.goForward(20, 50);
 
+  // Climb
   while (fabs(mainBot.gyroSensor.pitch()) > 5) {
-    mainBot.driveStraight(1, 30, forward, 3, 0);
+    logController("%f", mainBot.gyroSensor.pitch());
+    mainBot.driveStraight(2, 50, forward, 3, 0);
     wait(1000, msec);
   }
 

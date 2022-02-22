@@ -98,7 +98,11 @@ class Robot {
     void goTurnU(float universalAngleDegrees, std::function<bool(void)> func = {});
     bool goTurnVision(Goal goal, bool defaultClockwise, directionType cameraDir, float maxTurnAngle);
     
-    void goTurnFast(bool isClockwise, float turnDegrees, float maxSpeed, float slowDownDegrees, int timeout = 5, std::function<bool(void)> func = {});
+    void goTurnFast(bool isClockwise, float turnDegrees, float maxSpeed, float minSpeed, float slowDownDegrees, float endSlowDegrees = 0,
+    int timeout = 5, std::function<bool(void)> func = {});
+
+    void goTurnFastU(float universalAngleDegrees, float maxSpeed, float minSpeed, float slowDownDegrees, float endSlowDegrees = 0, 
+    int timeout = 5, std::function<bool(void)> func = {});
 
     // -------- OLD FUNCTIONS -----------
     void smartDrive(float distInches, float speed, directionType left, directionType right, int timeout, float slowDownInches, 
