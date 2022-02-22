@@ -301,10 +301,8 @@ int skillsAuto(void) {
   // Grab right goal
   mainBot.setFrontClamp(true); // open front clamp
   wait(350, msec);
-  mainBot.goVision(26, 100, YELLOW, forward); // go to goal
-  mainBot.setFrontClamp(false); // clamp goal
-  wait(350,msec);
-  
+  mainBot.goVision(26, 100, YELLOW, forward, 0, 0, 5, false); // go to goal. Grabs goal while moving forward
+  mainBot.setFrontClamp(false); // clamp goal while moving forward
 
   //Note: Parts 1-4 are the same for skills and normal match autons. [NOW FALSE, ANSEL HAS CHANGED STUFF SO REVISE AUTO]
 
@@ -319,18 +317,19 @@ int skillsAuto(void) {
   log("Part 6: Spaghetti Arm 2: Revenge of Linguini");
   mainBot.openClaw();
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE, 100); // this cannot be done concurrently as to keep vision clear of arm
-  mainBot.goForward(10, 20);
+  mainBot.goForward(13, 20);
   mainBot.closeClaw(); // grab red goal
 
   // Back off and go back home
-  mainBot.driveStraight(10, 20, reverse, 2, 3, true, armFunc); // move back while concurrently raising goal
+  mainBot.driveStraight(13, 20, reverse, 2, 3, true, armFunc); // move back while concurrently raising goal
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_1, 100); // make sure concurrent call is finished
   log("Part 7: Filthy Acts At A Reasonable Price");
   mainBot.goTurnU(0); // aim back towards platform, parallel to field
 
   // Drive to other side
-  mainBot.driveStraight(65, 100, forward, 7, 24);
-  mainBot.driveStraightTimed(30, forward, 2); // localize with home wall
+  mainBot.driveStraight(75, 100, forward, 7, 24);
+  logController("thing");
+  mainBot.driveStraightTimed(30, forward, 1); // localize with home wall
 
   // localize position
   mainBot.driveStraight(6, 20, reverse, 2, 3); // back off for clearance to be able to turn
@@ -338,8 +337,8 @@ int skillsAuto(void) {
   mainBot.driveStraightTimed(30, reverse, 2); // localize with side wall
 
   // Head towards platform and get closer to the wall
-  mainBot.goCurve(15, 40, -0.15); // S maneuver
-  mainBot.goCurve(15, 40, 0.15);
+  mainBot.goCurve(15, 40, -0.3); // S maneuver
+  mainBot.goCurve(15, 40, 0.3);
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE); // bring platform down
 
 
