@@ -282,8 +282,8 @@ int skillsAuto(void) {
   // Head towards yellow goal
   mainBot.setBackClamp(true);
   log("Part 1: Starting in the Middle");
-  mainBot.driveCurved(20, 100, reverse, 10, 0, 0.36, true); // arc to goal direction
-  mainBot.goVision(25, 50, YELLOW, reverse, 0, 0, 5, false);
+  mainBot.driveCurved(20, 100, reverse, 10, 0, 0.36, false); // arc to goal direction
+  mainBot.goVision(25, 70, YELLOW, reverse, 0, 0, 5, false);
   mainBot.goForward(-17, 100);
 
   mainBot.setBackClamp(false); // clamp center goal
@@ -294,7 +294,7 @@ int skillsAuto(void) {
   mainBot.goForward(28, 100); // go back for approach to second goal
   log("Part 3: Spaghetti Arm");
   mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_2);
-  mainBot.goTurnFast(false, 112, 70, 30, 5, armFunc); // turn to yellow goal quickly concurrent with arm movement
+  mainBot.goTurnFast(false, 98, 70, 30, 5, armFunc); // turn to yellow goal quickly concurrent with arm movement
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_2, 100); // make sure arm function is finished before moving on
   log("Part 4: The Right Way");
 
@@ -313,17 +313,17 @@ int skillsAuto(void) {
   mainBot.driveStraight(13, 100, forward, 5, 0, false); // robot does not stop after function so momentum carries over to driveCurved
   mainBot.driveCurved(20, 100, forward, 5, 5, -0.2);
   mainBot.goTurnFast(false, 60, 70, 30); // Turn to approximate location to red goal at a distance
-  mainBot.goVision(10, 30, RED, forward); // Approach red goal
+  mainBot.goVision(7, 30, RED, forward); // Approach red goal
 
   // Pick up red goal  
   log("Part 6: Spaghetti Arm 2: Revenge of Linguini");
   mainBot.openClaw();
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE, 100); // this cannot be done concurrently as to keep vision clear of arm
-  mainBot.goForward(5, 20);
+  mainBot.goForward(10, 20);
   mainBot.closeClaw(); // grab red goal
 
   // Back off and go back home
-  mainBot.driveStraight(7, 20, reverse, 2, 3, true, armFunc); // move back while concurrently raising goal
+  mainBot.driveStraight(10, 20, reverse, 2, 3, true, armFunc); // move back while concurrently raising goal
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_1, 100); // make sure concurrent call is finished
   log("Part 7: Filthy Acts At A Reasonable Price");
   mainBot.goTurnU(0); // aim back towards platform, parallel to field

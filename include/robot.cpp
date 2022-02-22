@@ -486,11 +486,15 @@ void Robot::goTurnU(float universalAngleDegrees, std::function<bool(void)> func)
 // A fast but inaccurate turning function
 void Robot::goTurnFast(bool isClockwise, float turnDegrees, float maxSpeed, float slowDownDegrees, int timeout, std::function<bool(void)> func) {
 
+  float MIN_SPEED = 20;
+
   float delta;
   int startTime = vex::timer::system();
   leftMotorA.resetPosition();
   rightMotorA.resetPosition();
   gyroSensor.resetRotation();
+
+  logController("start turn fast");
 
   // Repeat until either arrived at target or timed out
   while (fabs(gyroSensor.rotation()) < turnDegrees && !isTimeout(startTime, timeout)) {
@@ -506,7 +510,7 @@ void Robot::goTurnFast(bool isClockwise, float turnDegrees, float maxSpeed, floa
     if (turnDegrees - angle < slowDownDegrees) delta = (turnDegrees - angle) / slowDownDegrees;
     else delta = 1;
 
-    float speed = delta * maxSpeed;
+    float speed = MIN_SPEED + delta * (maxSpeed - MIN_SPEED);
 
     setLeftVelocity(isClockwise ? forward : reverse, speed);
     setRightVelocity(isClockwise ? reverse : forward, speed);
@@ -514,7 +518,7 @@ void Robot::goTurnFast(bool isClockwise, float turnDegrees, float maxSpeed, floa
     wait(20, msec);
 
   }
-
+  logController("finish turn fast");
   stopLeft();
   stopRight();
 
