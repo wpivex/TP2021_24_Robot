@@ -75,6 +75,7 @@ void sideFirst() {
 */
 
 void oldFourGoalSkills() {
+
   mainBot.openClaw();
   mainBot.arm.moveArmToPosition(ArmGraph::ABOVE_GOAL);
   mainBot.driveCurved(20, 100, reverse, 5, 0, 0.33, true);
@@ -272,110 +273,76 @@ void concurrentTest() {
 
 int skillsAuto(void) {
 
+  // initialize function reference for future concurrency
   std::function<bool(void)> armFunc = std::bind(&ArmGraph::armMovementAuton, &mainBot.arm);
 
   while (mainBot.gyroSensor.isCalibrating()) wait(20, msec);
   mainBot.gyroSensor.resetHeading();
 
+  // Head towards yellow goal
   mainBot.setBackClamp(true);
   log("Part 1: Starting in the Middle");
-  mainBot.driveCurved(20, 100, reverse, 10, 0, 0.36, true);
-  
+  mainBot.driveCurved(20, 100, reverse, 10, 0, 0.36, true); // arc to goal direction
   mainBot.goVision(25, 50, YELLOW, reverse, 0, 0, 5, false);
   mainBot.goForward(-17, 100);
 
-  mainBot.setBackClamp(false);
+  mainBot.setBackClamp(false); // clamp center goal
   wait(350, msec);
   log("Part 2: Ctrl+Z");
-  //guarantee the correct angle
-  // mainBot.turnToUniversalAngleGyro(315, 10, 30, 5);
-  //mainBot.goTurnU(315);
-  
-  mainBot.goForward(28, 100);
+
+  // Align for right goal
+  mainBot.goForward(28, 100); // go back for approach to second goal
   log("Part 3: Spaghetti Arm");
   mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_2);
-  mainBot.goTurnFast(false, 105, 70, 30, 5, armFunc);
-  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_2, 100);
+  mainBot.goTurnFast(false, 112, 70, 30, 5, armFunc); // turn to yellow goal quickly concurrent with arm movement
+  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_2, 100); // make sure arm function is finished before moving on
   log("Part 4: The Right Way");
 
-  //mainBot.goTurnVision(YELLOW, false, forward, 90);
-  mainBot.setFrontClamp(true);
+  // Grab right goal
+  mainBot.setFrontClamp(true); // open front clamp
   wait(350, msec);
-  mainBot.goVision(26, 100, YELLOW, forward);
-  mainBot.setFrontClamp(false);
+  mainBot.goVision(26, 100, YELLOW, forward); // go to goal
+  mainBot.setFrontClamp(false); // clamp goal
   wait(350,msec);
   
 
-  //Note: Parts 1-4 are the same for skills and normal match autons. 
+  //Note: Parts 1-4 are the same for skills and normal match autons. [NOW FALSE, ANSEL HAS CHANGED STUFF SO REVISE AUTO]
 
+  // Traverse field to red goal
   log("Part 5: Red Dead Redemption");
-  mainBot.driveStraight(13, 100, forward, 5, 0, false);
-  mainBot.driveCurved(20, 100, forward, 5, 5, -0.35);
+  mainBot.driveStraight(13, 100, forward, 5, 0, false); // robot does not stop after function so momentum carries over to driveCurved
+  mainBot.driveCurved(20, 100, forward, 5, 5, -0.2);
+  mainBot.goTurnFast(false, 60, 70, 30); // Turn to approximate location to red goal at a distance
+  mainBot.goVision(10, 30, RED, forward); // Approach red goal
 
-  // mainBot.goForward(30, 100);
-  // mainBot.goTurnU(180);
-  // mainBot.driveStraight(10, 50, forward, 5, 5);
-  // mainBot.goTurnU(150);
-  mainBot.goTurnFast(false, 50, 70, 30);
-  wait(1000, msec);
-  // mainBot.goTurnVision(RED, true, forward, 30);
-  mainBot.goVision(10, 30, RED, forward);
-  //mainBot.goTurnVision(RED, true, forward, 30);
-  
+  // Pick up red goal  
   log("Part 6: Spaghetti Arm 2: Revenge of Linguini");
   mainBot.openClaw();
-  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE, 100);
+  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE, 100); // this cannot be done concurrently as to keep vision clear of arm
   mainBot.goForward(5, 20);
-  mainBot.closeClaw();
-  mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_1);
-  mainBot.driveStraight(15, 20, reverse, 2, 3, true, armFunc);
-  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_1, 100);
+  mainBot.closeClaw(); // grab red goal
 
+  // Back off and go back home
+  mainBot.driveStraight(7, 20, reverse, 2, 3, true, armFunc); // move back while concurrently raising goal
+  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_1, 100); // make sure concurrent call is finished
   log("Part 7: Filthy Acts At A Reasonable Price");
-  mainBot.goTurnU(0); // drive bak to platform
+  mainBot.goTurnU(0); // aim back towards platform, parallel to field
 
-  
-  // mainBot.turnToUniversalAngleGyro(330, 20, 30, 3);
-  
-  // mainBot.alignToGoalVision(BLUE, true, forward, 10, 20);
-  // // mainBot.turnToAngleGyro(true, 7, 10, 35, 5); //angle slightly off, much better now with setHeading
-  // mainBot.gyroTurn(true, 7);
-  // mainBot.gyroSensor.setHeading(0, degrees); //this works somehow
-  mainBot.driveStraight(65, 100, forward, 7, 24); // I no longer trust gyro straight for long distances
-  mainBot.driveStraightTimed(30, forward, 2);
+  // Drive to other side
+  mainBot.driveStraight(65, 100, forward, 7, 24);
+  mainBot.driveStraightTimed(30, forward, 2); // localize with home wall
 
-  // localize with walls
-  mainBot.driveStraight(6, 20, reverse, 2, 3);
+  // localize position
+  mainBot.driveStraight(6, 20, reverse, 2, 3); // back off for clearance to be able to turn
   mainBot.goTurnU(90);
-  mainBot.driveStraightTimed(30, reverse, 2);
-  mainBot.goForward(48, 100);
+  mainBot.driveStraightTimed(30, reverse, 2); // localize with side wall
 
   // Head towards platform and get closer to the wall
-  mainBot.goCurve(15, 40, -0.15);
+  mainBot.goCurve(15, 40, -0.15); // S maneuver
   mainBot.goCurve(15, 40, 0.15);
-  mainBot.arm.setArmDestination(ArmGraph::INTAKE);
+  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE); // bring platform down
 
-  // mainBot.turnToUniversalAngleGyro(90, 20, 30, 3);
-  //mainBot.gyroTurnU(90);
-  // wait(2000, msec);
 
-  log("Part 8: Where The Fuck Am I");
-  // mainBot.driveCurved(35, 20, reverse, 10, 0, 0.15);
-  // mainBot.turnToUniversalAngleGyro(90, 10, 10, 5);
-  // mainBot.driveStraightGyro(10,20,forward,10,10,nullptr);
-  // mainBot.turnToUniversalAngleGyro(93, 10, 10, 5);
-  // mainBot.arm.setArmDestination(ArmGraph::INTAKE);
-  // mainBot.arm.armMovementAuton();
-  //mainBot.driveStraight(36,50,forward,10,10,nullptr);
-  
-  
-  // setFrontClamp(true);
-  // moveArmToPosition(PLACE_GOAL, 100);
-  // openClaw();
-  // moveArmToPosition(ABOVE_MIDDLE, 100);
-  // setFrontClamp(false);
-
-  // turn and climb
   return 1;
 }
 
