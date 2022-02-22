@@ -311,34 +311,37 @@ int skillsAuto(void) {
   mainBot.driveStraight(13, 100, forward, 5, 0, false); // robot does not stop after function so momentum carries over to driveCurved
   mainBot.driveCurved(20, 100, forward, 5, 5, -0.2);
   mainBot.goTurnFast(false, 60, 70, 30); // Turn to approximate location to red goal at a distance
+  mainBot.goTurnVision(RED, false, forward, 90);
   mainBot.goVision(7, 30, RED, forward); // Approach red goal
 
   // Pick up red goal  
   log("Part 6: Spaghetti Arm 2: Revenge of Linguini");
   mainBot.openClaw();
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE, 100); // this cannot be done concurrently as to keep vision clear of arm
-  mainBot.goForward(13, 20);
+  mainBot.goForward(13, 40);
   mainBot.closeClaw(); // grab red goal
+  wait(200, msec);
 
   // Back off and go back home
-  mainBot.driveStraight(13, 20, reverse, 2, 3, true, armFunc); // move back while concurrently raising goal
-  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_1, 100); // make sure concurrent call is finished
+  mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_1);
+  mainBot.driveStraight(13, 40, reverse, 2, 3, true, armFunc); // move back while concurrently raising goal
   log("Part 7: Filthy Acts At A Reasonable Price");
-  mainBot.goTurnU(0); // aim back towards platform, parallel to field
+  mainBot.goTurnU(0, armFunc); // aim back towards platform, parallel to field
+  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_1, 100); // make sure concurrent call is finished
 
   // Drive to other side
-  mainBot.driveStraight(75, 100, forward, 7, 24);
+  mainBot.driveStraight(84, 100, forward, 7, 10, false);
   logController("thing");
-  mainBot.driveStraightTimed(30, forward, 1); // localize with home wall
+  mainBot.driveStraightTimed(40, forward, 2); // localize with home wall
 
   // localize position
-  mainBot.driveStraight(6, 20, reverse, 2, 3); // back off for clearance to be able to turn
+  mainBot.driveStraight(3, 20, reverse, 2, 3); // back off for clearance to be able to turn
   mainBot.goTurnU(90);
-  mainBot.driveStraightTimed(30, reverse, 2); // localize with side wall
+  mainBot.driveStraightTimed(40, reverse, 2); // localize with side wall
 
   // Head towards platform and get closer to the wall
-  mainBot.goCurve(15, 40, -0.3); // S maneuver
-  mainBot.goCurve(15, 40, 0.3);
+  mainBot.driveCurved(7, 50, forward, 5, 0, -0.8, false); // S maneuver
+  mainBot.driveCurved(7, 50, forward, 5, 5, 0.8, true);
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE); // bring platform down
 
 

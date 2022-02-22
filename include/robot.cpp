@@ -526,7 +526,7 @@ void Robot::goTurnFast(bool isClockwise, float turnDegrees, float maxSpeed, floa
 
 void Robot::openClaw() {
   int clawTimeout = vex::timer::system();
-  while(vex::timer::system() - clawTimeout < 2000 && claw.rotation(degrees) > MAX_CLAW) {
+  while(vex::timer::system() - clawTimeout < 1000 && claw.rotation(degrees) > MAX_CLAW) {
     claw.rotateTo(MAX_CLAW, deg, 100, velocityUnits::pct, false);
     wait(20, msec);
   }
@@ -536,7 +536,7 @@ void Robot::openClaw() {
 void Robot::closeClaw() {
   int clawTimeout = vex::timer::system();
   while(true) {
-    if (vex::timer::system() - clawTimeout > 2000) { return; }
+    if (vex::timer::system() - clawTimeout > 1000) { return; }
     claw.rotateTo(2000, deg, 100, velocityUnits::pct, false);
     wait(20, msec);
   }
