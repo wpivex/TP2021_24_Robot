@@ -273,6 +273,8 @@ void concurrentTest() {
 
 int skillsAuto(void) {
 
+  mainBot.setMaxArmTorque(ARM_CURRENT::HIGH);
+
   // initialize function reference for future concurrency
   std::function<bool(void)> armFunc = std::bind(&ArmGraph::armMovementAuton, &mainBot.arm);
 
@@ -335,14 +337,27 @@ int skillsAuto(void) {
   mainBot.driveStraightTimed(40, forward, 2); // localize with home wall
 
   // localize position
-  mainBot.driveStraight(3, 20, reverse, 2, 3); // back off for clearance to be able to turn
+  mainBot.driveStraight(4, 20, reverse, 2, 3); // back off for clearance to be able to turn
   mainBot.goTurnU(90);
   mainBot.driveStraightTimed(40, reverse, 2); // localize with side wall
 
   // Head towards platform and get closer to the wall
-  mainBot.driveCurved(7, 50, forward, 5, 0, -0.8, false); // S maneuver
-  mainBot.driveCurved(7, 50, forward, 5, 5, 0.8, true);
+  mainBot.driveCurved(6.5, 50, forward, 5, 5, -1); // S maneuver
+  mainBot.driveCurved(6.5, 50, forward, 5, 5, 1);
+  mainBot.goTurnU(90);
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE); // bring platform down
+  mainBot.driveCurved(3, 40, forward, 5, 1, 0.15);
+  mainBot.driveStraight(4, 40, forward, 5, 4);
+  mainBot.driveCurved(3, 40, forward, 5, 1, 0.15);
+  mainBot.setMaxArmTorque(ARM_CURRENT::LOW); // divert all current to motors
+  mainBot.goForward(15, 30);
+
+  while (fabs(mainBot.gyroSensor.pitch()) > 5) {
+    mainBot.driveStraight(1, 30, forward, 3, 0);
+    wait(1000, msec);
+  }
+
+
 
 
   return 1;
