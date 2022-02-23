@@ -92,17 +92,18 @@ class Robot {
       int timeout = 5, std::function<bool(void)> func = {});
 
     void goVision(float distInches, float maxSpeed, Goal goal, directionType cameraDir, 
-    float rampUpInches = 0, float slowDownInches = 5, int timeout = 5, bool stopAfter = true, std::function<bool(void)> func = {});
+    float rampUpInches = 0, float slowDownInches = 5, int timeout = 5, bool stopAfter = true, float K_P = 70, std::function<bool(void)> func = {});
 
     void goTurn(float angleDegrees, std::function<bool(void)> func = {});
     void goTurnU(float universalAngleDegrees, std::function<bool(void)> func = {});
     bool goTurnVision(Goal goal, bool defaultClockwise, directionType cameraDir, float maxTurnAngle);
+    void goTurnVision2(Goal goal, directionType cameraDir, float timeout);
     
     void goTurnFast(bool isClockwise, float turnDegrees, float maxSpeed, float minSpeed, float slowDownDegrees, float endSlowDegrees = 0,
-    int timeout = 5, std::function<bool(void)> func = {});
+    float timeout = 5, std::function<bool(void)> func = {});
 
     void goTurnFastU(float universalAngleDegrees, float maxSpeed, float minSpeed, float slowDownDegrees, float endSlowDegrees = 0, 
-    int timeout = 5, std::function<bool(void)> func = {});
+    float timeout = 5, std::function<bool(void)> func = {});
 
     // -------- OLD FUNCTIONS -----------
     void smartDrive(float distInches, float speed, directionType left, directionType right, int timeout, float slowDownInches, 

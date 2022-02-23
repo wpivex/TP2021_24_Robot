@@ -337,7 +337,7 @@ void Robot::updateCamera(Goal goal) {
 // PID for distance and for correction towards goal
 // distInches is positive if forward, negative if reverse
 void Robot::goVision(float distInches, float maxSpeed, Goal goal, directionType cameraDir, float rampUpInches, float slowDownInches,
- int timeout, bool stopAfter, std::function<bool(void)> func) {
+ int timeout, bool stopAfter, float K_P, std::function<bool(void)> func) {
 
   updateCamera(goal);
 
@@ -349,8 +349,8 @@ void Robot::goVision(float distInches, float maxSpeed, Goal goal, directionType 
   leftMotorA.resetPosition();
   rightMotorA.resetPosition();
 
-  PID vPID(70, 0, 0.2, 0.1, 10, 10);
-  
+  PID vPID(K_P, 0, 0.2, 0.1, 10, 10);
+  logController("start vision");
 
   while (!trap.isCompleted() && !isTimeout(startTime, timeout)) {
 
@@ -388,6 +388,7 @@ void Robot::goVision(float distInches, float maxSpeed, Goal goal, directionType 
     stopLeft();
     stopRight();
   }
+  logController("stop vison");
 
 }
 
@@ -434,6 +435,50 @@ bool Robot::goTurnVision(Goal goal, bool defaultClockwise, directionType cameraD
 
   // did not exit on failure conditions, so successfully aligned
   return true;
+}
+
+void Robot::goTurnVision2(Goal goal, directionType cameraDir, float timeout) {
+
+  const float END_SLOW_DEGREES = 0.4;
+  const float SLOW_DOWN_DEGREES = 0.7; 
+  const int MIN_SPEED = 40;
+  const int MAX_SPEED = 50;
+
+  float delta, offset;
+  int startTime = vex::timer::system();
+  updateCamera(goal);
+
+  vision *camera = (cameraDir == forward) ? &frontCamera : &backCamera;
+  camera->takeSnapshot(goal.sig);
+  if (!camera->largestObject.exists) return;
+
+  // false if overshooting to the right, true if overshooting to the left
+  bool clockwise = camera->largestObject.centerX > VISION_CENTER_X;
+
+  offset = 1;
+  while (offset > 0.05 && !isTimeout(startTime, timeout)) {
+    camera->takeSnapshot(goal.sig);
+    if (!camera->largestObject.exists) return;
+
+    offset = (clockwise ? 1 : -1) * ((camera->largestObject.centerX - VISION_CENTER_X) / VISION_CENTER_X);
+    if (offset < END_SLOW_DEGREES) delta = 0;
+    else if (offset < SLOW_DOWN_DEGREES + END_SLOW_DEGREES) delta = (offset - END_SLOW_DEGREES) / SLOW_DOWN_DEGREES;
+    else delta = 1;
+
+    float speed = MIN_SPEED + delta * (MAX_SPEED - MIN_SPEED);
+
+    logController("%f %f %f", offset, delta, speed);
+
+    setLeftVelocity(clockwise ? forward : reverse, speed);
+    setRightVelocity(clockwise ? reverse : forward, speed);
+
+    wait(20, msec);
+
+  }
+
+  stopLeft();
+  stopRight();
+
 }
 
 // angleDegrees is positive if clockwise, negative if counterclockwise
@@ -486,7 +531,7 @@ void Robot::goTurnU(float universalAngleDegrees, std::function<bool(void)> func)
 }
 
 // A fast but inaccurate turning function
-void Robot::goTurnFast(bool isClockwise, float turnDegrees, float maxSpeed, float minSpeed, float slowDownDegrees, float endSlowDegrees, int timeout, std::function<bool(void)> func) {
+void Robot::goTurnFast(bool isClockwise, float turnDegrees, float maxSpeed, float minSpeed, float slowDownDegrees, float endSlowDegrees, float timeout, std::function<bool(void)> func) {
 
   float delta;
   int startTime = vex::timer::system();
@@ -526,7 +571,7 @@ void Robot::goTurnFast(bool isClockwise, float turnDegrees, float maxSpeed, floa
 }
 
 // Turn to some universal angle based on starting point. Turn direction is determined by smallest angle
-void Robot::goTurnFastU(float universalAngleDegrees, float maxSpeed, float minSpeed, float slowDownDegrees, float endSlowDegrees, int timeout, 
+void Robot::goTurnFastU(float universalAngleDegrees, float maxSpeed, float minSpeed, float slowDownDegrees, float endSlowDegrees, float timeout, 
 std::function<bool(void)> func) {
 
   float turnAngle = universalAngleDegrees - gyroSensor.heading(degrees);

@@ -86,7 +86,7 @@ void ArmGraph::setArmDestination(Arm armPos) {
   generateShortestPath(targetNode, armPos);
 }
 
-void ArmGraph::moveArmToPosition(Arm armPos, float baseSpeed, int timeout) {
+void ArmGraph::moveArmToPosition(Arm armPos, float baseSpeed, float timeout) {
 
   if (arrivedFinal && targetNode == armPos) return;
 

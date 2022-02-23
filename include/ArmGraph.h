@@ -29,7 +29,7 @@ class ArmGraph {
     void init(Buttons* bh, vex::motor chainL, vex::motor chainR, vex::motor fourL, vex::motor fourR);
     void initArmPosition();
     void setArmDestination(Arm armPos);
-    void moveArmToPosition(Arm armPos, float baseSpeed = 100, int timeout = 100);
+    void moveArmToPosition(Arm armPos, float baseSpeed = 100, float timeout = 100);
     bool armMovement(bool buttonInput = true, float baseSpeed = 100);
     bool armMovementAuton();
     bool isMoving();
