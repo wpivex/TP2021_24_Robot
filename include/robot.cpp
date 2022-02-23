@@ -394,12 +394,15 @@ void Robot::goVision(float distInches, float maxSpeed, Goal goal, directionType 
 // Returns true if aligned to goal, false if timed out or maxTurnAngle reached
 bool Robot::goTurnVision(Goal goal, bool defaultClockwise, directionType cameraDir, float maxTurnAngle) {
 
+
   float delta;
   int timeout = 4; // fix once PID is fine
   int startTime = vex::timer::system();
   updateCamera(goal);
 
   vision *camera = (cameraDir == forward) ? &frontCamera : &backCamera;
+  camera->takeSnapshot(goal.sig);
+  if (!camera->largestObject.exists) return false;
 
   gyroSensor.resetRotation();
 

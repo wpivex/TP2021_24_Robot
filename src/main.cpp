@@ -271,6 +271,7 @@ void concurrentTest() {
 
 }
 
+// Alignment: Three ticks from tile intersection aligns with outer side of wheel guard. robot facing outside field
 int skillsAuto(void) {
 
   mainBot.setMaxArmTorque(ARM_CURRENT::HIGH);
@@ -284,8 +285,7 @@ int skillsAuto(void) {
   // Head towards yellow goal
   mainBot.setBackClamp(true);
   mainBot.driveCurved(20, 100, reverse, 10, 0, 0.36, false); // arc to goal direction
-  mainBot.goVision(25, 70, YELLOW, reverse, 0, 0, 5, false);
-  mainBot.driveStraight(12, 100, reverse, 5, 0, false);
+  mainBot.driveStraight(37, 100, reverse, 5, 0, false); // no vision on first goal
   mainBot.setBackClamp(false); // clamp center goal
   mainBot.driveStraight(5, 100, reverse, 5, 5, true);
 
@@ -334,7 +334,7 @@ int skillsAuto(void) {
 
   // Head towards platform and get closer to the wall
   mainBot.driveCurved(6.5, 50, forward, 5, 5, -1.1); // S maneuver
-  mainBot.driveCurved(6, 50, forward, 5, 5, 1.1);
+  mainBot.driveCurved(6.5, 50, forward, 5, 5, 1.1);
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE); // bring platform down
   mainBot.driveCurved(3, 50, forward, 5, 1, 0.15);
   mainBot.driveStraight(10, 50, forward, 5, 4);

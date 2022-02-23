@@ -33,7 +33,7 @@ namespace ARM_CURRENT {
 
 const struct Goal YELLOW = {0, 13, vex::vision::signature (1, 1849, 2799, 2324, -3795, -3261, -3528, 2.500, 0)};
 // const struct Goal RED = {1, 56, vex::vision::signature (1, 5767, 9395, 7581, -685, 1, -342, 3.000, 0)};
-const struct Goal RED = {1, 56, vex::vision::signature (1, 8237, 9269, 8754, -1387, -661, -1024, 5.600, 0)}; // I added this feb 22 for darker red
+const struct Goal RED = {1, 56, vex::vision::signature (1, 7413, 8579, 7996, -1087, -467, -776, 8.300, 0)}; // I added this feb 22
 const struct Goal BLUE = {2, 67, vex::vision::signature (1, -2675, -1975, -2324, 8191, 14043, 11116, 3.000, 0)};
 
 const float MAX_VOLTS = 12.0; // maximum volts for vex motors

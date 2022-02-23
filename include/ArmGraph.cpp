@@ -86,14 +86,22 @@ void ArmGraph::setArmDestination(Arm armPos) {
   generateShortestPath(targetNode, armPos);
 }
 
-void ArmGraph::moveArmToPosition(Arm armPos, float baseSpeed) {
+void ArmGraph::moveArmToPosition(Arm armPos, float baseSpeed, int timeout) {
 
   if (arrivedFinal && targetNode == armPos) return;
 
+  int startTime = vex::timer::system();
+
   //Blocking function to move to a position
   generateShortestPath(targetNode, armPos);
-  while(!armMovement(false, baseSpeed)) {
+  while(!isTimeout(startTime, timeout) && !armMovement(false, baseSpeed)) {
     wait(20,msec);
+  }
+  if (isTimeout(startTime, timeout)) {
+    chainBarLeft.stop();
+    chainBarRight.stop();
+    fourBarLeft.stop();
+    fourBarRight.stop();
   }
   
 }
