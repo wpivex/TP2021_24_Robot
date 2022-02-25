@@ -284,37 +284,40 @@ int skillsAuto(void) {
 
   // Head towards yellow goal
   mainBot.setBackClamp(true);
-  mainBot.driveCurved(20, 100, reverse, 10, 0, 0.39, false); // arc to goal direction
+  mainBot.driveCurved(20, 100, reverse, 10, 0, 0.37, false); // arc to goal direction
   mainBot.driveStraight(37, 100, reverse, 5, 0, false); // no vision on first goal
   mainBot.setBackClamp(false); // clamp center goal
   mainBot.driveStraight(5, 100, reverse, 5, 5, true);
 
   // Align for right goal
-  mainBot.goForward(28, 100); // go back for approach to second goal
-  mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_2);
-  mainBot.goTurnFast(false, 98, 70, 20, 30, 0, 4, armFunc); // turn to yellow goal quickly concurrent with arm movement
+  mainBot.goForward(29, 100); // go back for approach to second goal
+  // mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_2);
+  mainBot.goTurnFast(false, 97, 70, 20, 30, 0, 4); // turn to yellow goal quickly concurrent with arm movement
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_2, 100, 5); // make sure arm function is finished before moving on
 
   // Grab right goal
   mainBot.setFrontClamp(true); // open front clamp
   wait(350, msec);
-  mainBot.goVision(26, 100, YELLOW, forward, 0, 0, 5, false); // go to goal. Grabs goal while moving forward
+  mainBot.goVision(26, 100, YELLOW, forward, 0, 0, 5, false, 60); // go to goal. Grabs goal while moving forward
   mainBot.setFrontClamp(false); // clamp goal while moving forward
-
-  //Note: Parts 1-4 are the same for skills and normal match autons. [NOW FALSE, ANSEL HAS CHANGED STUFF SO REVISE AUTO]
 
   // Traverse field to red goal
   mainBot.driveStraight(13, 100, forward, 5, 0, false); // robot does not stop after function so momentum carries over to driveCurved
   mainBot.driveCurved(20, 100, forward, 5, 5, -0.2);
   wait(1000, msec);
-  mainBot.goTurnFast(false, 60, 70, 25, 30); // Turn to approximate location to red goal at a distance
+  mainBot.goTurnFast(false, 45, 70, 25, 30); // Turn to approximate location to red goal at a distance
   wait(1000, msec);
-  mainBot.goTurnVision2(RED, forward, 4);
-  mainBot.goVision(7, 30, RED, forward, 0, 5, 3, true, 100); // Approach red goal
+  // mainBot.goTurnVision2(RED, forward, 35, 10);
+  // mainBot.alignToGoalVision(RED, false, forward, 3);
+  logController("Vision turn over");
+  wait(2500, msec);
+
+  mainBot.goVision(7, 30, RED, forward, 0, 5, 3, true, 120); // Approach red goal
 
   // Pick up red goal  
   mainBot.openClaw();
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE, 100, 5); // this cannot be done concurrently as to keep vision clear of arm
+  wait(1000, msec);
   mainBot.goForward(13, 40, 0, 0, 3);
   mainBot.closeClaw(); // grab red goal
   wait(200, msec);
@@ -326,7 +329,8 @@ int skillsAuto(void) {
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_1, 100, 5); // make sure concurrent call is finished
 
   // Drive to other side
-  mainBot.driveStraight(82, 100, forward, 7, 10, false);
+  // mainBot.goForwardUniversal(70, 100, 0, 0, 10, 7);
+  mainBot.goForward(70, 100);
   mainBot.driveStraightTimed(30, forward, 3); // localize with home wall
 
   // localize position
@@ -336,16 +340,17 @@ int skillsAuto(void) {
   float levelPitch = mainBot.gyroSensor.pitch();
 
   // Head towards platform and get closer to the wall
-  mainBot.driveCurved(4, 50, forward, 5, 5, -1.3); // S maneuver
-  mainBot.driveCurved(4, 50, forward, 5, 5, 1.3);
-  mainBot.driveCurved(4, 50, forward, 5, 5, -1.3); // S maneuver
-  mainBot.driveCurved(4, 50, forward, 5, 5, 1.3);
-  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE, 100, 2); // bring platform down
+  mainBot.driveCurved(4, 50, forward, 5, 5, -1.7); // S maneuver
+  mainBot.driveCurved(4, 50, forward, 5, 5, 1.7);
+  mainBot.driveCurved(4, 70, forward, 5, 5, -1.3); // S maneuver
+  mainBot.driveCurved(4, 70, forward, 5, 5, 1.3);
+  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE, 100, 5); // bring platform down
+  wait(1000, msec);
   mainBot.driveCurved(3, 70, forward, 5, 1, 0.15);
   mainBot.driveStraight(10, 70, forward, 5, 4);
   mainBot.driveCurved(3, 70, forward, 5, 1, 0.15);
   mainBot.setMaxArmTorque(ARM_CURRENT::LOW); // divert all current to motors
-  mainBot.goForward(38, 50);
+  mainBot.goForward(37, 50, 0, 5, 1000);
 
   /*
   // Climb
@@ -359,29 +364,6 @@ int skillsAuto(void) {
   return 1;
 }
 
-int vcatTesting() {
-  mainBot.setFrontClamp(false);
-  mainBot.setBackClamp(false);
-  mainBot.goTurnU(90);
-  wait(1000,msec);
-  mainBot.goTurnU(180);
-  wait(1000,msec);
-  mainBot.goTurnU(270);
-  wait(1000,msec);
-  mainBot.goTurnU(90);
-  wait(1000,msec);
-  // mainBot.goTurn(90);
-  // wait(1000,msec);
-  // mainBot.goTurn(180);
-  // wait(1000,msec);
-  // mainBot.goTurn(270);
-  // wait(1000,msec);
-  // mainBot.goTurn(90);
-  // wait(1000,msec);
-  return 0;
-}
-
-
 void logGyro() {
   mainBot.gyroSensor.resetRotation();
   while (true) {
@@ -390,7 +372,7 @@ void logGyro() {
   }
 }
 
-int testTurn() {
+int testing() {
   // mainBot.goTurn(90);
   // // wait(1000, msec);
   // mainBot.goTurn(-180);
@@ -400,10 +382,41 @@ int testTurn() {
   // mainBot.goForward(48, 100, 0, 48, 10);
   // mainBot.goVision(100, 100, YELLOW, forward);
   //mainBot.driveCurved(20, 100, reverse, 5, 0, 0.33, true);
+  mainBot.setFrontClamp(false);
+  mainBot.setBackClamp(false);
   mainBot.setBrakeType(hold);
-  // mainBot.goTurnVision2(RED, forward, 10);
-  mainBot.goVision(40, 30, RED, forward);
-  logController("EEEEE");
+  //mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_3);
+  // mainBot.goTurnVision2(RED, forward, 30, 2);
+  // logController("A");
+  // wait(1000, msec);
+  // mainBot.goTurnVision2(RED, forward, 35, 2);
+  // logController("B");
+  // wait(1000, msec);
+  
+  // float offset = 1;
+  // float minSpeed = 45;
+  // while(fabs(offset) > 0.05) {
+  //   offset = mainBot.goTurnVision2(RED, forward, minSpeed, 5);
+  //   logController("%f", offset);
+  //   if (minSpeed > 30) minSpeed -= 5;
+  // }
+  mainBot.goTurnVision2(RED, forward, 35, 1000);
+  // mainBot.goTurnVision2(RED, forward, 35, 1000);
+  // logController("C");
+  // wait(1000, msec);
+  // mainBot.goTurnVision2(RED, forward, 45, 2);
+  // logController("D");
+  // wait(1000, msec);
+  // mainBot.goTurnVision2(RED, forward, 100, 10);
+  // wait(1000,msec);
+  // mainBot.goTurn(90);
+  // mainBot.goTurnVision2(YELLOW, forward, 10);
+  // wait(1000,msec);
+  // mainBot.goTurn(90);
+  // mainBot.goTurnVision2(BLUE, forward, 10);
+  // mainBot.goVision(40, 30, RED, forward);
+  // mainBot.goForwardUniversal(70, 100, 0, 0, 0, 100000);
+  // logController("EEEEE");
   return 0;
 }
 

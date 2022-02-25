@@ -88,6 +88,9 @@ class Robot {
     void goForward(float distInches, float maxSpeed, float rampUpInches = 0, float slowDownInches = 5,
       int timeout = 5, std::function<bool(void)> func = {});
 
+    void goForwardUniversal(float distInches, float maxSpeed, float universalAngle, float rampUpInches = 0, float slowDownInches = 5,
+      int timeout = 5, std::function<bool(void)> func = {});
+
     void goCurve(float distInches, float maxSpeed, float turnPercent, float rampUpInches = 0, float slowDownInches = 5,
       int timeout = 5, std::function<bool(void)> func = {});
 
@@ -97,7 +100,8 @@ class Robot {
     void goTurn(float angleDegrees, std::function<bool(void)> func = {});
     void goTurnU(float universalAngleDegrees, std::function<bool(void)> func = {});
     bool goTurnVision(Goal goal, bool defaultClockwise, directionType cameraDir, float maxTurnAngle);
-    void goTurnVision2(Goal goal, directionType cameraDir, float timeout);
+    float goTurnVision2(Goal goal, directionType cameraDir, float minSpeed, float timeout);
+    void alignToGoalVision(Goal goal, bool clockwise, directionType cameraDirection, int timeout, float maxSpeed = 40);
     
     void goTurnFast(bool isClockwise, float turnDegrees, float maxSpeed, float minSpeed, float slowDownDegrees, float endSlowDegrees = 0,
     float timeout = 5, std::function<bool(void)> func = {});

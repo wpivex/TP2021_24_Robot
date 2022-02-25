@@ -27,7 +27,7 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
   rightMotorE = motor(PORT20, ratio18_1, false);
   rightDrive = motor_group(rightMotorA, rightMotorB, rightMotorC, rightMotorD, rightMotorE);
 
-  fourBarLeft = motor(PORT13, ratio18_1, false);
+  fourBarLeft = motor(PORT7, ratio18_1, false);
   fourBarRight = motor(PORT14, ratio18_1, true);
   chainBarLeft = motor(PORT9, ratio18_1, false);
   chainBarRight = motor(PORT8, ratio18_1, true);
@@ -283,6 +283,60 @@ void Robot::goForward(float distInches, float maxSpeed, float rampUpInches, floa
 
 }
 
+// Go forward in whatever direction it was already in
+// Trapezoidal motion profiling
+void Robot::goForwardUniversal(float distInches, float maxSpeed, float universalAngle, float rampUpInches, float slowDownInches, int timeout, 
+  std::function<bool(void)> func) {
+
+  Trapezoid trap(distInches, maxSpeed, FORWARD_MIN_SPEED, rampUpInches, slowDownInches);
+  PID anglePID(20, 0, 0.023);
+  float turnAngle = universalAngle - gyroSensor.heading(degrees);
+  if (turnAngle > 180) turnAngle -= 360;
+  else if (turnAngle < -180) turnAngle += 360;
+
+  int startTime = vex::timer::system();
+  leftMotorA.resetPosition();
+  rightMotorA.resetPosition();
+  gyroSensor.resetRotation();
+
+  // finalDist is 0 if we want driveTimed instead of drive some distance
+  while (!trap.isCompleted() && !isTimeout(startTime, timeout)) {
+
+    // if there is a concurrent function to run, run it
+    if (func) {
+      bool done = func();
+      if (done) {
+        // if func is done, make it empty
+        func = {};
+      }
+    }
+
+    float error = anglePID.tick(turnAngle - gyroSensor.rotation(), 1);
+    float speed = trap.get( (leftMotorA.position(degrees) + rightMotorA.position(degrees)) / 2 );
+    float correction = anglePID.tick(error);
+
+    float left = speed + correction * (speed > 0? 1 : -1);
+    float right =  speed - correction * (speed > 0? 1 : -1);
+
+    if (fabs(left) > 100) {
+      right = right * fabs(100 / left);
+      left = fmin(100, fmax(-100, left));
+    } else if (fabs(right) > 100) {
+      left = left * fabs(100 / right);
+      right = fmin(100, fmax(-100, right));
+    }
+
+    setLeftVelocity(forward, left);
+    setRightVelocity(forward, right);
+    
+    wait(20, msec);
+  }
+
+  stopLeft();
+  stopRight();
+
+}
+
 // Trapezoidal motion profiling
 // Does not use gyro sensor. 
 // distInches is positive if forward, negative if reverse
@@ -437,12 +491,64 @@ bool Robot::goTurnVision(Goal goal, bool defaultClockwise, directionType cameraD
   return true;
 }
 
-void Robot::goTurnVision2(Goal goal, directionType cameraDir, float timeout) {
+void Robot::alignToGoalVision(Goal goal, bool clockwise, directionType cameraDirection, int timeout, float maxSpeed) {
 
-  const float END_SLOW_DEGREES = 0.4;
-  const float SLOW_DOWN_DEGREES = 0.7; 
-  const int MIN_SPEED = 40;
-  const int MAX_SPEED = 50;
+  // spin speed is proportional to distance from center, but must be bounded between MIN_SPEED and MAX_SPEED
+
+  updateCamera(goal);
+  vision *camera = (cameraDirection == forward) ? &frontCamera : &backCamera;
+
+  int startTime = vex::timer::system();
+  leftMotorA.resetPosition();
+  rightMotorA.resetPosition();
+
+  // // At the initial snapshot we check where goal is seen. If so, we set our direction to be towards the goal and stop when we pass the center.
+  // // Otherwise, the spin will default to the direction specified by the 'clockwise' parameter
+  // camera->takeSnapshot(goal.sig);
+  // if (camera->largestObject.exists) {
+  //   clockwise = (camera->largestObject.centerX / VISION_CENTER_X) > VISION_CENTER_X;
+  // }
+
+  int spinSign = clockwise ? -1 : 1;
+
+  while (!isTimeout(startTime, timeout)) {
+
+    camera->takeSnapshot(goal.sig);
+
+    float mod;
+    if (camera->largestObject.exists) {
+      // log("%d", camera->largestObject.centerX);
+      mod = (VISION_CENTER_X-camera->largestObject.centerX) / VISION_CENTER_X;
+
+      // If goal is [left side of screen if clockwise, right side of scree if counterclockwise], that means it's arrived at center and is aligned
+      if (fabs(mod) <= 0.05) {
+        break;
+      }
+
+    } else {
+      // If largest object not detected, then spin in the specified direction
+      mod = spinSign;
+    }
+
+    float speed = (mod > 0 ? 1 : -1) * TURN_MIN_SPEED + mod * (maxSpeed - TURN_MIN_SPEED);
+
+    setLeftVelocity(reverse, speed);
+    setRightVelocity(forward, speed);
+    wait(20, msec);
+  }
+
+  log("D0ne");
+
+  stopLeft();
+  stopRight();
+}
+
+float Robot::goTurnVision2(Goal goal, directionType cameraDir, float minSpeed, float timeout) {
+
+  const float END_SLOW_DEGREES = 0.5;
+  const float SLOW_DOWN_DEGREES = 1; 
+  const int MIN_SPEED = minSpeed;
+  const int MAX_SPEED = 70;
 
   float delta, offset;
   int startTime = vex::timer::system();
@@ -450,17 +556,22 @@ void Robot::goTurnVision2(Goal goal, directionType cameraDir, float timeout) {
 
   vision *camera = (cameraDir == forward) ? &frontCamera : &backCamera;
   camera->takeSnapshot(goal.sig);
-  if (!camera->largestObject.exists) return;
+
+  while(!camera->largestObject.exists) {
+    logController("Waiting for camera\n for %d seconds", vex::timer::system() - startTime);
+    if(!isTimeout(startTime, timeout)) return -1;
+    camera->takeSnapshot(goal.sig);
+    wait(50, msec);
+  }
 
   // false if overshooting to the right, true if overshooting to the left
   bool clockwise = camera->largestObject.centerX > VISION_CENTER_X;
 
   offset = 1;
-  while (offset > 0.05 && !isTimeout(startTime, timeout)) {
+  while (offset > 0.01 && !isTimeout(startTime, timeout)) {
     camera->takeSnapshot(goal.sig);
-    if (!camera->largestObject.exists) return;
-
-    offset = (clockwise ? 1 : -1) * ((camera->largestObject.centerX - VISION_CENTER_X) / VISION_CENTER_X);
+    if (camera->largestObject.exists)
+       offset = (clockwise ? 1 : -1) * ((camera->largestObject.centerX - VISION_CENTER_X) / VISION_CENTER_X);
     if (offset < END_SLOW_DEGREES) delta = 0;
     else if (offset < SLOW_DOWN_DEGREES + END_SLOW_DEGREES) delta = (offset - END_SLOW_DEGREES) / SLOW_DOWN_DEGREES;
     else delta = 1;
@@ -468,9 +579,10 @@ void Robot::goTurnVision2(Goal goal, directionType cameraDir, float timeout) {
     float speed = MIN_SPEED + delta * (MAX_SPEED - MIN_SPEED);
 
     logController("%f %f %f", offset, delta, speed);
-
-    setLeftVelocity(clockwise ? forward : reverse, speed);
-    setRightVelocity(clockwise ? reverse : forward, speed);
+    if (camera->largestObject.exists) {
+      setLeftVelocity(clockwise ? forward : reverse, speed);
+      setRightVelocity(clockwise ? reverse : forward, speed);
+    }
 
     wait(20, msec);
 
@@ -478,6 +590,10 @@ void Robot::goTurnVision2(Goal goal, directionType cameraDir, float timeout) {
 
   stopLeft();
   stopRight();
+  camera->takeSnapshot(goal.sig);
+  if (camera->largestObject.exists)
+    return (clockwise ? 1 : -1) * ((camera->largestObject.centerX - VISION_CENTER_X) / VISION_CENTER_X);
+  else return -1;
 
 }
 
