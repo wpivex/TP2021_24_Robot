@@ -130,6 +130,7 @@ void Robot::armTeleop() {
   }
 
   arm.armMovement(true, 100);
+  logController("%f", fourBarLeft.current());
 
 }
 
@@ -226,11 +227,18 @@ float slowDownInches, float turnPercent, bool stopAfter, std::function<bool(void
 
     //log("%f", baseSpeed);
 
-    // reduce baseSpeed so that the faster motor always capped at max speed
-    baseSpeed = fmin(baseSpeed, 100 - baseSpeed*fabs(turnPercent));
+    // turnPercent bounded between -1 (counterclockwise point turn) and 1 (clockwise point turn)
+    float lspeed, rspeed;
+    if (turnPercent >= 0) {
+      lspeed = 1;
+      rspeed = 1 - 2*turnPercent;
+    } else {
+      rspeed = 1;
+      lspeed = 1 + 2*turnPercent;
+    }
 
-    setLeftVelocity(left, baseSpeed*(1 + turnPercent));
-    setRightVelocity(right, baseSpeed*(1 - turnPercent));
+    setLeftVelocity(left, lspeed * baseSpeed);
+    setRightVelocity(right, rspeed * baseSpeed);
     
     wait(20, msec);
 
@@ -666,6 +674,8 @@ void Robot::goTurnFast(bool isClockwise, float turnDegrees, float maxSpeed, floa
         func = {};
       }
     }
+
+    logController("%f", gyroSensor.heading());
 
     float angle = fabs(gyroSensor.rotation());
     if (turnDegrees - angle < endSlowDegrees) delta = 0;

@@ -36,6 +36,7 @@ class ArmGraph {
 
     void setFourVelocity(directionType d, double percent);
     void setChainVelocity(directionType d, double percent);
+    void finishArmMovement();
 
   private:
     motor fourBarLeft;
@@ -75,6 +76,7 @@ class ArmGraph {
 
     bool arrived = true;
     bool arrivedFinal = true;
+    float previousBaseSpeed;
 
     bool chainBarDone;
 

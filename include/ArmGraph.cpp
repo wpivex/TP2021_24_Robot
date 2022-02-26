@@ -76,6 +76,11 @@ void ArmGraph::initArmPosition() {
 
 }
 
+void ArmGraph::finishArmMovement() {
+  // previousBaseSpeed is instance variable, in armMovement do previousBaseSpeed = baseSpeed
+  while (!armMovement(false, previousBaseSpeed)) wait(20, msec);
+}
+
 bool ArmGraph::isMoving() {
   return !arrivedFinal;
 }
@@ -137,6 +142,7 @@ void ArmGraph::calculateVelocities(float baseSpeed) {
 // buttonInput is whether armMovement should be reading the controller button presses
 bool ArmGraph::armMovement(bool buttonInput, float baseSpeed) {
 
+  previousBaseSpeed = baseSpeed;
   float MARGIN = 21.0; // margin of error for if robot arm is in vicinity of target node
 
   // Timeout, revert to the last position, if teleop

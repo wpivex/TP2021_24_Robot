@@ -21,7 +21,7 @@ struct Goal {
 // const struct Goal BLUE = {2, 52, vex::vision::signature (1, -2657, -1837, -2247, 7385, 11983, 9684, 3.000, 0)};
 
 namespace ARM_CURRENT {
-  const static float LOW = 0.1;
+  const static float LOW = 0;
   const static float MID = 1.0;
   const static float HIGH = 10.0;
 }

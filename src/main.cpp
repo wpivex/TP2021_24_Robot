@@ -284,33 +284,35 @@ int skillsAuto(void) {
 
   // Head towards yellow goal
   mainBot.setBackClamp(true);
-  mainBot.driveCurved(20, 100, reverse, 10, 0, 0.37, false); // arc to goal direction
+  mainBot.driveCurved(20, 100, reverse, 10, 0, 0.285, false); // arc to goal direction
   mainBot.driveStraight(37, 100, reverse, 5, 0, false); // no vision on first goal
   mainBot.setBackClamp(false); // clamp center goal
   mainBot.driveStraight(5, 100, reverse, 5, 5, true);
 
   // Align for right goal
   mainBot.goForward(29, 100); // go back for approach to second goal
-  // mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_2);
-  mainBot.goTurnFast(false, 97, 70, 20, 30, 0, 4); // turn to yellow goal quickly concurrent with arm movement
-  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_2, 100, 5); // make sure arm function is finished before moving on
+  mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_2);
+  mainBot.goTurnFast(false, 97, 70, 20, 30, 0, 4, armFunc); // turn to yellow goal quickly concurrent with arm movement
+  mainBot.arm.finishArmMovement();
+  // mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_2, 100, 5); // make sure arm function is finished before moving on
 
   // Grab right goal
   mainBot.setFrontClamp(true); // open front clamp
   wait(350, msec);
-  mainBot.goVision(26, 100, YELLOW, forward, 0, 0, 5, false, 60); // go to goal. Grabs goal while moving forward
+  // mainBot.goVision(26, 100, YELLOW, forward, 0, 0, 5, false, 60); // go to goal. Grabs goal while moving forward
+  mainBot.goForward(26, 100);
   mainBot.setFrontClamp(false); // clamp goal while moving forward
 
   // Traverse field to red goal
   mainBot.driveStraight(13, 100, forward, 5, 0, false); // robot does not stop after function so momentum carries over to driveCurved
-  mainBot.driveCurved(20, 100, forward, 5, 5, -0.2);
+  mainBot.driveCurved(20, 100, forward, 5, 5, -0.15);
   wait(1000, msec);
   mainBot.goTurnFast(false, 45, 70, 25, 30); // Turn to approximate location to red goal at a distance
-  wait(1000, msec);
+  // wait(1000, msec);
   // mainBot.goTurnVision2(RED, forward, 35, 10);
   // mainBot.alignToGoalVision(RED, false, forward, 3);
   logController("Vision turn over");
-  wait(2500, msec);
+  // wait(2500, msec);
 
   mainBot.goVision(7, 30, RED, forward, 0, 5, 3, true, 120); // Approach red goal
 
@@ -325,12 +327,22 @@ int skillsAuto(void) {
   // Back off and go back home
   mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_1);
   mainBot.driveStraight(13, 40, reverse, 2, 3, true, armFunc); // move back while concurrently raising goal
-  mainBot.goTurnFastU(0, 70, 28, 40, 20, 3.5, armFunc); // aim back towards platform, parallel to field
-  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_1, 100, 5); // make sure concurrent call is finished
+  mainBot.goTurnFastU(350, 50, 28, 40, 0, 5, armFunc); // aim back towards platform, parallel to field
+  mainBot.arm.finishArmMovement();
+  // mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_1, 100, 5); // make sure concurrent call is finished
+
+  // TURN TO BLUE
+  mainBot.goVision(30, 100, BLUE, forward, 0, 0, 5, false);
+  mainBot.driveCurved(15, 100, forward, 5, 0, 0.3, false);
+  mainBot.driveCurved(15, 100, forward, 5, 0, -0.25, false);
+  // mainBot.goTurn(40);
+  // mainBot.goForward(26, 100);
+  // mainBot.goTurn(-33);
+  mainBot.goForward(20, 100);
 
   // Drive to other side
   // mainBot.goForwardUniversal(70, 100, 0, 0, 10, 7);
-  mainBot.goForward(70, 100);
+  // mainBot.goForward(70, 100);
   mainBot.driveStraightTimed(30, forward, 3); // localize with home wall
 
   // localize position
@@ -342,8 +354,8 @@ int skillsAuto(void) {
   // Head towards platform and get closer to the wall
   mainBot.driveCurved(4, 50, forward, 5, 5, -1.7); // S maneuver
   mainBot.driveCurved(4, 50, forward, 5, 5, 1.7);
-  mainBot.driveCurved(4, 70, forward, 5, 5, -1.3); // S maneuver
-  mainBot.driveCurved(4, 70, forward, 5, 5, 1.3);
+  mainBot.driveCurved(4, 70, forward, 5, 5, -1.1); // S maneuver
+  mainBot.driveCurved(4, 70, forward, 5, 5, 1.1);
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE, 100, 5); // bring platform down
   wait(1000, msec);
   mainBot.driveCurved(3, 70, forward, 5, 1, 0.15);
@@ -373,50 +385,15 @@ void logGyro() {
 }
 
 int testing() {
-  // mainBot.goTurn(90);
-  // // wait(1000, msec);
-  // mainBot.goTurn(-180);
-  // // wait(1000, msec);
-  // mainBot.goTurn(30);
-  // mainBot.goTurnVision(YELLOW, true, forward, 359);
-  // mainBot.goForward(48, 100, 0, 48, 10);
-  // mainBot.goVision(100, 100, YELLOW, forward);
-  //mainBot.driveCurved(20, 100, reverse, 5, 0, 0.33, true);
-  mainBot.setFrontClamp(false);
-  mainBot.setBackClamp(false);
-  mainBot.setBrakeType(hold);
-  //mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_3);
-  // mainBot.goTurnVision2(RED, forward, 30, 2);
-  // logController("A");
-  // wait(1000, msec);
-  // mainBot.goTurnVision2(RED, forward, 35, 2);
-  // logController("B");
-  // wait(1000, msec);
-  
-  // float offset = 1;
-  // float minSpeed = 45;
-  // while(fabs(offset) > 0.05) {
-  //   offset = mainBot.goTurnVision2(RED, forward, minSpeed, 5);
-  //   logController("%f", offset);
-  //   if (minSpeed > 30) minSpeed -= 5;
-  // }
-  mainBot.goTurnVision2(RED, forward, 35, 1000);
-  // mainBot.goTurnVision2(RED, forward, 35, 1000);
-  // logController("C");
-  // wait(1000, msec);
-  // mainBot.goTurnVision2(RED, forward, 45, 2);
-  // logController("D");
-  // wait(1000, msec);
-  // mainBot.goTurnVision2(RED, forward, 100, 10);
-  // wait(1000,msec);
-  // mainBot.goTurn(90);
-  // mainBot.goTurnVision2(YELLOW, forward, 10);
-  // wait(1000,msec);
-  // mainBot.goTurn(90);
-  // mainBot.goTurnVision2(BLUE, forward, 10);
-  // mainBot.goVision(40, 30, RED, forward);
-  // mainBot.goForwardUniversal(70, 100, 0, 0, 0, 100000);
-  // logController("EEEEE");
+  // mainBot.driveStraight(13, 40, reverse, 2, 3, true); // move back while concurrently raising goal
+  // // mainBot.goTurnFastU(350, 50, 28, 40, 0, 5); // aim back towards platform, parallel to field
+  // mainBot.goTurn(-160);
+  // mainBot.goVision(38, 100, BLUE, forward);
+  // mainBot.goTurn(40);
+  // mainBot.goForward(26, 100);
+  // mainBot.goTurn(-33);
+  // mainBot.goForward(20, 100);
+  // mainBot.driveStraightTimed(30, forward, 3); // localize with home wall
   return 0;
 }
 
