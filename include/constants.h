@@ -87,22 +87,29 @@ static inline void logController(const char *f, Args ... args) {
 }
 
 // log output to brain display the way you would with printf
+// log output to brain display the way you would with printf
+// DO NOT LOG WITH TRAILING NEWLINE OR YOU GET MEM PERM ERR
 template <class ... Args>
-static inline void log(const char *f, Args ... args) {
+static inline void log(int line, const char *f, Args ... args) {
+  Brain.Screen.clearLine(line);
+  int row = line;
 
-  char *format = (char*)f;
+  char buffer[200];
+  sprintf(buffer, f, args...);
 
-  Brain.Screen.clearScreen();
-  int row = 1;
-
-  char* pch = strtok (format,"\n");
+  char* pch = strtok (buffer,"\n");
   while (pch != NULL)
   {
     Brain.Screen.setCursor(row, 1);
-    Brain.Screen.print(pch, args...);
+    Brain.Screen.print(pch);
     pch = strtok (NULL, "\n");
     row++;
   }
+}
+
+template <class ... Args>
+static inline void log(const char *f, Args ... args) {
+  log(1, f, args ...);
 }
 
 #endif
