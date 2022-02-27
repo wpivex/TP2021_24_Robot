@@ -198,6 +198,11 @@ bool ArmGraph::armMovement(bool buttonInput, float baseSpeed) {
   //int delta1 = fabs(fourBarLeft.rotation(vex::degrees) - angles[targetNode][0]);
   //int delta2 = fabs(chainBarLeft.rotation(vex::degrees) - angles[targetNode][1]);
   //log("%d %d %d %d", delta1, delta2, fourBarDone ? 1 : 0, chainBarDone ? 1 : 0);
+  const float l = fourBarLeft.rotation(vex::degrees), r = fourBarLeft.rotation(vex::degrees), t = angles[targetNode][0];
+  const float ll = chainBarLeft.rotation(vex::degrees), rr = chainBarRight.rotation(vex::degrees), tt = angles[targetNode][1];
+
+  log(3, "FBL: %4f   FBR: %4f | FBT: %4f",l, r, t);
+  log(4, "CBL: %4f   CBR: %4f | CBT: %4f",ll, rr, tt);
 
   if (targetArmPathIndex == armPath.size() - 1) {
     fourBarLeft.rotateTo(angles[targetNode][0], vex::degrees, fourBarVelocity, vex::velocityUnits::pct, false);
@@ -215,7 +220,7 @@ bool ArmGraph::armMovement(bool buttonInput, float baseSpeed) {
   
   arrivedFinal = arrived && (targetArmPathIndex == armPath.size() - 1);
 
-  log("%d %d %d |  %s", targetNode, arrived ? 1 : 0, arrivedFinal ? 1 : 0, pathStr.c_str());
+  log(2, "%d %d %d |  %s", targetNode, arrived ? 1 : 0, arrivedFinal ? 1 : 0, pathStr.c_str());
 
   return arrivedFinal;
 

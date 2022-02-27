@@ -125,7 +125,26 @@ void Robot::armTeleop() {
     else setMaxArmTorque(ARM_CURRENT::MID);
   }
 
-  arm.armMovement(true, 100);
+  if(vex::controller().ButtonY.pressing()) {
+    // "Disable steppers" except you gotta hold it down
+    fourBarLeft.setBrake(coast);
+    fourBarRight.setBrake(coast);
+    chainBarLeft.setBrake(coast);
+    chainBarRight.setBrake(coast);
+    fourBarLeft.stop();
+    fourBarRight.stop();
+  } else {
+    fourBarLeft.setBrake(hold);
+    fourBarRight.setBrake(hold);
+    chainBarLeft.setBrake(hold);
+    chainBarRight.setBrake(hold);
+    arm.armMovement(true, 100);
+  }
+  const float l = fourBarLeft.rotation(vex::degrees), r = fourBarLeft.rotation(vex::degrees);
+  const float ll = chainBarLeft.rotation(vex::degrees), rr = chainBarRight.rotation(vex::degrees);
+  log(6, "Live Vals:");
+  log(7, "FBL %4f   FBR: %4f",l, r);
+  log(8, "CBL %4f   CBR: %4f",ll, rr);
 
 }
 
