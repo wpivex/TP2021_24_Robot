@@ -136,7 +136,7 @@ void Robot::armTeleop() {
     fourBarRight.setBrake(hold);
     chainBarLeft.setBrake(hold);
     chainBarRight.setBrake(hold);
-    arm.armMovement(true, 100);
+    arm.armMovement(true, 40);
   }
   const float l = fourBarLeft.rotation(vex::degrees), r = fourBarLeft.rotation(vex::degrees);
   const float ll = chainBarLeft.rotation(vex::degrees), rr = chainBarRight.rotation(vex::degrees);

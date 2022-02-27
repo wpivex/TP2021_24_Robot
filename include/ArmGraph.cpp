@@ -215,11 +215,19 @@ bool ArmGraph::armMovement(bool buttonInput, float baseSpeed) {
   // }
 
   // float chainBarSpeed = chainPID.tick(chainBarPot->value(deg) - angles[targetNode][1], 100);
-  chainBarLeft.spin(chainDir, (chainBarPot->value(deg) > angles[targetNode][1] ? 1 : -1) * fabs(chainBarVelocity), vex::velocityUnits::pct);
-  chainBarRight.spin(chainDir, (chainBarPot->value(deg) > angles[targetNode][1] ? 1 : -1) * fabs(chainBarVelocity), vex::velocityUnits::pct);
+  if(fabs((chainBarPot->value(deg) - angles[targetNode][1])) > 10) {
+    chainBarLeft.spin(chainDir, (chainBarPot->value(deg) > angles[targetNode][1] ? 1 : -1) * fabs(chainBarVelocity), vex::velocityUnits::pct);
+    chainBarRight.spin(chainDir, (chainBarPot->value(deg) > angles[targetNode][1] ? 1 : -1) * fabs(chainBarVelocity), vex::velocityUnits::pct);
+  } else if (fabs((chainBarPot->value(deg) - angles[targetNode][1])) > 0.1) {
+    chainBarLeft.spin(chainDir, (chainBarPot->value(deg) > angles[targetNode][1] ? 1 : -1) * fmax(0, chainBarVelocity * fabs(chainBarPot->value(deg) - angles[targetNode][1]) / 10), vex::velocityUnits::pct);
+    chainBarRight.spin(chainDir, (chainBarPot->value(deg) > angles[targetNode][1] ? 1 : -1) * fmax(0, chainBarVelocity * fabs(chainBarPot->value(deg) - angles[targetNode][1]) / 10), vex::velocityUnits::pct);
+  } else {
+    chainBarLeft.stop();
+    chainBarRight.stop();
+  }
 
 
-  arrived = (fabs(fourBarLeft.rotation(vex::degrees) - angles[targetNode][0]) < MARGIN) && (fabs((chainBarPot->value(deg) - angles[targetNode][1])) < 0.1);
+  arrived = (fabs(fourBarLeft.rotation(vex::degrees) - angles[targetNode][0]) < MARGIN) && (fabs((chainBarPot->value(deg) - angles[targetNode][1])) < 0.5);
   
   arrivedFinal = arrived && (targetArmPathIndex == armPath.size() - 1);
 
