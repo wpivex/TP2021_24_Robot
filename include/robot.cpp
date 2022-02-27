@@ -8,8 +8,6 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
   rightMotorC(0), rightMotorD(0), rightMotorE(0), fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0), frontCamera(PORT10), 
   backCamera(PORT15), gyroSensor(PORT4), arm(), buttons(c) {
 
-    log("hello");
-
   isSkills = _isSkills;
 
   leftMotorA = motor(PORT1, ratio18_1, true); 
@@ -125,7 +123,7 @@ void Robot::armTeleop() {
     else setMaxArmTorque(ARM_CURRENT::MID);
   }
 
-  arm.armMovement(true, 100);
+  arm.armMovement(true, 20);
 
 }
 
@@ -140,7 +138,6 @@ void Robot::teleop() {
   armTeleop();
   clawMovement();
   goalClamp();
-  // logController("%f", leftMotorA.current(currentUnits::amp));
 
   buttons.updateButtonState();
 

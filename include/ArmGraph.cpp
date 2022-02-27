@@ -1,7 +1,7 @@
 #include "ArmGraph.h"
 
 
-ArmGraph::ArmGraph() : fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0) {}
+ArmGraph::ArmGraph() : fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0), chainPID(1, 0, 0, 0.5, -1, 0) {}
 
 void ArmGraph::init(Buttons* bh, motor chainL, motor chainR, motor fourL, motor fourR, pot chainBarP, bumper fourBarB) {
   buttons = bh;
@@ -63,6 +63,7 @@ void ArmGraph::init(Buttons* bh, motor chainL, motor chainR, motor fourL, motor 
   chainBarRight.setBrake(hold);
   fourBarLeft.setBrake(hold);
   fourBarRight.setBrake(hold);
+  // chainPID = PID(0.1, 0, 0, 0.5, -1, 0);
 
 
   // Initialize starting position and path
@@ -85,7 +86,6 @@ void ArmGraph::initArmPosition() {
   fourBarLeft.resetPosition();
   chainBarRight.resetPosition();
   fourBarRight.resetPosition();
-
 }
 
 void ArmGraph::finishArmMovement() {
@@ -131,22 +131,21 @@ bool ArmGraph::armMovementAuton() {
 void ArmGraph::calculateVelocities(float baseSpeed) {
 
   fourStart = fourBarLeft.position(vex::degrees);
-  // chainStart = chainBarLeft.position(vex::degrees);
-  chainStart = chainBarPot->value(deg);
+  // chainStart = chainBarPot->value(deg);
 
-  float dChain = fabs(chainStart - angles[targetNode][1]);
+  float dChain = fabs(angles[targetNode][1]);
   float dFour = fabs(fourStart - angles[targetNode][0]);
 
-  if (dFour > dChain) {
+  // if (dFour > dChain) {
     fourBarVelocity = baseSpeed;
-    chainBarVelocity = baseSpeed * dChain / dFour;
-  } else {
-    chainBarVelocity = baseSpeed;
-    fourBarVelocity = baseSpeed * dFour / dChain;
-  }
+    chainBarVelocity = baseSpeed; // * dChain / dFour;
+  // } else {
+  //   chainBarVelocity = baseSpeed;
+  //   fourBarVelocity = baseSpeed * dFour / dChain;
+  // }
 
   fourDir = (fourBarLeft.rotation(vex::degrees) < angles[targetNode][0]) ? forward : reverse;
-  chainDir = (chainBarPot->value(deg) < angles[targetNode][1]) ? forward : reverse;
+  chainDir = forward;//(chainBarPot->value(deg) < angles[targetNode][1]) ? forward : reverse;
 
 }
 
@@ -199,23 +198,24 @@ bool ArmGraph::armMovement(bool buttonInput, float baseSpeed) {
   //int delta2 = fabs(chainBarLeft.rotation(vex::degrees) - angles[targetNode][1]);
   //log("%d %d %d %d", delta1, delta2, fourBarDone ? 1 : 0, chainBarDone ? 1 : 0);
 
-  if (targetArmPathIndex == armPath.size() - 1) {
+  // if (targetArmPathIndex == armPath.size() - 1) {
     fourBarLeft.rotateTo(angles[targetNode][0], vex::degrees, fourBarVelocity, vex::velocityUnits::pct, false);
     fourBarRight.rotateTo(angles[targetNode][0], vex::degrees, fourBarVelocity, vex::velocityUnits::pct, false);
-  } else {
-    fourBarLeft.spin(fourDir, fourBarVelocity, vex::velocityUnits::pct);
-    fourBarRight.spin(fourDir, fourBarVelocity, vex::velocityUnits::pct);
-  }
+  // } else {
+  //   fourBarLeft.spin(fourDir, fourBarVelocity, vex::velocityUnits::pct);
+  //   fourBarRight.spin(fourDir, fourBarVelocity, vex::velocityUnits::pct);
+  // }
 
-  chainBarLeft.rotateTo(angles[targetNode][1], vex::degrees, chainBarVelocity, vex::velocityUnits::pct, false);
-  chainBarRight.rotateTo(angles[targetNode][1], vex::degrees, chainBarVelocity, vex::velocityUnits::pct, false);
+  // float chainBarSpeed = chainPID.tick(chainBarPot->value(deg) - angles[targetNode][1], 100);
+  chainBarLeft.spin(chainDir, (chainBarPot->value(deg) > angles[targetNode][1] ? 1 : -1) * fabs(chainBarVelocity), vex::velocityUnits::pct);
+  chainBarRight.spin(chainDir, (chainBarPot->value(deg) > angles[targetNode][1] ? 1 : -1) * fabs(chainBarVelocity), vex::velocityUnits::pct);
 
 
-  arrived = fabs(fourBarLeft.rotation(vex::degrees) - angles[targetNode][0]) < MARGIN;
+  arrived = (fabs(fourBarLeft.rotation(vex::degrees) - angles[targetNode][0]) < MARGIN) && (fabs((chainBarPot->value(deg) - angles[targetNode][1])) < 0.1);
   
   arrivedFinal = arrived && (targetArmPathIndex == armPath.size() - 1);
 
-  log("%d %d %d |  %s", targetNode, arrived ? 1 : 0, arrivedFinal ? 1 : 0, pathStr.c_str());
+  log("%f %f %d %d %d |  %s", chainBarPot->value(deg), angles[targetNode][1], targetNode, arrived ? 1 : 0, arrivedFinal ? 1 : 0, pathStr.c_str());
 
   return arrivedFinal;
 
