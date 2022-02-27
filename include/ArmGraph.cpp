@@ -203,6 +203,9 @@ bool ArmGraph::armMovement(bool buttonInput, float baseSpeed) {
   log(3, "FBL: %4f   FBR: %4f | FBT: %4f",l, r, t);
   log(4, "CBL: %4f   CBR: %4f | CBT: %4f",ll, rr, tt);
 
+  log(3, "FBL: %4f   FBR: %4f | FBT: %4f",l, r, t);
+  log(4, "CBL: %4f   CBR: %4f | CBT: %4f",ll, rr, tt);
+
   // if (targetArmPathIndex == armPath.size() - 1) {
     fourBarLeft.rotateTo(angles[targetNode][0], vex::degrees, fourBarVelocity, vex::velocityUnits::pct, false);
     fourBarRight.rotateTo(angles[targetNode][0], vex::degrees, fourBarVelocity, vex::velocityUnits::pct, false);
@@ -220,7 +223,8 @@ bool ArmGraph::armMovement(bool buttonInput, float baseSpeed) {
   
   arrivedFinal = arrived && (targetArmPathIndex == armPath.size() - 1);
 
-  log("%f %f %d %d %d |  %s", chainBarPot->value(deg), angles[targetNode][1], targetNode, arrived ? 1 : 0, arrivedFinal ? 1 : 0, pathStr.c_str());
+  // log("%f %f %d %d %d |  %s", chainBarPot->value(deg), angles[targetNode][1], targetNode, arrived ? 1 : 0, arrivedFinal ? 1 : 0, pathStr.c_str());
+  log(2, "%d %d %d |  %s", targetNode, arrived ? 1 : 0, arrivedFinal ? 1 : 0, pathStr.c_str());
 
   return arrivedFinal;
 
