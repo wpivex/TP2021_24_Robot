@@ -5,7 +5,7 @@
 // Motor ports Left: 1R, 2F, 3F,  20T Right: 12R, 11F, 13F
 // gear ratio is 60/36
 Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftMotorD(0), leftMotorE(0), rightMotorA(0), rightMotorB(0), 
-  rightMotorC(0), rightMotorD(0), rightMotorE(0), fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0), claw(0), frontCamera(PORT10), 
+  rightMotorC(0), rightMotorD(0), rightMotorE(0), fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0), frontCamera(PORT10), 
   backCamera(PORT15), gyroSensor(PORT4), arm(), buttons(c) {
 
     log("hello");
@@ -31,11 +31,10 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
   fourBarRight = motor(PORT14, ratio18_1, true);
   chainBarLeft = motor(PORT9, ratio18_1, false);
   chainBarRight = motor(PORT8, ratio18_1, true);
-  claw = motor(PORT12, ratio18_1, false);
 
   gyroSensor = inertial(PORT11);
 
-  arm.init(&buttons, chainBarLeft, chainBarRight, fourBarLeft, fourBarRight);
+  arm.init(&buttons, chainBarLeft, chainBarRight, fourBarLeft, fourBarRight, chainBarPot, fourBarBump);
 
   driveType = TWO_STICK_ARCADE;
   robotController = c; 
@@ -44,8 +43,6 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
   fourBarRight.setBrake(hold);
   chainBarLeft.setBrake(hold);
   chainBarRight.setBrake(hold);
-
-  claw.setBrake(hold);
 
   setControllerMapping(DEFAULT_MAPPING);
 
@@ -89,17 +86,17 @@ void Robot::goalClamp() {
 
   if (buttons.pressed(FRONT_CLAMP_TOGGLE)) {
     if(testingArm) {
-      printf("{%f, %f},\n",  fourBarRight.position(degrees), chainBarRight.position(degrees));
+      printf("{%f, %f},\n",  fourBarRight.position(degrees), chainBarPot.value(deg));
     } else {
       frontGoal.set(!frontGoal.value());
     }
   } else if (buttons.pressed(BACK_CLAMP_TOGGLE)) {
     if(testingArm) {
-    armCoast = !armCoast;
-    fourBarLeft.setBrake(armCoast? coast : hold);
-    fourBarRight.setBrake(armCoast? coast : hold);
-    chainBarLeft.setBrake(armCoast? coast : hold);
-    chainBarRight.setBrake(armCoast? coast : hold);
+      armCoast = !armCoast;
+      fourBarLeft.setBrake(armCoast? coast : hold);
+      fourBarRight.setBrake(armCoast? coast : hold);
+      chainBarLeft.setBrake(armCoast? coast : hold);
+      chainBarRight.setBrake(armCoast? coast : hold);
     } else {
       backGoal.set(!backGoal.value());
     }
@@ -108,8 +105,7 @@ void Robot::goalClamp() {
 
 void Robot::clawMovement() {
   if (buttons.pressed(CLAW_TOGGLE)) {
-    claw.rotateTo(isClawOpen? 2000 : MAX_CLAW, deg, 100, velocityUnits::pct, false);
-      isClawOpen = !isClawOpen;
+    clawPiston.set(!clawPiston.value());
   }
 }
 
@@ -130,7 +126,6 @@ void Robot::armTeleop() {
   }
 
   arm.armMovement(true, 100);
-  logController("%f", fourBarLeft.current());
 
 }
 
@@ -708,23 +703,11 @@ std::function<bool(void)> func) {
 }
 
 void Robot::openClaw() {
-  int clawTimeout = vex::timer::system();
-  while(vex::timer::system() - clawTimeout < 1000 && claw.rotation(degrees) > MAX_CLAW) {
-    claw.rotateTo(MAX_CLAW, deg, 100, velocityUnits::pct, false);
-    wait(20, msec);
-  }
-  isClawOpen = true;
+  clawPiston.set(true);
 }
 
 void Robot::closeClaw() {
-  int clawTimeout = vex::timer::system();
-  while(vex::timer::system() - clawTimeout < 1000) {
-    claw.rotateTo(2000, deg, 100, velocityUnits::pct, false);
-    logController("%f", claw.rotation(degrees));
-    wait(20, msec);
-  }
-  isClawOpen = false;
-  claw.spin(forward, 10, percentUnits::pct); // forcefully stall claw to close
+  clawPiston.set(false);
 }
 
 

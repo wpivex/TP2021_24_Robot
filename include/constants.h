@@ -4,7 +4,7 @@
 #include "vex.h"
 
 const bool IS_SKILLS = false;
-const bool testingArm = false;
+const bool testingArm = true;
 
 vex::brain Brain;
 vex::controller Controller1(vex::controllerType::primary);
@@ -45,7 +45,7 @@ static const float DIST_BETEWEEN_WHEELS = 15.0;
 static const float FORWARD_MIN_SPEED = 15; // the robot approaches this speed at the end of going forward
 static const float TURN_MIN_SPEED = 5; // the robot approaches this speed at the end of turning
 
-static const int ARM_TIMEOUT = 3000;
+static const int ARM_TIMEOUT = 300000;
 
 
 static inline float distanceToDegrees(float distInches) {
@@ -61,7 +61,7 @@ static inline float getTurnAngle(float turnAngle) {
 
 // timeout in seconds
 static inline bool isTimeout(int startTime, float timeout) {
-  return timeout != -1 && vex::timer::system() >= startTime + timeout*1000;
+  return timeout != -1 && vex::timer::system() >= startTime + (int) (timeout*1000.0);
 }
 
 

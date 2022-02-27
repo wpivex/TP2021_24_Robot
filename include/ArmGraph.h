@@ -26,7 +26,7 @@ class ArmGraph {
     };
 
     ArmGraph();
-    void init(Buttons* bh, vex::motor chainL, vex::motor chainR, vex::motor fourL, vex::motor fourR);
+    void init(Buttons* bh, motor chainL, motor chainR, motor fourL, motor fourR, pot chainBarP, bumper fourBarB);
     void initArmPosition();
     void setArmDestination(Arm armPos);
     void moveArmToPosition(Arm armPos, float baseSpeed = 100, float timeout = 100);
@@ -43,22 +43,24 @@ class ArmGraph {
     motor fourBarRight;
     motor chainBarLeft;
     motor chainBarRight;
+    pot *chainBarPot;
+    bumper *fourBarBump;
 
     float fourStart, chainStart;
     
-    double angles[NUM_NODES][2] = {{0, 0}, // START
-      {389.600000, -69.600000}, // PLACE_GOAL_WITH_YELLOW
-      {180.000000, -133.600000}, // INTER_ABOVE_ALLIANCE
-      {552.800000, 43.600000}, // ABOVE_GOAL
-      {1458.800000, 12.800000}, // BACK_RING
-      {884.400000, 1040.400000}, // PLATFORM_HEIGHT
-      {483.200000, 1224.800000}, // INTAKE
-      {1068.400000, 480.000000}, // INTAKE_TO_PLACE_INTER_4
-      {1357.600000, 1286.400000}, // INTAKE_TO_PLACE_INTER_3
-      {1361.200000, 932.400000}, // INTAKE_TO_PLACE_INTER_2
-      {1220.800000, 1298.800000}, // INTAKE_TO_PLACE_INTER_1
-      {849.200000, 221.600000}, // INTAKE_TO_PLACE_INTER_5
-      {5.600000, -196.000000} // PLACE_GOAL_NO_YELLOW
+    double angles[NUM_NODES][2] = {{0, 18.005371}, // START
+      {0, 18.005371}, // PLACE_GOAL_WITH_YELLOW
+      {338.400000, 15.991211}, // INTER_ABOVE_ALLIANCE
+      {338.400000, 15.991211}, // ABOVE_GOAL
+      {898.400000, 0.610352}, // BACK_RING
+      {534.000000, 2.990723}, // PLATFORM_HEIGHT
+      {143.200000, 249.938965}, // INTAKE
+      {764.800000, 0.610352}, // INTAKE_TO_PLACE_INTER_4 
+      {862.800000, 2.990723}, // INTAKE_TO_PLACE_INTER_3 
+      {694.800000, 249.938965}, // INTAKE_TO_PLACE_INTER_2 
+      {592.000000, 249.938965}, // INTAKE_TO_PLACE_INTER_1 
+      {498.400000, 0.610352}, // INTAKE_TO_PLACE_INTER_5
+      {0, 18.005371} // PLACE_GOAL_NO_YELLOW
     };
 
     int teleopMap [NUM_NODES];

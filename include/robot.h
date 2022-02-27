@@ -43,10 +43,14 @@ class Robot {
     motor fourBarRight;
     motor chainBarLeft;
     motor chainBarRight;
-    motor claw;
+
+    pot chainBarPot = pot(Brain.ThreeWirePort.H);
+    bumper fourBarBump = bumper(Brain.ThreeWirePort.A);
 
     digital_out frontGoal = digital_out(Brain.ThreeWirePort.B);
     digital_out backGoal = digital_out(Brain.ThreeWirePort.C);
+
+    digital_out clawPiston = digital_out(Brain.ThreeWirePort.G);
 
     controller* robotController;
 
@@ -134,11 +138,6 @@ class Robot {
     
 
     float fourStart, chainStart;
-
-
-    // State variables for claw
-    float MAX_CLAW = -256;
-    bool isClawOpen = false;
 
     bool armHold = false;
 

@@ -15,10 +15,13 @@ Robot mainBot = Robot(&Controller1, IS_SKILLS);
 int mainTeleop() {
 
   // In teleop, arm should default to this position
+  mainBot.setMaxArmTorque(ARM_CURRENT::HIGH);
   mainBot.arm.setArmDestination(ArmGraph::ABOVE_GOAL);
 
   mainBot.setBackClamp(false);
   mainBot.setFrontClamp(false);
+  mainBot.arm.initArmPosition();
+
   while (true) {
     mainBot.teleop();
     wait(20, msec);
@@ -231,34 +234,34 @@ int matchAuto() {
 
 
 void testArmValues() {
-  mainBot.fourBarLeft.setBrake(coast);
-  mainBot.fourBarRight.setBrake(coast);
-  mainBot.chainBarLeft.setBrake(coast);
-  mainBot.chainBarRight.setBrake(coast);
+  // mainBot.fourBarLeft.setBrake(coast);
+  // mainBot.fourBarRight.setBrake(coast);
+  // mainBot.chainBarLeft.setBrake(coast);
+  // mainBot.chainBarRight.setBrake(coast);
 
-  bool wasAPressed = false;
-  bool wasClawPressed = false;
-  bool isClawOpen = false;
-  while (true) {
-    if (Controller1.ButtonUp.pressing()) {
-      if(!wasClawPressed) {
-        mainBot.claw.rotateTo(isClawOpen? 500 : -520, deg, 100, velocityUnits::pct, false);
-        isClawOpen = !isClawOpen;
-      }
-      wasClawPressed = true;
-    } else {
-      wasClawPressed = false;
-    }
-    if (Controller1.ButtonA.pressing()) {
-      if(!wasAPressed) {
-        printf("{%f, %f},\n",  mainBot.fourBarRight.position(degrees), mainBot.chainBarRight.position(degrees));
-      }
-      wasAPressed = true;
-    } else {
-      wasAPressed = false;
-    }
-    wait(20, msec);
-  }
+  // bool wasAPressed = false;
+  // bool wasClawPressed = false;
+  // bool isClawOpen = false;
+  // while (true) {
+  //   if (Controller1.ButtonUp.pressing()) {
+  //     if(!wasClawPressed) {
+  //       mainBot.claw.rotateTo(isClawOpen? 500 : -520, deg, 100, velocityUnits::pct, false);
+  //       isClawOpen = !isClawOpen;
+  //     }
+  //     wasClawPressed = true;
+  //   } else {
+  //     wasClawPressed = false;
+  //   }
+  //   if (Controller1.ButtonA.pressing()) {
+  //     if(!wasAPressed) {
+  //       printf("{%f, %f},\n",  mainBot.fourBarRight.position(degrees), mainBot.chainBarRight.position(degrees));
+  //     }
+  //     wasAPressed = true;
+  //   } else {
+  //     wasAPressed = false;
+  //   }
+  //   wait(20, msec);
+  // }
 }
 
 void concurrentTest() {
@@ -408,7 +411,6 @@ int main() {
   mainBot.setFrontClamp(false);
 
   // Reset location of arm
-  mainBot.arm.initArmPosition();
   mainBot.callibrateGyro();
 
   Competition.autonomous(autonomous);

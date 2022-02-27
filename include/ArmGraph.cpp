@@ -3,12 +3,14 @@
 
 ArmGraph::ArmGraph() : fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0) {}
 
-void ArmGraph::init(Buttons* bh, vex::motor chainL, vex::motor chainR, vex::motor fourL, vex::motor fourR) {
+void ArmGraph::init(Buttons* bh, motor chainL, motor chainR, motor fourL, motor fourR, pot chainBarP, bumper fourBarB) {
   buttons = bh;
   fourBarLeft = fourL;
   fourBarRight = fourR;
   chainBarLeft = chainL;
   chainBarRight = chainR;
+  chainBarPot = &chainBarP;
+  fourBarBump = &fourBarB;
 
   // Initialize teleop button mappings. Add / remove / change mappings as needed.
   std::fill_n(teleopMap, NUM_NODES, -1);
@@ -68,6 +70,16 @@ void ArmGraph::init(Buttons* bh, vex::motor chainL, vex::motor chainR, vex::moto
 }
 
 void ArmGraph::initArmPosition() {
+  if (fourBarBump->pressing()) {
+    setFourVelocity(forward, 30);
+    while (fourBarBump->pressing()) {
+      wait(20, msec);
+    }
+  }
+  setFourVelocity(forward, 0);
+  fourBarLeft.stop(hold);
+  fourBarRight.stop(hold);
+
   // Reset position of motors
   chainBarLeft.resetPosition();
   fourBarLeft.resetPosition();
@@ -119,7 +131,8 @@ bool ArmGraph::armMovementAuton() {
 void ArmGraph::calculateVelocities(float baseSpeed) {
 
   fourStart = fourBarLeft.position(vex::degrees);
-  chainStart = chainBarLeft.position(vex::degrees);
+  // chainStart = chainBarLeft.position(vex::degrees);
+  chainStart = chainBarPot->value(deg);
 
   float dChain = fabs(chainStart - angles[targetNode][1]);
   float dFour = fabs(fourStart - angles[targetNode][0]);
@@ -133,7 +146,7 @@ void ArmGraph::calculateVelocities(float baseSpeed) {
   }
 
   fourDir = (fourBarLeft.rotation(vex::degrees) < angles[targetNode][0]) ? forward : reverse;
-  chainDir = (chainBarLeft.rotation(vex::degrees) < angles[targetNode][1]) ? forward : reverse;
+  chainDir = (chainBarPot->value(deg) < angles[targetNode][1]) ? forward : reverse;
 
 }
 
