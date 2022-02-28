@@ -37,6 +37,7 @@ class ArmGraph {
     void setFourVelocity(directionType d, double percent);
     void setChainVelocity(directionType d, double percent);
     void finishArmMovement();
+    void setPotInit(float pos);
 
   private:
     motor fourBarLeft;
@@ -48,19 +49,19 @@ class ArmGraph {
 
     float fourStart, chainStart;
     
-    double angles[NUM_NODES][2] = {{0, 18.005371}, // START
-      {19.200000, 212.158203}, // PLACE_GOAL_WITH_YELLOW
-      {76.800000, 221.435547}, // INTER_ABOVE_ALLIANCE
-      {76.800000, 221.435547}, // ABOVE_GOAL
-      {900.000000, 194.580078}, // BACK_RING
-      {508.000000, 110.473633}, // PLATFORM_HEIGHT
-      {188.400000, 110.595703}, // INTAKE
-      {690.000000, 162.475586}, // INTAKE_TO_PLACE_INTER_4 
-      {796.800000, 124.206543}, // INTAKE_TO_PLACE_INTER_3 
-      {752.800000, 100.952148}, // INTAKE_TO_PLACE_INTER_2 
-      {680.000000, 101.074219}, // INTAKE_TO_PLACE_INTER_1 
-      {239.600000, 209.960938}, // INTAKE_TO_PLACE_INTER_5
-      {19.200000, 212.158203} // PLACE_GOAL_NO_YELLOW
+    double angles[NUM_NODES][2] = {{-8.400000, 207.458496}, // START
+      {-8.400000, 207.458496}, // PLACE_GOAL_WITH_YELLOW
+      {51.600000, 214.904785}, // INTER_ABOVE_ALLIANCE
+      {51.600000, 214.904785}, // ABOVE_GOAL
+      {458.800000, 169.189453}, // BACK_RING
+      {264.600000, 98.815918}, // PLATFORM_HEIGHT
+      {79.000000, 102.661133}, // INTAKE
+      {401.000000, 118.225098}, // INTAKE_TO_PLACE_INTER_4 
+      {394.600000, 109.436035}, // INTAKE_TO_PLACE_INTER_3 
+      {385.200000, 96.862793}, // INTAKE_TO_PLACE_INTER_2 
+      {301.600000, 89.111328}, // INTAKE_TO_PLACE_INTER_1 
+      {287.800000, 164.855957}, // INTAKE_TO_PLACE_INTER_5
+      {-8.400000, 207.458496} // PLACE_GOAL_NO_YELLOW
     };
 
     int teleopMap [NUM_NODES];
@@ -79,7 +80,7 @@ class ArmGraph {
     bool arrived = true;
     bool arrivedFinal = true;
     float previousBaseSpeed;
-    PID chainPID;
+    float potInit;
 
     bool chainBarDone;
 

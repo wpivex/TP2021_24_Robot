@@ -25,10 +25,10 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
   rightMotorE = motor(PORT20, ratio18_1, false);
   rightDrive = motor_group(rightMotorA, rightMotorB, rightMotorC, rightMotorD, rightMotorE);
 
-  fourBarLeft = motor(PORT7, ratio18_1, false);
-  fourBarRight = motor(PORT14, ratio18_1, true);
-  chainBarLeft = motor(PORT9, ratio18_1, false);
-  chainBarRight = motor(PORT8, ratio18_1, true);
+  fourBarLeft = motor(PORT7, ratio36_1, false);
+  fourBarRight = motor(PORT14, ratio36_1, true);
+  chainBarLeft = motor(PORT9, ratio36_1, false);
+  chainBarRight = motor(PORT8, ratio36_1, true);
 
   gyroSensor = inertial(PORT11);
 
@@ -123,26 +123,26 @@ void Robot::armTeleop() {
     else setMaxArmTorque(ARM_CURRENT::MID);
   }
 
-  if(vex::controller().ButtonY.pressing()) {
-    // "Disable steppers" except you gotta hold it down
-    fourBarLeft.setBrake(coast);
-    fourBarRight.setBrake(coast);
-    chainBarLeft.setBrake(coast);
-    chainBarRight.setBrake(coast);
-    fourBarLeft.stop();
-    fourBarRight.stop();
-  } else {
-    fourBarLeft.setBrake(hold);
-    fourBarRight.setBrake(hold);
-    chainBarLeft.setBrake(hold);
-    chainBarRight.setBrake(hold);
-    arm.armMovement(true, 40);
-  }
-  const float l = fourBarLeft.rotation(vex::degrees), r = fourBarLeft.rotation(vex::degrees);
-  const float ll = chainBarLeft.rotation(vex::degrees), rr = chainBarRight.rotation(vex::degrees);
-  log(6, "Live Vals:");
-  log(7, "FBL %4f   FBR: %4f",l, r);
-  log(8, "CBL %4f   CBR: %4f",ll, rr);
+  // if(vex::controller().ButtonY.pressing()) {
+  //   // "Disable steppers" except you gotta hold it down
+  //   fourBarLeft.setBrake(coast);
+  //   fourBarRight.setBrake(coast);
+  //   chainBarLeft.setBrake(coast);
+  //   chainBarRight.setBrake(coast);
+  //   fourBarLeft.stop();
+  //   fourBarRight.stop();
+  // } else {
+  //   fourBarLeft.setBrake(hold);
+  //   fourBarRight.setBrake(hold);
+  //   chainBarLeft.setBrake(hold);
+  //   chainBarRight.setBrake(hold);
+  //   arm.armMovement(true, 10);
+  // }
+  // const float l = fourBarLeft.rotation(vex::degrees), r = fourBarLeft.rotation(vex::degrees);
+  // const float ll = chainBarLeft.rotation(vex::degrees), rr = chainBarRight.rotation(vex::degrees);
+  // log(6, "Live Vals:");
+  // log(7, "FBL %4f   FBR: %4f",l, r);
+  // log(8, "CBL %4f   CBR: %4f",ll, rr);
 
 }
 
@@ -157,6 +157,7 @@ void Robot::teleop() {
   armTeleop();
   clawMovement();
   goalClamp();
+  // log("%f %f %f", chainBarLeft.position(deg), (initPot-chainBarPot.value(deg)) * 5, chainBarPot.value(deg));
 
   buttons.updateButtonState();
 

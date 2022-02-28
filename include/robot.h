@@ -126,6 +126,8 @@ class Robot {
 
     void updateCamera(Goal goal);
 
+    float initPot;
+
     
 
   private:

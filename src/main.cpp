@@ -21,6 +21,8 @@ int mainTeleop() {
   mainBot.setBackClamp(false);
   mainBot.setFrontClamp(false);
   mainBot.arm.initArmPosition();
+  mainBot.initPot = mainBot.chainBarPot.value(deg);
+  mainBot.arm.setPotInit(mainBot.initPot);
 
   while (true) {
     mainBot.teleop();
@@ -406,6 +408,7 @@ void autonomous() { mainBot.setBrakeType(hold); task auto1(skillsAuto); }
 
 int main() {
   Competition.bStopAllTasksBetweenModes = true;
+
 
   mainBot.setBackClamp(false);
   mainBot.setFrontClamp(false);
