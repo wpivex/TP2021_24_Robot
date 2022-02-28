@@ -122,6 +122,7 @@ void Robot::armTeleop() {
     if (arm.isMoving()) setMaxArmTorque(ARM_CURRENT::HIGH);
     else setMaxArmTorque(ARM_CURRENT::MID);
   }
+  arm.armMovement(true, 10);
 
   // if(vex::controller().ButtonY.pressing()) {
   //   // "Disable steppers" except you gotta hold it down
