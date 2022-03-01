@@ -4,7 +4,7 @@
 #include "vex.h"
 
 const bool IS_SKILLS = false;
-const bool testingArm = false;
+const bool testingArm = true;
 
 vex::brain Brain;
 vex::controller Controller1(vex::controllerType::primary);

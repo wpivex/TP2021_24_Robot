@@ -84,7 +84,7 @@ void Robot::goalClamp() {
 
   if (buttons.pressed(FRONT_CLAMP_TOGGLE)) {
     if(testingArm) {
-      printf("{%f, %f},\n",  fourBarRight.position(degrees), chainBarPot.value(deg));
+      printf("{%f, %f},\n",  fourBarRight.position(degrees), chainBarRight.position(degrees));
     } else {
       frontGoal.set(!frontGoal.value());
     }
@@ -122,7 +122,7 @@ void Robot::armTeleop() {
     if (arm.isMoving()) setMaxArmTorque(ARM_CURRENT::HIGH);
     else setMaxArmTorque(ARM_CURRENT::MID);
   }
-  arm.armMovement(true, 10);
+  arm.armMovement(true, 100);
 
   // if(vex::controller().ButtonY.pressing()) {
   //   // "Disable steppers" except you gotta hold it down
@@ -621,7 +621,7 @@ float Robot::goTurnVision2(Goal goal, directionType cameraDir, float minSpeed, f
 // angleDegrees is positive if clockwise, negative if counterclockwise
 void Robot::goTurn(float angleDegrees, std::function<bool(void)> func) {
 
-  PID anglePID(3, 0.00, 0.05, 2, 3, 25);
+  PID anglePID(3, 0.00, 0.05, 2, 3, 20);
   //PID anglePID(GTURN_24);
 
   float timeout = 5;

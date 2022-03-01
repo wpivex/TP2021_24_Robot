@@ -280,6 +280,7 @@ void concurrentTest() {
 int skillsAuto(void) {
 
   mainBot.setMaxArmTorque(ARM_CURRENT::HIGH);
+  mainBot.arm.initArmPosition();
 
   // initialize function reference for future concurrency
   std::function<bool(void)> armFunc = std::bind(&ArmGraph::armMovementAuton, &mainBot.arm);
@@ -289,16 +290,19 @@ int skillsAuto(void) {
 
   // Head towards yellow goal
   mainBot.setBackClamp(true);
-  mainBot.driveCurved(20, 100, reverse, 10, 0, 0.285, false); // arc to goal direction
+  mainBot.driveCurved(20, 100, reverse, 10, 0, 0.26, false); // arc to goal direction
   mainBot.driveStraight(37, 100, reverse, 5, 0, false); // no vision on first goal
   mainBot.setBackClamp(false); // clamp center goal
+  wait(125, msec);
   mainBot.driveStraight(5, 100, reverse, 5, 5, true);
 
   // Align for right goal
   mainBot.goForward(29, 100); // go back for approach to second goal
-  mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_2);
-  mainBot.goTurnFast(false, 97, 70, 20, 30, 0, 4, armFunc); // turn to yellow goal quickly concurrent with arm movement
-  mainBot.arm.finishArmMovement();
+  // mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_2);
+  // mainBot.goTurnFast(false, 97, 70, 20, 30, 0, 4); // turn to yellow goal quickly concurrent with arm movement
+  mainBot.goTurnU(225);
+  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_2);
+  // mainBot.arm.finishArmMovement();
   // mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_2, 100, 5); // make sure arm function is finished before moving on
 
   // Grab right goal
@@ -319,7 +323,7 @@ int skillsAuto(void) {
   logController("Vision turn over");
   // wait(2500, msec);
 
-  mainBot.goVision(7, 30, RED, forward, 0, 5, 3, true, 120); // Approach red goal
+  mainBot.goVision(13, 30, RED, forward, 0, 5, 3, true, 120); // Approach red goal
 
   // Pick up red goal  
   mainBot.openClaw();

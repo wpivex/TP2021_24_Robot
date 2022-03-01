@@ -75,6 +75,19 @@ void ArmGraph::setPotInit(float pos) {
 }
 
 void ArmGraph::initArmPosition() {
+  chainBarLeft.setBrake(coast);
+  chainBarRight.setBrake(coast);
+  if (!fourBarBump->pressing()) {
+    setFourVelocity(reverse, 30);
+    setChainVelocity(reverse, 30);
+    while (!fourBarBump->pressing()) {
+      wait(20, msec);
+    }
+  }
+  chainBarLeft.setBrake(hold);
+  chainBarRight.setBrake(hold);
+  chainBarLeft.stop(hold);
+  chainBarRight.stop(hold);
   if (fourBarBump->pressing()) {
     setFourVelocity(forward, 30);
     while (fourBarBump->pressing()) {
@@ -208,21 +221,23 @@ bool ArmGraph::armMovement(bool buttonInput, float baseSpeed) {
   // log(4, "CBL: %4f   CBR: %4f | CBT: %4f",ll, rr, tt);
 
   if (targetArmPathIndex == armPath.size() - 1) {
-    fourBarLeft.rotateTo(angles[targetNode][0], vex::degrees, fourBarVelocity, vex::velocityUnits::pct, false);
-    fourBarRight.rotateTo(angles[targetNode][0], vex::degrees, fourBarVelocity, vex::velocityUnits::pct, false);
+    fourBarLeft.rotateTo(angles[targetNode][0], vex::degrees, 30, vex::velocityUnits::pct, false);
+    fourBarRight.rotateTo(angles[targetNode][0], vex::degrees, 30, vex::velocityUnits::pct, false);
   } else {
     fourBarLeft.spin(fourDir, fourBarVelocity, vex::velocityUnits::pct);
     fourBarRight.spin(fourDir, fourBarVelocity, vex::velocityUnits::pct);
   }
 
-	chainBarLeft.rotateTo((potInit - angles[targetNode][1])*5, vex::degrees, chainBarVelocity, vex::velocityUnits::pct, false);	
-  chainBarRight.rotateTo((potInit - angles[targetNode][1])*5, vex::degrees, chainBarVelocity, vex::velocityUnits::pct, false);	
+  if (targetArmPathIndex == armPath.size() - 1) {
+    chainBarLeft.rotateTo(angles[targetNode][1], vex::degrees, 30, vex::velocityUnits::pct, false);	
+    chainBarRight.rotateTo(angles[targetNode][1], vex::degrees, 30, vex::velocityUnits::pct, false);
+  } else {
+    chainBarLeft.rotateTo(angles[targetNode][1], vex::degrees, chainBarVelocity, vex::velocityUnits::pct, false);	
+    chainBarRight.rotateTo(angles[targetNode][1], vex::degrees, chainBarVelocity, vex::velocityUnits::pct, false);	
+  }
   arrived = fabs(fourBarLeft.rotation(vex::degrees) - angles[targetNode][0]) < MARGIN;
-
-
-  arrived = (fabs(fourBarLeft.rotation(vex::degrees) - angles[targetNode][0]) < MARGIN);
   
-  arrivedFinal = arrived && (targetArmPathIndex == armPath.size() - 1);
+  arrivedFinal = arrived && (fabs(chainBarLeft.rotation(vex::degrees) - angles[targetNode][1]) < MARGIN) && (targetArmPathIndex == armPath.size() - 1);
 
   log("%d %d %d |  %s", targetNode, arrived ? 1 : 0, arrivedFinal ? 1 : 0, pathStr.c_str());	
   // log(2, "%d %d %d |  %s", targetNode, arrived ? 1 : 0, arrivedFinal ? 1 : 0, pathStr.c_str());
