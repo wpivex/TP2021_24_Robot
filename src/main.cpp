@@ -290,26 +290,29 @@ int skillsAuto(void) {
 
   // Head towards yellow goal
   mainBot.setBackClamp(true);
-  mainBot.driveCurved(20, 100, reverse, 10, 0, 0.26, false); // arc to goal direction
-  mainBot.driveStraight(37, 100, reverse, 5, 0, false); // no vision on first goal
+  mainBot.driveCurved(20, 100, reverse, 10, 0, 0.3, false); // arc to goal direction
+  // mainBot.driveStraight(37, 100, reverse, 5, 0, false); // no vision on first goal
+  mainBot.driveStraight(10, 100, reverse, 5, 0);
+  mainBot.goVision(17, 100, YELLOW, reverse);
+  mainBot.driveStraight(10, 100, reverse, 5, 0);
   mainBot.setBackClamp(false); // clamp center goal
   wait(125, msec);
   mainBot.driveStraight(5, 100, reverse, 5, 5, true);
 
   // Align for right goal
-  mainBot.goForward(29, 100); // go back for approach to second goal
+  mainBot.goForward(33, 100); // go back for approach to second goal
   // mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_2);
-  // mainBot.goTurnFast(false, 97, 70, 20, 30, 0, 4); // turn to yellow goal quickly concurrent with arm movement
-  mainBot.goTurnU(225);
-  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_2);
+  mainBot.goTurnFastU(225, 100, 20, 30); // turn to yellow goal quickly concurrent with arm movement
+  // mainBot.goTurnUFast(225);
+  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_3);
   // mainBot.arm.finishArmMovement();
   // mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_2, 100, 5); // make sure arm function is finished before moving on
 
   // Grab right goal
   mainBot.setFrontClamp(true); // open front clamp
   wait(350, msec);
-  // mainBot.goVision(26, 100, YELLOW, forward, 0, 0, 5, false, 60); // go to goal. Grabs goal while moving forward
-  mainBot.goForward(26, 100);
+  mainBot.goVision(26, 100, YELLOW, forward, 0, 0, 5, false, 60); // go to goal. Grabs goal while moving forward
+  // mainBot.goForward(26, 100);
   mainBot.setFrontClamp(false); // clamp goal while moving forward
 
   // Traverse field to red goal
@@ -323,27 +326,31 @@ int skillsAuto(void) {
   logController("Vision turn over");
   // wait(2500, msec);
 
+  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE, 100, 5); // this cannot be done concurrently as to keep vision clear of arm
   mainBot.goVision(13, 30, RED, forward, 0, 5, 3, true, 120); // Approach red goal
 
   // Pick up red goal  
   mainBot.openClaw();
-  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE, 100, 5); // this cannot be done concurrently as to keep vision clear of arm
   wait(1000, msec);
   mainBot.goForward(13, 40, 0, 0, 3);
   mainBot.closeClaw(); // grab red goal
   wait(200, msec);
 
   // Back off and go back home
-  mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_1);
+  mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_2);
   mainBot.driveStraight(13, 40, reverse, 2, 3, true, armFunc); // move back while concurrently raising goal
   mainBot.goTurnFastU(350, 50, 28, 40, 0, 5, armFunc); // aim back towards platform, parallel to field
-  mainBot.arm.finishArmMovement();
   // mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_1, 100, 5); // make sure concurrent call is finished
 
   // TURN TO BLUE
-  mainBot.goVision(30, 100, BLUE, forward, 0, 0, 5, false);
-  mainBot.driveCurved(15, 100, forward, 5, 0, 0.3, false);
-  mainBot.driveCurved(15, 100, forward, 5, 0, -0.25, false);
+  mainBot.goVision(15, 100, BLUE, forward, 0, 0, 5, false);
+  mainBot.goTurn(40);
+  mainBot.driveStraight(27, 100, forward, 5, 0);
+  mainBot.goTurn(-40);
+  mainBot.driveStraight(14, 100, forward, 5, 0);
+  mainBot.goTurn(10);
+  // mainBot.driveCurved(15, 100, forward, 5, 0, 0.3, false);
+  // mainBot.driveCurved(15, 100, forward, 5, 0, -0.25, false);
   // mainBot.goTurn(40);
   // mainBot.goForward(26, 100);
   // mainBot.goTurn(-33);
@@ -360,11 +367,9 @@ int skillsAuto(void) {
   mainBot.driveStraightTimed(30, reverse, 2); // localize with side wall
   float levelPitch = mainBot.gyroSensor.pitch();
 
-  // Head towards platform and get closer to the wall
-  mainBot.driveCurved(4, 50, forward, 5, 5, -1.7); // S maneuver
-  mainBot.driveCurved(4, 50, forward, 5, 5, 1.7);
-  mainBot.driveCurved(4, 70, forward, 5, 5, -1.1); // S maneuver
-  mainBot.driveCurved(4, 70, forward, 5, 5, 1.1);
+  mainBot.goTurn(-30);
+  mainBot.driveStraight(10, 50, forward, 5, 0);
+  mainBot.goTurn(30);
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE, 100, 5); // bring platform down
   wait(1000, msec);
   mainBot.driveCurved(3, 70, forward, 5, 1, 0.15);

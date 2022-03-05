@@ -16,10 +16,12 @@ void ArmGraph::init(Buttons* bh, motor chainL, motor chainR, motor fourL, motor 
   std::fill_n(teleopMap, NUM_NODES, -1);
   std::fill_n(nodeEnabled, NUM_NODES, true);
   teleopMap[Buttons::DOWN] = INTAKE;
+  if (testingArm) {
+    teleopMap[Buttons::A] = ABOVE_GOAL;
+    teleopMap[Buttons::B] = PLACE_GOAL_WITH_YELLOW;
+  }
   // teleopMap[Buttons::Y] = RING_FRONT;
-  teleopMap[Buttons::A] = ABOVE_GOAL;
   teleopMap[Buttons::X] = BACK_RING;
-  teleopMap[Buttons::B] = PLACE_GOAL_WITH_YELLOW; //isSkills? PLACE_GOAL_NO_YELLOW : PLACE_GOAL_WITH_YELLOW; //need to make toggleable
   teleopMap[Buttons::RIGHT] = PLATFORM_HEIGHT;
   teleopMap[Buttons::LEFT] = INTAKE_TO_PLACE_INTER_2;
 
