@@ -126,6 +126,8 @@ class Robot {
 
     void updateCamera(Goal goal);
 
+    void gyroCurve(float distInches, float maxSpeed, float turnAngle, int timeout, bool stopAfter = true, std::function<bool(void)> func = {});
+
     float initPot;
 
     

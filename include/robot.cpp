@@ -358,6 +358,63 @@ void Robot::goForwardUniversal(float distInches, float maxSpeed, float universal
 
 }
 
+// PID gyro sensor-based curving 
+// distInches is positive if forward, negative if reverse
+void Robot::gyroCurve(float distInches, float maxSpeed, float turnAngle, int timeout, bool stopAfter, std::function<bool(void)> func) {
+
+  // Needs tuning desperately
+  float kp = 0.015;
+  float ki = 0;
+  float kd = 0;
+
+
+  // We have these values somewhere but I'm not sure where
+  float distanceInDegrees = distanceToDegrees(distInches);
+  
+  Trapezoid trap(distInches, maxSpeed, maxSpeed, 0, 0);
+  PID anglePID(kp, ki, kd);
+  float targetAngle = 0;
+
+  int startTime = vex::timer::system();
+  leftMotorA.resetPosition();
+  rightMotorA.resetPosition();
+  gyroSensor.resetRotation();
+
+
+  // Repeat until either arrived at target or timed out
+  while (!trap.isCompleted() && !isTimeout(startTime, timeout)) {
+
+    // if there is a concurrent function to run, run it
+    if (func) {
+      bool done = func();
+      if (done) {
+        // if func is done, make it empty
+        func = {};
+      }
+    }
+
+    // Not sure if linear distance is correct / it seems relavtively arbitrary for this function. Approximate me!
+    float distanceError = (leftMotorA.position(degrees) + rightMotorA.position(degrees)) / 2;
+    targetAngle = turnAngle * fabs(fmax(0.3, fmin(1, (distanceError + 0.3*distanceInDegrees) / (distanceInDegrees))));
+
+    float speed = fmin(100, fmax(-100, trap.get(distanceError))); 
+    float turnDifference = anglePID.tick(targetAngle - gyroSensor.rotation(), 0.5);
+
+    setLeftVelocity(forward, speed * (0.5+turnDifference));
+    setRightVelocity(forward, speed * (0.5-turnDifference));
+
+    wait(20, msec);
+
+  }
+
+  logController("done");
+  if(stopAfter) {
+    stopLeft();
+    stopRight();
+  }
+
+}
+
 // Trapezoidal motion profiling
 // Does not use gyro sensor. 
 // distInches is positive if forward, negative if reverse

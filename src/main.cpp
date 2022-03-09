@@ -266,13 +266,12 @@ void testArmValues() {
   // }
 }
 
-void concurrentTest() {
+int concurrentTest() {
 
-  // std::function<bool(void)> armFunc = std::bind(&ArmGraph::armMovementAuton, &mainBot.arm);
+  mainBot.gyroCurve(20, 100, -30, 100, false);
+  logController("Curve over");
 
-  // mainBot.arm.setArmDestination(ArmGraph::INTAKE);
-  // mainBot.driveStraightGyro(40, 20, reverse, 20, 10, armFunc);
-  // mainBot.arm.moveArmToPosition(ArmGraph::INTAKE);
+  return 0;
 
 }
 
@@ -290,6 +289,7 @@ int skillsAuto(void) {
 
   // Head towards yellow goal
   mainBot.setBackClamp(true);
+  // mainBot.gyroCurve(-20, 100, 30, 5, false);
   mainBot.driveCurved(20, 100, reverse, 10, 0, 0.3, false); // arc to goal direction
   mainBot.goVision(10, 100, YELLOW, reverse, 0, 5, 5, false);
   mainBot.driveStraight(27, 100, reverse, 5, 0, false);
@@ -298,7 +298,7 @@ int skillsAuto(void) {
 
   // Align for right goal
   mainBot.goForward(33, 100); // go back for approach to second goal
-  mainBot.goTurnFastU(225, 100, 30, 30); // turn to yellow goal quickly concurrent with arm movement
+  mainBot.goTurnFastU(220, 100, 40, 30); // turn to yellow goal quickly concurrent with arm movement
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_3);
 
   // Grab right goal
@@ -319,7 +319,7 @@ int skillsAuto(void) {
 
   // Pick up red goal  
   wait(1000, msec);
-  mainBot.goForward(7, 40, 0, 0, 3);
+  mainBot.goVision(7, 30, RED, forward, 0, 5, 3, true, 120); // Approach red goal
   mainBot.closeClaw(); // grab red goal
   wait(200, msec);
 
@@ -348,10 +348,10 @@ int skillsAuto(void) {
   mainBot.goTurn(-30);
   mainBot.driveStraight(10, 50, forward, 5, 0);
   mainBot.goTurn(20);
-  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE, 100, 5); // bring platform down
+  // mainBot.arm.moveArmToPosition(ArmGraph::INTAKE, 100, 5); // bring platform down
   wait(1000, msec);
   mainBot.setMaxArmTorque(ARM_CURRENT::LOW); // divert all current to motors
-  mainBot.goForward(45, 80, 0, 5, 1000);
+  mainBot.goForward(50, 90, 0, 5, 1000);
 
   /*
   // Climb
