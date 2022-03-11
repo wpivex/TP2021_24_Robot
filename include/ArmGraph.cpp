@@ -245,7 +245,7 @@ bool ArmGraph::armMovement(bool buttonInput, float baseSpeed) {
   
   arrivedFinal = arrived && (fabs(chainBarLeft.rotation(vex::degrees) - angles[targetNode][1]) < MARGIN) && (targetArmPathIndex == armPath.size() - 1);
 
-  log("%d %d %d |  %s", targetNode, arrived ? 1 : 0, arrivedFinal ? 1 : 0, pathStr.c_str());	
+  // log("%d %d %d |  %s", targetNode, arrived ? 1 : 0, arrivedFinal ? 1 : 0, pathStr.c_str());	
   // log(2, "%d %d %d |  %s", targetNode, arrived ? 1 : 0, arrivedFinal ? 1 : 0, pathStr.c_str());
 
   return arrivedFinal;

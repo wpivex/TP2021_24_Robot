@@ -165,9 +165,13 @@ void Robot::teleop() {
 }
 
 void Robot::callibrateGyro() {
+  calibrationDone = false;
   gyroSensor.calibrate();
-  gyroSensor.resetHeading();
+  // gyroSensor.startCalibration(2);
   while (gyroSensor.isCalibrating()) wait(20, msec);
+  wait(1000, msec);
+  gyroSensor.resetHeading();
+  calibrationDone = true;
 }
 
 
@@ -262,7 +266,7 @@ float slowDownInches, float turnPercent, bool stopAfter, std::function<bool(void
     stopRight();
   }
 
-  log("done");
+  // log("done");
 
 }
 
@@ -615,7 +619,7 @@ void Robot::alignToGoalVision(Goal goal, bool clockwise, directionType cameraDir
     wait(20, msec);
   }
 
-  log("D0ne");
+  // log("D0ne");
 
   stopLeft();
   stopRight();
@@ -678,18 +682,18 @@ float Robot::goTurnVision2(Goal goal, directionType cameraDir, float minSpeed, f
 // angleDegrees is positive if clockwise, negative if counterclockwise
 void Robot::goTurn(float angleDegrees, std::function<bool(void)> func) {
 
-  PID anglePID(3, 0.00, 0.05, 2, 3, 20);
+  PID anglePID(3, 0.00, 0.05, 2, 3, 25);
   //PID anglePID(GTURN_24);
 
   float timeout = 5;
   float speed;
 
-  log("initing");
+  // log("initing");
   int startTime = vex::timer::system();
   leftMotorA.resetPosition();
   rightMotorA.resetPosition();
   gyroSensor.resetRotation();
-  log("about to loop");
+  // log("about to loop");
 
   while (!anglePID.isCompleted() && !isTimeout(startTime, timeout)) {
 
@@ -732,8 +736,9 @@ void Robot::goTurnFast(bool isClockwise, float turnDegrees, float maxSpeed, floa
   leftMotorA.resetPosition();
   rightMotorA.resetPosition();
   gyroSensor.resetRotation();
+  slowDownDegrees = fmin(slowDownDegrees, turnDegrees);
 
-  logController("start turn fast");
+  // logController("start turn fast");
 
   // Repeat until either arrived at target or timed out
   while (fabs(gyroSensor.rotation()) < turnDegrees && !isTimeout(startTime, timeout)) {
@@ -745,7 +750,7 @@ void Robot::goTurnFast(bool isClockwise, float turnDegrees, float maxSpeed, floa
       }
     }
 
-    logController("%f", gyroSensor.heading());
+    // logController("%f", gyroSensor.heading());
 
     float angle = fabs(gyroSensor.rotation());
     if (turnDegrees - angle < endSlowDegrees) delta = 0;
@@ -760,7 +765,7 @@ void Robot::goTurnFast(bool isClockwise, float turnDegrees, float maxSpeed, floa
     wait(20, msec);
 
   }
-  logController("finish turn fast");
+  // logController("finish turn fast");
   stopLeft();
   stopRight();
 
@@ -770,11 +775,24 @@ void Robot::goTurnFast(bool isClockwise, float turnDegrees, float maxSpeed, floa
 void Robot::goTurnFastU(float universalAngleDegrees, float maxSpeed, float minSpeed, float slowDownDegrees, float endSlowDegrees, float timeout, 
 std::function<bool(void)> func) {
 
-  float turnAngle = universalAngleDegrees - gyroSensor.heading(degrees);
+  float gyroReading = gyroSensor.heading(degrees);
+  float turnAngle = universalAngleDegrees - gyroReading;
   if (turnAngle > 180) turnAngle -= 360;
   else if (turnAngle < -180) turnAngle += 360;
 
+  logController("%f %f", turnAngle, gyroReading);
   goTurnFast(turnAngle > 0, fabs(turnAngle), maxSpeed, minSpeed, slowDownDegrees, endSlowDegrees, timeout, func);
+}
+
+void Robot::driveArmDown(float timeout) {
+  fourBarLeft.spin(reverse, 10, percent);
+  fourBarRight.spin(reverse, 10, percent);
+  int startTime = vex::timer::system();
+  while (!isTimeout(startTime, timeout)) {
+    wait(20, msec);
+  }
+  fourBarLeft.stop(hold);
+  fourBarRight.stop(hold);
 }
 
 void Robot::openClaw() {
@@ -845,4 +863,18 @@ void Robot::setMaxArmTorque(float c) {
   fourBarRight.setMaxTorque(c, currentUnits::amp);
   chainBarLeft.setMaxTorque(c, currentUnits::amp);
   chainBarRight.setMaxTorque(c, currentUnits::amp);
+}
+
+void Robot::setMaxDriveTorque(float c) {
+  leftMotorA.setMaxTorque(c, currentUnits::amp);
+  leftMotorB.setMaxTorque(c, currentUnits::amp);
+  leftMotorC.setMaxTorque(c, currentUnits::amp);
+  leftMotorD.setMaxTorque(c, currentUnits::amp);
+  leftMotorE.setMaxTorque(c, currentUnits::amp);
+
+  rightMotorA.setMaxTorque(c, currentUnits::amp);
+  rightMotorB.setMaxTorque(c, currentUnits::amp);
+  rightMotorC.setMaxTorque(c, currentUnits::amp);
+  rightMotorD.setMaxTorque(c, currentUnits::amp);
+  rightMotorE.setMaxTorque(c, currentUnits::amp);
 }

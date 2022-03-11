@@ -59,6 +59,8 @@ class Robot {
     ArmGraph arm;
     Buttons buttons;
 
+    bool calibrationDone = false;
+
     enum DriveType { ONE_STICK_ARCADE, TWO_STICK_ARCADE, TANK };
     DriveType driveType;
 
@@ -84,6 +86,7 @@ class Robot {
     void stopRight();
     void setBrakeType(brakeType b);
     void setMaxArmTorque(float c);
+    void setMaxDriveTorque(float c);
 
     vision getCamera(directionType dir, Goal goal);
 
@@ -127,6 +130,7 @@ class Robot {
     void updateCamera(Goal goal);
 
     void gyroCurve(float distInches, float maxSpeed, float turnAngle, int timeout, bool stopAfter = true, std::function<bool(void)> func = {});
+    void driveArmDown(float timeout);
 
     float initPot;
 
