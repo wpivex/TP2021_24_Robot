@@ -287,9 +287,9 @@ void logHeading(std::string label) {
 
 // Alignment: Three ticks from tile intersection aligns with outer side of wheel guard. robot facing outside field
 int skillsAuto(void) {
-  // vex::brain().
   while (!mainBot.calibrationDone);
   // log("%f", mainBot.gyroSensor.heading());
+  mainBot.gyroSensor.setHeading(0, degrees);
   logHeading("start");
 
   mainBot.setMaxArmTorque(ARM_CURRENT::HIGH);
@@ -298,25 +298,34 @@ int skillsAuto(void) {
 
   // initialize function reference for future concurrency
   std::function<bool(void)> armFunc = std::bind(&ArmGraph::armMovementAuton, &mainBot.arm);
+  bool badGyro = false;
 
   // Head towards yellow goal
   mainBot.setBackClamp(true);
   // mainBot.gyroCurve(-20, 100, 30, 5, false);
-  logHeading("before curved drive");
+  // logHeading("before curved drive");
   mainBot.driveCurved(20, 100, reverse, 10, 0, 0.3, false); // arc to goal direction
-  logHeading("before vision drive");
-  mainBot.goVision(10, 100, YELLOW, reverse, 0, 5, 5, false);
-  logHeading("before straight drive");
-  mainBot.driveStraight(27, 100, reverse, 5, 0, false);
-  logHeading("before clamp");
+  // logHeading("before vision drive");
+  mainBot.goVision(5, 100, YELLOW, reverse, 0, 5, 5, true);
+  // wait(1000, msec);
+  // logHeading("before straight drive");
+  // mainBot.driveStraight(27, 100, reverse, 5, 0, false);
+  mainBot.goForward(-32, 100, 0, 0, 5);
+  // logHeading("before clamp");
   mainBot.setBackClamp(false); // clamp center goal
-  logHeading("before drive straight");
+  // logHeading("before drive straight");
   mainBot.driveStraight(5, 100, reverse, 5, 5, true);
 
   // Align for right goal
-  logHeading("before fwd for right goal");
+  // logHeading("before fwd for right goal");
   mainBot.goForward(33, 100); // go back for approach to second goal
-  logHeading("before turn");
+  // logHeading("before turn");
+  // set to 322 if wrong
+  // if(mainBot.gyroSensor.heading(degrees) < 100) {
+  //   mainBot.gyroSensor.setHeading(321.5, degrees);
+  //   log(12, "DOING SKETCHY ANGLE RESET");
+  //   badGyro = true;
+  // }
   mainBot.goTurnFastU(205, 60, 35, 360); // turn to yellow goal quickly concurrent with arm movement
   logHeading("after turn");
   mainBot.setMaxArmTorque(ARM_CURRENT::MID);
@@ -329,10 +338,10 @@ int skillsAuto(void) {
   mainBot.setFrontClamp(false); // clamp goal while moving forward
 
   // Traverse field to red goal
-  mainBot.driveStraight(13, 100, forward, 5, 0, false); // robot does not stop after function so momentum carries over to driveCurved
-  mainBot.driveCurved(20, 100, forward, 5, 5, -0.15);
+  mainBot.driveStraight(17, 100, forward, 5, 0, false); // robot does not stop after function so momentum carries over to driveCurved
+  // mainBot.driveCurved(20, 100, forward, 5, 5, -0.15);
   wait(250, msec);
-  mainBot.goTurnFast(false, 35, 70, 25, 30); // Turn to approximate location to red goal at a distance
+  mainBot.goTurnFast(false, 35, 60, 35, 30); // Turn to approximate location to red goal at a distance
 
   mainBot.setMaxArmTorque(ARM_CURRENT::HIGH);
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE, 100, 5);
@@ -343,44 +352,61 @@ int skillsAuto(void) {
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE, 100, 5); // bring platform down
 
   // Pick up red goal  
-  mainBot.goVision(3, 30, RED, forward, 0, 5, 3, true, 120); // Approach red goal
+  mainBot.goVision(8, 30, RED, forward, 0, 5, 2, true, 120); // Approach red goal
   mainBot.closeClaw(); // grab red goal
-  wait(200, msec);
+  wait(100, msec);
   mainBot.driveStraight(2, 20, reverse, 2, 3);
 
   // Back off and go back home
   mainBot.setMaxDriveTorque(ARM_CURRENT::LOW);
-  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_2);
+  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_2, 100, 3);
   mainBot.setMaxDriveTorque(ARM_CURRENT::HIGH);
-  mainBot.driveStraight(3, 40, reverse, 2, 3, true); // move back while concurrently raising goal
-  mainBot.goTurnFastU(350, 70, 30, 40, 0, 5); // aim back towards platform, parallel to field
+  wait(500, msec);
+  mainBot.driveStraight(3, 40, reverse, 2, 2, true); // move back while concurrently raising goal
+  // if(badGyro) {
+  mainBot.setMaxArmTorque(ARM_CURRENT::MID);
+  mainBot.goTurnFast(false, 150, 100, 40, 30, 0, 5);
+
+  // } else {
+  //   mainBot.goTurnFastU(350, 100, 35, 40, 0, 3); // aim back towards platform, parallel to field
+  // }
 
   // TURN TO BLUE
-  mainBot.goVision(15, 100, BLUE, forward, 0, 0, 5, false);
+  mainBot.goVision(12, 100, BLUE, forward, 0, 0, 5, false);
   mainBot.goTurnFast(true, 40, 70, 40, 30, 0, 5);
-  mainBot.driveStraight(23, 100, forward, 5, 5);
-  mainBot.goTurnFastU(0, 60, 30, 360);
-  mainBot.goForward(40, 100);
+  mainBot.driveStraight(15, 50, forward, 5, 5);
+  if(badGyro) {
+    mainBot.goTurnFast(false, 30, 70, 40, 30, 0, 5);
+  } else {
+    mainBot.goTurnFastU(0, 70, 30, 360);
+  }
+  mainBot.goForward(48, 100);
 
   // Drive to other side
   mainBot.driveStraightTimed(30, forward, 2); // localize with home wall
 
   // localize position
   mainBot.driveStraight(2.5, 20, reverse, 2, 3); // back off for clearance to be able to turn
-  mainBot.goTurnFastU(90, 70, 30, 90);
-  mainBot.driveStraightTimed(30, reverse, 2); // localize with side wall
+  if(badGyro) {
+    mainBot.goTurnFast(true, 90, 70, 40, 30, 0, 5);
+  } else {
+    mainBot.goTurnFastU(90, 70, 30, 90);
+  }
+  mainBot.driveStraightTimed(30, reverse, 3); // localize with side wall
 
   mainBot.driveStraight(4, 40, forward, 5, 3);
-  mainBot.goTurnFast(false, 20, 70, 40, 30, 0, 5);
+  mainBot.goTurnFast(false, 25, 70, 40, 30, 0, 5);
   mainBot.driveStraight(8, 50, forward, 5, 0);
-  // mainBot.goTurnFast(true, 10, 70, 40, 30, 0, 5);
-  mainBot.goTurnFastU(88, 70, 30, 88);
+  if(badGyro) {
+    mainBot.goTurnFast(true, 10, 70, 40, 30, 0, 5);
+  } else {
+    mainBot.goTurnFastU(80, 40, 30, 360);
+  }
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE, 100, 5); // bring platform down
-  wait(1000, msec);
   mainBot.fourBarRight.setBrake(coast);
   mainBot.fourBarLeft.setBrake(coast);
   mainBot.setMaxArmTorque(ARM_CURRENT::OFF); // divert all current to motors
-  mainBot.goForward(47, 100, 0, 0, 100);
+  mainBot.goForward(51, 100, 0, 0, 100);
   wait(500, msec);
   mainBot.goForward(-2, 50, 0, 0, 5);
 

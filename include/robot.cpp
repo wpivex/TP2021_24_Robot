@@ -6,7 +6,7 @@
 // gear ratio is 60/36
 Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftMotorD(0), leftMotorE(0), rightMotorA(0), rightMotorB(0), 
   rightMotorC(0), rightMotorD(0), rightMotorE(0), fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0), frontCamera(PORT10), 
-  backCamera(PORT15), gyroSensor(PORT4), arm(), buttons(c) {
+  backCamera(PORT15), gyroSensor(PORT4), arm(), buttons(c), gpsSensor(0) {
 
   isSkills = _isSkills;
 
@@ -41,6 +41,8 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
   fourBarRight.setBrake(hold);
   chainBarLeft.setBrake(hold);
   chainBarRight.setBrake(hold);
+
+  gpsSensor = gps(PORT2);
 
   setControllerMapping(DEFAULT_MAPPING);
 
@@ -775,7 +777,7 @@ void Robot::goTurnFast(bool isClockwise, float turnDegrees, float maxSpeed, floa
 void Robot::goTurnFastU(float universalAngleDegrees, float maxSpeed, float minSpeed, float slowDownDegrees, float endSlowDegrees, float timeout, 
 std::function<bool(void)> func) {
 
-  float gyroReading = gyroSensor.heading(degrees);
+  float gyroReading = gpsSensor.heading() + 180;//gyroSensor.heading(degrees);
   float turnAngle = universalAngleDegrees - gyroReading;
   if (turnAngle > 180) turnAngle -= 360;
   else if (turnAngle < -180) turnAngle += 360;

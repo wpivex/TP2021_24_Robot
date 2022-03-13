@@ -55,6 +55,7 @@ class Robot {
     controller* robotController;
 
     inertial gyroSensor;
+    gps gpsSensor;
 
     ArmGraph arm;
     Buttons buttons;
