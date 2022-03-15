@@ -287,30 +287,16 @@ void logHeading(std::string label) {
 
 // Alignment: Three ticks from tile intersection aligns with outer side of wheel guard. robot facing outside field
 int skillsAuto(void) {
-  while (!mainBot.calibrationDone);
   // log("%f", mainBot.gyroSensor.heading());
-  mainBot.gyroSensor.setHeading(0, degrees);
-  logHeading("start");
 
   mainBot.setMaxArmTorque(ARM_CURRENT::HIGH);
-  mainBot.arm.initArmPosition();
-  mainBot.setMaxArmTorque(ARM_CURRENT::LOW);
 
   // initialize function reference for future concurrency
   std::function<bool(void)> armFunc = std::bind(&ArmGraph::armMovementAuton, &mainBot.arm);
-  bool badGyro = false;
 
   // Head towards yellow goal
   mainBot.setBackClamp(true);
-  // mainBot.gyroCurve(-20, 100, 30, 5, false);
-  // logHeading("before curved drive");
-  mainBot.driveCurved(20, 100, reverse, 10, 0, 0.3, false); // arc to goal direction
-  // logHeading("before vision drive");
-  mainBot.goVision(5, 100, YELLOW, reverse, 0, 5, 5, true);
-  // wait(1000, msec);
-  // logHeading("before straight drive");
-  // mainBot.driveStraight(27, 100, reverse, 5, 0, false);
-  mainBot.goForward(-32, 100, 0, 0, 5);
+  mainBot.goForward(-50, 100, 1, 0);
   // logHeading("before clamp");
   mainBot.setBackClamp(false); // clamp center goal
   // logHeading("before drive straight");
@@ -450,13 +436,16 @@ void autonomous() { mainBot.setBrakeType(hold); task auto1(skillsAuto); }
 
 int main() {
   Competition.bStopAllTasksBetweenModes = true;
-
-
   mainBot.setBackClamp(false);
   mainBot.setFrontClamp(false);
 
-  // Reset location of arm
-  mainBot.callibrateGyro();
+  wait(500, msec);
+  mainBot.gyroSensor.calibrate();
+  mainBot.waitGyroCallibrate();
+  mainBot.arm.initArmPosition();
+
+
+  
 
   Competition.autonomous(autonomous);
   Competition.drivercontrol(userControl);

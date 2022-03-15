@@ -60,8 +60,6 @@ class Robot {
     ArmGraph arm;
     Buttons buttons;
 
-    bool calibrationDone = false;
-
     enum DriveType { ONE_STICK_ARCADE, TWO_STICK_ARCADE, TANK };
     DriveType driveType;
 
@@ -71,7 +69,7 @@ class Robot {
 
     void setControllerMapping(ControllerMapping mapping);
 
-    void callibrateGyro();
+    void waitGyroCallibrate();
 
     void openClaw();
     void closeClaw();
@@ -92,15 +90,13 @@ class Robot {
     vision getCamera(directionType dir, Goal goal);
 
     // --------- NEW FUNCTIONS -----------
+    float getEncoderDistance();
+    float getAngle();
 
-    void goForward(float distInches, float maxSpeed, float rampUpInches = 0, float slowDownInches = 5,
-      int timeout = 5, std::function<bool(void)> func = {});
+    void goForwardU(float distInches, float maxSpeed, float universalAngle, float slowDownInches, float minSpeed = 20,
+      bool stopAfter = true, std::function<bool(void)> func = {}, float timeout = 5);
 
-    void goForwardUniversal(float distInches, float maxSpeed, float universalAngle, float rampUpInches = 0, float slowDownInches = 5,
-      int timeout = 5, std::function<bool(void)> func = {});
-
-    void goCurve(float distInches, float maxSpeed, float turnPercent, float rampUpInches = 0, float slowDownInches = 5,
-      int timeout = 5, std::function<bool(void)> func = {});
+ 
 
     void goVision(float distInches, float maxSpeed, Goal goal, directionType cameraDir, 
     float rampUpInches = 0, float slowDownInches = 5, int timeout = 5, bool stopAfter = true, float K_P = 70, std::function<bool(void)> func = {});
@@ -117,21 +113,9 @@ class Robot {
     void goTurnFastU(float universalAngleDegrees, float maxSpeed, float minSpeed, float slowDownDegrees, float endSlowDegrees = 0, 
     float timeout = 5, std::function<bool(void)> func = {});
 
-    // -------- OLD FUNCTIONS -----------
-    void smartDrive(float distInches, float speed, directionType left, directionType right, int timeout, float slowDownInches, 
-                    float turnPercent, bool stopAfter, std::function<bool(void)> func);
-    void driveTurn(float degrees, float speed, bool isClockwise, int timeout, float slowDownInches = 10, 
-                    bool stopAfter = true, std::function<bool(void)> func = {});
-    void driveCurved(float distInches, float speed, directionType dir, int timeout, 
-                      float slowDownInches, float turnPercent, bool stopAfter = true, std::function<bool(void)> func = {});
-    void driveStraight(float distInches, float speed, directionType dir, int timeout, 
-                      float slowDownInches, bool stopAfter = true, std::function<bool(void)> func = {});
-    void driveStraightTimed(float speed, directionType dir, int timeMs, bool stopAfter = true, std::function<bool(void)> func = {});
 
     void updateCamera(Goal goal);
 
-    void gyroCurve(float distInches, float maxSpeed, float turnAngle, int timeout, bool stopAfter = true, std::function<bool(void)> func = {});
-    void driveArmDown(float timeout);
 
     float initPot;
 

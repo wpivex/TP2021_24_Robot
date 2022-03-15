@@ -166,110 +166,82 @@ void Robot::teleop() {
 
 }
 
-void Robot::callibrateGyro() {
-  calibrationDone = false;
-  gyroSensor.calibrate();
-  // gyroSensor.startCalibration(2);
-  while (gyroSensor.isCalibrating()) wait(20, msec);
-  wait(1000, msec);
-  gyroSensor.resetHeading();
-  calibrationDone = true;
+void Robot::waitGyroCallibrate() {
+  if (gyroSensor.isCalibrating()) {
+    int i = 0;
+    while (gyroSensor.isCalibrating()) {
+      wait(20, msec);
+      i++;
+    }
+    gyroSensor.resetRotation();
+    wait(1000, msec);
+  }
+  
+  wait(500, msec);
+  gyroSensor.setHeading(180, degrees);
+  log("done calibration");
+  
 }
 
-
-void Robot::driveStraightTimed(float speed, directionType dir, int timeout, bool stopAfter, std::function<bool(void)> func) {
-  driveStraight(0, speed, dir, timeout, 0, stopAfter, func);
+// return in inches
+float Robot::getEncoderDistance() {
+  return degreesToDistance((leftMotorA.rotation(deg) + rightMotorA.rotation(deg)) / 2);
 }
 
-
-void Robot::driveStraight(float distInches, float speed, directionType dir, int timeout, 
-float slowDownInches, bool stopAfter, std::function<bool(void)> func) {
-
-  driveCurved(distInches, speed, dir, timeout, slowDownInches, 0, stopAfter, func);
-
+float Robot::getAngle() {
+  return gyroSensor.heading();
 }
 
-void Robot::driveCurved(float distInches, float speed, directionType dir, int timeout, 
-float slowDownInches, float turnPercent, bool stopAfter, std::function<bool(void)> func) {
+// Go forward a number of inches, maintaining a specific heading if angleCorrection = true
+void Robot::goForwardU(float distInches, float maxSpeed, float universalAngle, float slowDownInches, float minSpeed,
+bool stopAfter, std::function<bool(void)> func, float timeout) {
 
-  smartDrive(distInches, speed, dir, dir, timeout, slowDownInches, turnPercent, stopAfter, func);
+  Trapezoid trap(distInches, maxSpeed, minSpeed, slowDownInches, 0);
+  PID turnPID(1, 0.00, 0);
 
-}
-
-void Robot::driveTurn(float degrees, float speed, bool isClockwise, int timeout, float slowDownInches, 
-bool stopAfter, std::function<bool(void)> func) {
-
-  smartDrive(getTurnAngle(degrees), speed, isClockwise ? forward : reverse, isClockwise ? reverse: forward,
-  timeout, slowDownInches, 0, stopAfter, func);
-
-}
-
-// distInches is positive distance in inches to destination. -1 means indefinite (until timeout)
-// speed is percent 1-100
-// direction is for left motor, right depends if turning
-// timeout (optional parameter defaults to -1 -> none) in ms, terminates once reached
-// slowDownInches representing from what distance to destination the robot starts slowing down with proportional speed
-//  control in relation to distInches. Set by default to 10. 0 means attempt instant stop.
-//  a higher value is more controlled/consistent, a lower value is faster/more variable
-// turnPercent (from 0-1) is percent of speed to curve (so curvature now independent from speed). optional, default to 0
-// stopAfter whether to stop motors after function call.
-// func is an optional nonblocking function you can use to run as the same time as this method. It returns true when nonblocking function is gone
-void Robot::smartDrive(float distInches, float speed, directionType left, directionType right, int timeout, 
-float slowDownInches, float turnPercent, bool stopAfter, std::function<bool(void)> func) {
-
-
-  float finalDist = distInches == 0? -1 : distanceToDegrees(distInches);
-  float slowDown = distanceToDegrees(slowDownInches);
-
+  float currDist;
   int startTime = vex::timer::system();
   leftMotorA.resetPosition();
   rightMotorA.resetPosition();
 
-  // finalDist is 0 if we want driveTimed instead of drive some distance
-  float currentDist = 0;
-  while ((finalDist == -1 || currentDist < finalDist) && (timeout == -1 || vex::timer::system() < startTime + timeout*1000)) {
+  //log("start forward %f %f %f", distInches, startX, startY);
+
+  while (!trap.isCompleted() && !isTimeout(startTime, timeout)) {
 
     // if there is a concurrent function to run, run it
     if (func) {
-      if (func()) {
+      bool done = func();
+      if (done) {
         // if func is done, make it empty
         func = {};
       }
     }
 
-    currentDist = (fabs(leftMotorA.position(degrees)) + fabs(rightMotorA.position(degrees))) / 2;
-
-     // from 0 to 1 indicating proportion of velocity. Starts out constant at 1 until it hits the slowDown interval,
-     // where then it linearly decreases to 0
-    float proportion = slowDown == 0 ? 1 : fmin(1, 1 - (currentDist - (finalDist - slowDown)) / slowDown);
-    float baseSpeed = FORWARD_MIN_SPEED + (speed-FORWARD_MIN_SPEED) * proportion;
-
-    //log("%f", baseSpeed);
-
-    // turnPercent bounded between -1 (counterclockwise point turn) and 1 (clockwise point turn)
-    float lspeed, rspeed;
-    if (turnPercent >= 0) {
-      lspeed = 1;
-      rspeed = 1 - 2*turnPercent;
-    } else {
-      rspeed = 1;
-      lspeed = 1 + 2*turnPercent;
-    }
-
-    setLeftVelocity(left, lspeed * baseSpeed);
-    setRightVelocity(right, rspeed * baseSpeed);
+    currDist = getEncoderDistance();
     
+    float speed = trap.tick(currDist);
+    float ang = getAngleDiff(universalAngle, getAngle());
+    float correction = turnPID.tick(ang);
+ 
+    setLeftVelocity(forward, speed + correction);
+    setRightVelocity(forward, speed - correction);
+
+    //log("Target: %f\nActual:%f\nLeft:%f\nRight:%f\n", universalAngle, getAngle(), speed+correction, speed-correction);
+    log("%f", gyroSensor.heading());
+
     wait(20, msec);
-
   }
-
   if (stopAfter) {
     stopLeft();
     stopRight();
   }
+  log("straight done");
+}
 
-  // log("done");
-
+// Go forward with standard internal encoder wheels for distance, and no angle correction
+void Robot::goForward(float distInches, float maxSpeed, float universalAngle, float slowDownInches, float minSpeed,
+bool stopAfter, std::function<bool(void)> func, float timeout) {
+  goForwardU(distInches, maxSpeed, getAngle(), slowDownInches, minSpeed, stopAfter, func, timeout);
 }
 
 

@@ -53,6 +53,24 @@ static inline float distanceToDegrees(float distInches) {
   return distInches * 360 / 2 / M_PI / (4 / 2); // 4 in diameter wheels
 }
 
+static inline float degreesToDistance(float distDegrees) {
+  return distDegrees / (360 / 2 / M_PI / (4 / 2)); // 4 in diameter wheels
+}
+
+static inline float distanceFormula(float dx, float dy) {
+  return sqrt(dx*dx + dy*dy);
+}
+
+static inline float bound180(float angle) {
+  if (angle < -180) angle += 360;
+  else if (angle > 180) angle -= 360;
+  return angle;
+}
+
+// Find the closest angle between two universal angles
+static inline float getAngleDiff(float targetAngle, float currentAngle) {
+  return bound180(targetAngle - currentAngle);
+}
 
 // return distance in inches if wanting to turn turnAngle degrees
 static inline float getTurnAngle(float turnAngle) {
