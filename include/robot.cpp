@@ -178,7 +178,6 @@ void Robot::waitGyroCallibrate() {
   }
   
   wait(500, msec);
-  gyroSensor.setHeading(180, degrees);
   log("done calibration");
   
 }
@@ -195,6 +194,20 @@ void Robot::resetEncoderDistance() {
 
 float Robot::getAngle() {
   return gyroSensor.heading();
+}
+
+void Robot::goForwardTimed(float duration, float speed) {
+
+  int startTime = vex::timer::system();
+
+  while (!isTimeout(startTime, duration)) {
+    setLeftVelocity(forward, speed);
+    setRightVelocity(forward, speed);
+    wait(20, msec);
+  }
+  stopLeft();
+  stopRight();
+
 }
 
 // Go forward a number of inches, maintaining a specific heading if angleCorrection = true
@@ -246,7 +259,7 @@ bool stopAfter, std::function<bool(void)> func, float timeout) {
 }
 
 // Go forward with standard internal encoder wheels for distance, and no angle correction
-void Robot::goForward(float distInches, float maxSpeed, float universalAngle, float slowDownInches, float minSpeed,
+void Robot::goForward(float distInches, float maxSpeed, float slowDownInches, float minSpeed,
 bool stopAfter, std::function<bool(void)> func, float timeout) {
   goForwardU(distInches, maxSpeed, getAngle(), slowDownInches, minSpeed, stopAfter, func, timeout);
 }

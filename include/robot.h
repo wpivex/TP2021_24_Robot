@@ -94,13 +94,15 @@ class Robot {
     void resetEncoderDistance();
     float getAngle();
 
+    void goForwardTimed(float duration, float speed);
+    
     void goForwardU(float distInches, float maxSpeed, float universalAngle, float slowDownInches, float minSpeed = 20,
       bool stopAfter = true, std::function<bool(void)> func = {}, float timeout = 5);
 
-    void goForward(float distInches, float maxSpeed, float universalAngle, float slowDownInches, float minSpeed = 20,
+    void goForward(float distInches, float maxSpeed, float slowDownInches, float minSpeed = 20,
       bool stopAfter = true, std::function<bool(void)> func = {}, float timeout = 5);
 
-    void goCurve(float distInches, float maxSpeed, float turnPercent, float slowDownInches, float minSpeed, 
+    void goCurve(float distInches, float maxSpeed, float turnPercent, float slowDownInches, float minSpeed = 20, 
       bool stopAfter = true, std::function<bool(void)> func = {});
 
     void goTurnU_PID(float universalAngleDegrees, bool stopAfter = true, float timeout = 5);
