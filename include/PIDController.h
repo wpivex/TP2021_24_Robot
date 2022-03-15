@@ -3,24 +3,11 @@
 
 static const int UNBOUNDED = 0;
 
-struct PID_STRUCT {
-  float p, i, d, t;
-  int r;
-};
-
-static const struct PID_STRUCT DIST_24 = {1, 0, 0, 3, 10}; // going forward/curving for PID on stopping to target
-static const struct PID_STRUCT GTURN_24 = {1.25, 0, 0.3, 3, 10}; // gyro turn corrections, used both when going forward and turning to angle
-static const struct PID_STRUCT VTURN_24 = {1, 0, 0, 3, 10}; // vision turn corrections, used both with vision forward and vision aling
-static const struct PID_STRUCT ARM_FOUR = {0.3, 0, 0.3, 3, 10};
-static const struct PID_STRUCT ARM_CHAIN = {0.35, 0, 0.1, 3, 10};
-
-
 class PID {
 
   public:
 
-  PID(float kp, float ki, float kd, float TOLERANCE = -1, int REPEATED = -1, float minimum = 0);
-  PID(PID_STRUCT data);
+  PID(float kp, float ki, float kd, float TOLERANCE = -1, int REPEATED = -1, float minimum = 0, float maximum = -1);
   float tick(float error, float bound = UNBOUNDED);
   bool isCompleted();
 
@@ -34,5 +21,6 @@ class PID {
   int REPEATED_THRESHOLD;
   int repeated = 0;
   float min = 0;
+  float max = 0;
 
 };

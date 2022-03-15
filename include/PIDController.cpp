@@ -1,7 +1,7 @@
 #include "PIDController.h"
 #include "constants.h"
 
-PID::PID(float kp, float ki, float kd, float TOLERANCE, int REPEATED, float minimum) {
+PID::PID(float kp, float ki, float kd, float TOLERANCE, int REPEATED, float minimum, float maximum) {
 
   TOLERANCE_THRESHOLD = TOLERANCE; // the error threshold to be considered "done"
   REPEATED_THRESHOLD = REPEATED; // the number of times the threshold must be reached in a row to be considered "done"
@@ -11,11 +11,10 @@ PID::PID(float kp, float ki, float kd, float TOLERANCE, int REPEATED, float mini
   K_i = ki;
   K_d = kd;
   min = minimum;
+  max = maximum;
 }
 
-PID::PID(PID_STRUCT data) {
-  PID(data.p, data.i, data.d, data.t, data.r);
-}
+
 
 // bound is // max/min value of output. Useful for stuff like capping speed
 float PID::tick(float error, float bound) {
@@ -39,7 +38,9 @@ float PID::tick(float error, float bound) {
     output = fmin(-min, output);
   }
 
-  logController("%f | %d | %d %d %d | %d", (float) error, (int) output, (int) (K_p * error), (int) (K_i * integral), (int) (K_d * derivative), repeated);
+  if (max != -1) output = fmax(-max, fmin(max, output));
+
+  //logController("Error: %f \n Output: %f \n P: %f \n D: %f", error, output, (K_p * error), (K_d * derivative));
   return output;
 }
 

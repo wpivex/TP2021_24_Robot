@@ -1,4 +1,4 @@
-#include "TrapezoidController.h"
+#include "TrapezoidalController.h"
 
 Trapezoid::Trapezoid(float initialP, float targetP, float maxSpeedP, float minSpeedP, float slowDownP, float slowEndP) {
 
@@ -13,13 +13,14 @@ Trapezoid::Trapezoid(float initialP, float targetP, float maxSpeedP, float minSp
   
 }
 
-float Trapezoid::tick(float current) {
+float Trapezoid::tick(float currentP) {
+  current = currentP;
 
   float speed;
 
   if (fabs(target-current) < slowEnd) speed = minSpeed;
-  else if (fabs(target-current) > slowDown) speed = maxSpeed;
-  else speed = minSpeed + (maxSpeed - minSpeed) * fabs(target-current)) / slowDown;
+  else if (fabs(target-current) - slowEnd > slowDown) speed = maxSpeed;
+  else speed = minSpeed + (maxSpeed - minSpeed) * (fabs(target-current) - slowEnd) / (slowDown - slowEnd);
 
   return speed * direction;
 }
@@ -27,3 +28,4 @@ float Trapezoid::tick(float current) {
 bool Trapezoid::isCompleted() {
   if (direction == 1) return current > target;
   return current < target;
+}

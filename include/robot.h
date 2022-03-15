@@ -91,31 +91,27 @@ class Robot {
 
     // --------- NEW FUNCTIONS -----------
     float getEncoderDistance();
+    void resetEncoderDistance();
     float getAngle();
 
     void goForwardU(float distInches, float maxSpeed, float universalAngle, float slowDownInches, float minSpeed = 20,
       bool stopAfter = true, std::function<bool(void)> func = {}, float timeout = 5);
 
- 
+    void goForward(float distInches, float maxSpeed, float universalAngle, float slowDownInches, float minSpeed = 20,
+      bool stopAfter = true, std::function<bool(void)> func = {}, float timeout = 5);
 
-    void goVision(float distInches, float maxSpeed, Goal goal, directionType cameraDir, 
-    float rampUpInches = 0, float slowDownInches = 5, int timeout = 5, bool stopAfter = true, float K_P = 70, std::function<bool(void)> func = {});
+    void goCurve(float distInches, float maxSpeed, float turnPercent, float slowDownInches, float minSpeed, 
+      bool stopAfter = true, std::function<bool(void)> func = {});
 
-    void goTurn(float angleDegrees, std::function<bool(void)> func = {});
-    void goTurnU(float universalAngleDegrees, std::function<bool(void)> func = {});
-    bool goTurnVision(Goal goal, bool defaultClockwise, directionType cameraDir, float maxTurnAngle);
-    float goTurnVision2(Goal goal, directionType cameraDir, float minSpeed, float timeout);
-    void alignToGoalVision(Goal goal, bool clockwise, directionType cameraDirection, int timeout, float maxSpeed = 40);
-    
-    void goTurnFast(bool isClockwise, float turnDegrees, float maxSpeed, float minSpeed, float slowDownDegrees, float endSlowDegrees = 0,
-    float timeout = 5, std::function<bool(void)> func = {});
+    void goTurnU_PID(float universalAngleDegrees, bool stopAfter = true, float timeout = 5);
+    void goTurnU_TRAP(float universalAngleDegrees, bool stopAfter = true, float timeout = 5);
 
-    void goTurnFastU(float universalAngleDegrees, float maxSpeed, float minSpeed, float slowDownDegrees, float endSlowDegrees = 0, 
-    float timeout = 5, std::function<bool(void)> func = {});
-
+    void goVision(float distInches, float speed, Goal goal, float slowDownInches, float minSpeed = 20, bool stopAfter = true, float timeout = 5);
+    void goAlignVision(Goal goal, directionType cameraDir, float timeout = 5);
 
     void updateCamera(Goal goal);
 
+    void driveArmDown(float duration);
 
     float initPot;
 
