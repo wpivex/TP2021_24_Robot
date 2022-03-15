@@ -103,6 +103,7 @@ int skillsAuto(void) {
 
   // Go for right goal
   mainBot.goForward(33, 100, 5); // go back for approach to second goal
+  mainBot.possiblyResetGyroWithGPS();
   mainBot.goTurnU_TRAP(25);
   mainBot.setFrontClamp(true);
   mainBot.goVision(26, 90, YELLOW, 0, -1, false); // go to yellow goal
@@ -126,6 +127,8 @@ int skillsAuto(void) {
   mainBot.goForwardU(13, 40, 320, 2); // back away while trying to minimize future error by approaching the original 320 degree heading
   
   // Go to home platorm area
+  mainBot.goTurnU_TRAP(150);
+  mainBot.possiblyResetGyroWithGPS();
   mainBot.goTurnU_TRAP(180); // point towards home
   mainBot.goForwardU(82, 90, 180, 2, 30, false); // Go home while maintaing heading for perfect orthogonal movement
 
@@ -164,19 +167,6 @@ void logGyro() {
   }
 }
 
-int testing() {
-  // mainBot.driveStraight(13, 40, reverse, 2, 3, true); // move back while concurrently raising goal
-  // // mainBot.goTurnFastU(350, 50, 28, 40, 0, 5); // aim back towards platform, parallel to field
-  // mainBot.goTurn(-160);
-  // mainBot.goVision(38, 100, BLUE, forward);
-  // mainBot.goTurn(40);
-  // mainBot.goForward(26, 100);
-  // mainBot.goTurn(-33);
-  // mainBot.goForward(20, 100);
-  // mainBot.driveStraightTimed(30, forward, 3); // localize with home wall
-  mainBot.goVision(13, 30, RED, forward, 0, 5, 3, true, 120); // Approach red goal
-  return 0;
-}
 
 void userControl(void) { mainBot.setBrakeType(coast); task controlLoop1(mainTeleop); }
 

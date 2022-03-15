@@ -70,6 +70,7 @@ class Robot {
     void setControllerMapping(ControllerMapping mapping);
 
     void waitGyroCallibrate();
+    void possiblyResetGyroWithGPS();
 
     void openClaw();
     void closeClaw();
@@ -95,7 +96,7 @@ class Robot {
     float getAngle();
 
     void goForwardTimed(float duration, float speed);
-    
+
     void goForwardU(float distInches, float maxSpeed, float universalAngle, float slowDownInches, float minSpeed = 20,
       bool stopAfter = true, std::function<bool(void)> func = {}, float timeout = 5);
 

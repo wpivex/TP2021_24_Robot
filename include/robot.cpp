@@ -196,6 +196,22 @@ float Robot::getAngle() {
   return gyroSensor.heading();
 }
 
+// If the GPS is known to be reliable at a location, and the gyro heading is close enough to gps heading, recalibrate gyro heading
+// (assuming gps sensor is on left side of robot at the moment)
+void Robot::possiblyResetGyroWithGPS() {
+  
+  if (gpsSensor.quality() != 100) return; // must be gps localized at current frame
+
+  float gpsAngle = gpsSensor.heading() + 180;
+  if (fabs(getAngle() - gpsAngle) < 10) {
+    logController("YES set heading\nfrom:%f\nto:%f", getAngle(), gpsAngle);
+    gyroSensor.setHeading(gpsAngle, degrees);
+  } else {
+    logController("NO set heading\nfrom:%f\nto:%f", getAngle(), gpsAngle);
+  }
+
+}
+
 void Robot::goForwardTimed(float duration, float speed) {
 
   int startTime = vex::timer::system();
@@ -214,10 +230,9 @@ void Robot::goForwardTimed(float duration, float speed) {
 void Robot::goForwardU(float distInches, float maxSpeed, float universalAngle, float slowDownInches, float minSpeed,
 bool stopAfter, std::function<bool(void)> func, float timeout) {
 
-  leftMotorA.resetPosition();
-  rightMotorA.resetPosition();
+  resetEncoderDistance();
 
-  Trapezoid trap(getEncoderDistance(), distInches, maxSpeed, minSpeed, slowDownInches, 0);
+  Trapezoid trap(0, distInches, maxSpeed, minSpeed, slowDownInches, 0);
   PID turnPID(1, 0.00, 0);
 
   float currDist;
@@ -273,8 +288,6 @@ bool stopAfter, std::function<bool(void)> func) {
   Trapezoid trap(0, distInches, maxSpeed, minSpeed, slowDownInches, 0);
 
   int startTime = vex::timer::system();
-  leftMotorA.resetPosition();
-  rightMotorA.resetPosition();
 
   while (!trap.isCompleted() && !isTimeout(startTime, timeout)) {
 
