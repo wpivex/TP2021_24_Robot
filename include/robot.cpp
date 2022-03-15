@@ -262,7 +262,7 @@ bool stopAfter, std::function<bool(void)> func, float timeout) {
     setRightVelocity(forward, speed - correction);
 
     //log("Target: %f\nActual:%f\nLeft:%f\nRight:%f\n", universalAngle, getAngle(), speed+correction, speed-correction);
-    log("%f", gyroSensor.heading());
+    log("Heading: %f", gyroSensor.heading());
 
     wait(20, msec);
   }
@@ -327,7 +327,7 @@ bool stopAfter, std::function<bool(void)> func) {
 // Turn to some universal angle based on starting point. Turn direction is determined by smallest angle to universal angle
 void Robot::goTurnU_PID(float universalAngleDegrees, bool stopAfter, float timeout) {
 
-  PID anglePID(2, 0, 0.13, 1.5, 5, 12, 75);
+  PID anglePID(2, 0, 0.13, 1.5, 5, 25, 75);
 
   float speed;
 
@@ -363,8 +363,8 @@ void Robot::goTurnU_TRAP(float universalAngleDegrees, bool stopAfter, float time
   const float MAX_SPEED = 100;
   const float MIN_SPEED = 30;
 
-  float initAngle = universalAngleDegrees - getAngleDiff(universalAngleDegrees, getAngle()); // don't just use getAngle() because wraparound
-  Trapezoid angleTrap(initAngle, universalAngleDegrees, MAX_SPEED, MIN_SPEED, 50, 25);
+  float initAngle = getAngleDiff(universalAngleDegrees, getAngle()); // don't just use getAngle() because wraparound
+  Trapezoid angleTrap(initAngle, 0, MAX_SPEED, MIN_SPEED, 50, 25);
 
   log("initing");
   int startTime = vex::timer::system();
@@ -377,7 +377,7 @@ void Robot::goTurnU_TRAP(float universalAngleDegrees, bool stopAfter, float time
 
     //log("Turn \nTarget: %f \nCurrent: %f \nDiff: %f\nSpeed: %f \nGPS: %f", universalAngleDegrees, getAngle(), ang, speed, GPS11.heading());
     //log("heading: %f", GPS11.heading());
-    log("%f", gyroSensor.heading());
+    log("Heading: %f\nCurrentAngle: %f", gyroSensor.heading(), ang);
 
     setLeftVelocity(forward, speed);
     setRightVelocity(reverse, speed);

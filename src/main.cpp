@@ -87,7 +87,7 @@ int skillsAuto(void) {
 
   mainBot.gyroSensor.setHeading(180, degrees); // robot starts facing backwards
 
-  mainBot.setMaxArmTorque(ARM_CURRENT::HIGH);
+  mainBot.setMaxArmTorque(ARM_CURRENT::LOW);
   mainBot.setMaxDriveTorque(ARM_CURRENT::HIGH);
 
   // initialize function reference for future concurrency
@@ -95,16 +95,22 @@ int skillsAuto(void) {
 
   // Go for middle goal
   mainBot.setBackClamp(true);
-  mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_3);
-  mainBot.goForward(-50, 100, 0, -1, false, armFunc); // head towards yellow goal while moving arm
-  mainBot.arm.finishArmMovement(); // finish concurrent arm movement
+  mainBot.goCurve(-30, 100, 0.28, 0, -1, false);
+  mainBot.goForward(-30, 100, 0, -1, false); // head towards yellow goal while moving arm
   mainBot.setBackClamp(false); // clamp center goal
   mainBot.goForward(-5, 100, 5); // continue going forward while clamping
+  mainBot.setMaxArmTorque(ARM_CURRENT::HIGH);
+  mainBot.arm.initArmPosition();
 
   // Go for right goal
-  mainBot.goForward(33, 100, 5); // go back for approach to second goal
+  mainBot.arm.setArmDestination(ArmGraph::INTAKE_TO_PLACE_INTER_3);
+  mainBot.goForward(33, 100, 5, 20, true, armFunc); // go back for approach to second goal
+  mainBot.arm.finishArmMovement();
   mainBot.possiblyResetGyroWithGPS();
+  mainBot.setMaxArmTorque(ARM_CURRENT::MID);
+  wait(1000, msec);
   mainBot.goTurnU_TRAP(25);
+  wait(1000, msec);
   mainBot.setFrontClamp(true);
   mainBot.goVision(26, 90, YELLOW, 0, -1, false); // go to yellow goal
   mainBot.setFrontClamp(false); // grab yellow goal
@@ -115,15 +121,19 @@ int skillsAuto(void) {
   mainBot.goTurnU_TRAP(320); // aim approximately at red goal
   mainBot.goVision(13, 30, YELLOW, 1); // go slowly towards red goal while arm is still raised as to not block vision sensor
   mainBot.openClaw();
+  mainBot.setMaxArmTorque(ARM_CURRENT::HIGH);
+  mainBot.setMaxDriveTorque(ARM_CURRENT::OFF);
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE, 100, 3); // no concurrency here because everything must be done sequentially and precisely
   mainBot.driveArmDown(1); // make sure arm is low and ready to grab red goal.
+  mainBot.setMaxDriveTorque(ARM_CURRENT::HIGH);
   mainBot.goForward(10, 40, 1);
   mainBot.closeClaw(); // grab red goal
 
   // Obtain red goal
-  mainBot.setMaxDriveTorque(ARM_CURRENT::LOW); // maximum power to the arm
+  mainBot.setMaxDriveTorque(ARM_CURRENT::OFF); // maximum power to the arm
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_2);
   mainBot.setMaxDriveTorque(ARM_CURRENT::HIGH); // restore power to drive
+  mainBot.setMaxArmTorque(ARM_CURRENT::MID);
   mainBot.goForwardU(13, 40, 320, 2); // back away while trying to minimize future error by approaching the original 320 degree heading
   
   // Go to home platorm area
@@ -145,6 +155,7 @@ int skillsAuto(void) {
   // Go on platform. Start by aiming slightly left to strafe to right lateral plane and then self correct to orthogonal
   mainBot.goCurve(10, 50, -0.1, 0.5);
   mainBot.goForward(5, 50, 2);
+  mainBot.setMaxArmTorque(ARM_CURRENT::HIGH);
   mainBot.arm.moveArmToPosition(ArmGraph::INTAKE, 100, 3); // bring platform down
   mainBot.fourBarRight.setBrake(coast); // make sure vex releases those motors!
   mainBot.fourBarLeft.setBrake(coast);
@@ -173,14 +184,14 @@ void userControl(void) { mainBot.setBrakeType(coast); task controlLoop1(mainTele
 void autonomous() { mainBot.setBrakeType(hold); task auto1(skillsAuto); }
 
 int main() {
-  Competition.bStopAllTasksBetweenModes = true;
   mainBot.setBackClamp(false);
   mainBot.setFrontClamp(false);
+  Competition.bStopAllTasksBetweenModes = true;
 
   wait(500, msec);
   mainBot.gyroSensor.calibrate();
   mainBot.waitGyroCallibrate();
-  mainBot.arm.initArmPosition();
+  
 
 
   

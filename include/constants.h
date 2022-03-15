@@ -110,6 +110,7 @@ static inline void logController(const char *f, Args ... args) {
 // DO NOT LOG WITH TRAILING NEWLINE OR YOU GET MEM PERM ERR
 template <class ... Args>
 static inline void log(int line, const char *f, Args ... args) {
+  Brain.Screen.setFont(vex::mono40);
   Brain.Screen.clearLine(line);
   int row = line;
 
