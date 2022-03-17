@@ -166,6 +166,7 @@ void Robot::teleop() {
 
 }
 
+
 void Robot::callibrateGyro() {
   calibrationDone = false;
   gyroSensor.calibrate();
@@ -786,6 +787,58 @@ std::function<bool(void)> func) {
   goTurnFast(turnAngle > 0, fabs(turnAngle), maxSpeed, minSpeed, slowDownDegrees, endSlowDegrees, timeout, func);
 }
 
+// Trapezoidal motion profiling
+// Will use gyro sensor *doesn't rn
+// distAlongCirc is positive if forward, negative if reverse
+// curveDirection is true for right, false for left
+void Robot::goRadiusCurve(float radius, float distAlongCircum, bool curveDirection, float maxSpeed, float rampUp, float slowDown, float timeout) {
+
+  Trapezoid trap(distAlongCircum, maxSpeed, FORWARD_MIN_SPEED,rampUp,slowDown);
+  //      kp, kd, ki
+  PID anglepid(3, 0, 0); //definitely no kd imo
+
+  // different per robot
+  float distanceBetweenWheels = 0;
+
+  int startTime = vex::timer::system();
+  leftMotorA.resetPosition();
+  rightMotorA.resetPosition();
+  gyroSensor.resetRotation();
+
+
+  // Repeat until either arrived at target or timed out
+  while (!trap.isCompleted() && !isTimeout(startTime, timeout)) {
+
+    // // if there is a concurrent function to run, run it
+    // if (func) {
+    //   bool done = func();
+    //   if (done) {
+    //     // if func is done, make it empty
+    //     func = {};
+    //   }
+    // }
+
+    float distSoFar =  distanceToDegrees(leftMotorA.position(degrees) + rightMotorA.position(degrees) / 2);
+
+    float v_avg = trap.get(distSoFar); 
+    float difference = v_avg*distanceBetweenWheels/(2*radius);
+
+    float expectedAngle = (distSoFar/radius) * 180 / (atan(1)*4);
+    float angleError = expectedAngle - gyroSensor.rotation();
+    float angleCorrection = anglepid.tick(angleError);
+
+
+    setLeftVelocity(forward, v_avg - difference*(curveDirection ? 1:-1) + angleCorrection);
+    setRightVelocity(forward, v_avg + difference*(curveDirection ? 1:-1) - angleCorrection);
+
+    wait(20, msec);
+  }
+  logController("done");
+  stopLeft();
+  stopRight();
+
+}
+
 void Robot::driveArmDown(float timeout) {
   fourBarLeft.spin(reverse, 10, percent);
   fourBarRight.spin(reverse, 10, percent);
@@ -880,3 +933,5 @@ void Robot::setMaxDriveTorque(float c) {
   rightMotorD.setMaxTorque(c, currentUnits::amp);
   rightMotorE.setMaxTorque(c, currentUnits::amp);
 }
+
+
