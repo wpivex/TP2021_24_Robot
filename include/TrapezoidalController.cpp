@@ -1,31 +1,36 @@
 #include "TrapezoidalController.h"
+#include "constants.h"
 
-Trapezoid::Trapezoid(float initialP, float targetP, float maxSpeedP, float minSpeedP, float slowDownP, float slowEndP) {
 
-  direction = initialP < targetP ? 1 : -1;
-  target = targetP;
+Trapezoid::Trapezoid(float distInches, float maxSpeedP, float minSpeedP, float rampUpInches, float slowDownInches) {
+
+  dist = 0;
+  direction = (distInches > 0 ? 1 : -1);
+  finalDist = fabs(distInches);
   maxSpeed = maxSpeedP;
   minSpeed = minSpeedP;
-  slowDown = slowDownP;
-  slowEnd = slowEndP;
+  rampUp = rampUpInches;
+  slowDown = slowDownInches;
 
-  maxSpeed = fmax(minSpeed, maxSpeed); // make sure max speed is at least as fast as min speed
+  slowDown = fmin(slowDown, finalDist);
+  rampUp = fmin(rampUp, finalDist);
+  maxSpeed = fmax(minSpeed, maxSpeed);
   
 }
 
-float Trapezoid::tick(float currentP) {
-  current = currentP;
+float Trapezoid::get(float currDistance) {
 
-  float speed;
+  dist = fabs(currDistance);
+  float delta;
 
-  if (fabs(target-current) < slowEnd) speed = minSpeed;
-  else if (fabs(target-current) - slowEnd > slowDown) speed = maxSpeed;
-  else speed = minSpeed + (maxSpeed - minSpeed) * (fabs(target-current) - slowEnd) / (slowDown - slowEnd);
+  if (dist < rampUp) delta = dist / rampUp;
+  else if (finalDist - dist < slowDown) delta = (finalDist - dist) / slowDown;
+  else delta = 1;
 
-  return speed * direction;
+  float speed = minSpeed + (maxSpeed - minSpeed) * delta;
+  return direction * speed;
 }
 
 bool Trapezoid::isCompleted() {
-  if (direction == 1) return current > target;
-  return current < target;
+  return dist >= finalDist;
 }

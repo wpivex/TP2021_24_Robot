@@ -9,7 +9,7 @@
 competition Competition;
 
 Robot mainBot = Robot(&Controller1, IS_SKILLS);
-
+/*
 
 
 int mainTeleop() {
@@ -183,22 +183,33 @@ void userControl(void) { mainBot.setBrakeType(coast); task controlLoop1(mainTele
 
 void autonomous() { mainBot.setBrakeType(hold); task auto1(skillsAuto); }
 
+*/
+
+// sideLength is in inches
+void turnPolygon(int numSides, int sideLength) {
+
+  if (numSides == 1) mainBot.rotateAngle(360);
+  else {
+    for (int i = 0; i < numSides; i++) {
+      mainBot.goForward(sideLength);
+      mainBot.rotateAngle(360.0 / numSides);
+    }
+  }
+}
+
 int main() {
-  mainBot.setBackClamp(false);
-  mainBot.setFrontClamp(false);
-  Competition.bStopAllTasksBetweenModes = true;
-
-  wait(500, msec);
-  mainBot.gyroSensor.calibrate();
-  mainBot.waitGyroCallibrate();
-  
-
 
   
 
-  Competition.autonomous(autonomous);
-  Competition.drivercontrol(userControl);
-  // testArmValues();
+  mainBot.setBrakeType(hold);
+
+  turnPolygon(3, 15);
+
+  // mainBot.rotateAngle(180);
+  // wait(1000, msec);
+  // mainBot.rotateAngle(-90);
+  // wait(1000, msec);
+  // mainBot.rotateAngle(360);
 
   while (true) {
     wait(20, msec);

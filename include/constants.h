@@ -48,14 +48,19 @@ static const float TURN_MIN_SPEED = 5; // the robot approaches this speed at the
 
 static const int ARM_TIMEOUT = 300000;
 
+// 12.2 inch wheel to wheel
+// 4 inch wheel radius
+
+// for point turn, inches to move for each wheel moving in opposite direction
+static inline float getInchesFromAngle(float angle) {
+  return (angle / 360) * 3.14 * 12.2;
+}
 
 static inline float distanceToDegrees(float distInches) {
-  return distInches * 360 / 2 / M_PI / (4 / 2); // 4 in diameter wheels
+  float wheelDegrees =  distInches / (4 * 3.14) * 360;
+  return 5 * wheelDegrees; // 5:1 gear ratio
 }
 
-static inline float degreesToDistance(float distDegrees) {
-  return distDegrees / (360 / 2 / M_PI / (4 / 2)); // 4 in diameter wheels
-}
 
 static inline float distanceFormula(float dx, float dy) {
   return sqrt(dx*dx + dy*dy);
@@ -72,11 +77,7 @@ static inline float getAngleDiff(float targetAngle, float currentAngle) {
   return bound180(targetAngle - currentAngle);
 }
 
-// return distance in inches if wanting to turn turnAngle degrees
-static inline float getTurnAngle(float turnAngle) {
 
-  return fabs(distanceToDegrees(turnAngle / 360 * 2 * M_PI * (15.125 / 2)));
-}
 
 // timeout in seconds
 static inline bool isTimeout(int startTime, float timeout) {
@@ -110,7 +111,7 @@ static inline void logController(const char *f, Args ... args) {
 // DO NOT LOG WITH TRAILING NEWLINE OR YOU GET MEM PERM ERR
 template <class ... Args>
 static inline void log(int line, const char *f, Args ... args) {
-  Brain.Screen.setFont(vex::mono40);
+  Brain.Screen.setFont(vex::mono20);
   Brain.Screen.clearLine(line);
   int row = line;
 

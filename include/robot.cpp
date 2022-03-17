@@ -11,18 +11,18 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
   isSkills = _isSkills;
 
   leftMotorA = motor(PORT1, ratio18_1, true); 
-  leftMotorB = motor(PORT6, ratio18_1, true);
-  leftMotorC = motor(PORT3, ratio18_1, true);
-  leftMotorD = motor(PORT4, ratio18_1, true);
-  leftMotorE = motor(PORT5, ratio18_1, true);
+  // leftMotorB = motor(PORT6, ratio18_1, true);
+  // leftMotorC = motor(PORT3, ratio18_1, true);
+  // leftMotorD = motor(PORT4, ratio18_1, true);
+  // leftMotorE = motor(PORT5, ratio18_1, true);
   leftDrive = motor_group(leftMotorA, leftMotorB, leftMotorC, leftMotorD, leftMotorE);
 
-  rightMotorA = motor(PORT16, ratio18_1, false);
-  rightMotorB = motor(PORT17, ratio18_1, false);
+  rightMotorA = motor(PORT3, ratio18_1, false);
+  // rightMotorB = motor(PORT17, ratio18_1, false);
 
-  rightMotorC = motor(PORT18, ratio18_1, false);
-  rightMotorD = motor(PORT19, ratio18_1, false);
-  rightMotorE = motor(PORT20, ratio18_1, false);
+  // rightMotorC = motor(PORT18, ratio18_1, false);
+  // rightMotorD = motor(PORT19, ratio18_1, false);
+  // rightMotorE = motor(PORT20, ratio18_1, false);
   rightDrive = motor_group(rightMotorA, rightMotorB, rightMotorC, rightMotorD, rightMotorE);
 
   fourBarLeft = motor(PORT7, ratio36_1, false);
@@ -182,49 +182,62 @@ void Robot::waitGyroCallibrate() {
   
 }
 
-// return in inches
-float Robot::getEncoderDistance() {
-  return degreesToDistance((leftMotorA.rotation(deg) + rightMotorA.rotation(deg)) / 2);
-}
 
 void Robot::resetEncoderDistance() {
   leftMotorA.resetPosition();
   rightMotorA.resetPosition();
 }
 
-float Robot::getAngle() {
-  return gyroSensor.heading();
-}
 
-// If the GPS is known to be reliable at a location, and the gyro heading is close enough to gps heading, recalibrate gyro heading
-// (assuming gps sensor is on left side of robot at the moment)
-void Robot::possiblyResetGyroWithGPS() {
+
+void Robot::rotateAngle(float angle) {
+  resetEncoderDistance();
+  float inches = getInchesFromAngle(angle);
+  float dist = distanceToDegrees(inches);
+
   
-  if (gpsSensor.quality() != 100) return; // must be gps localized at current frame
+  Trapezoid trap(dist, 100, 15, distanceToDegrees(5), distanceToDegrees(3));
 
-  float gpsAngle = gpsSensor.heading() + 180;
-  if (fabs(getAngle() - gpsAngle) < 10) {
-    logController("YES set heading\nfrom:%f\nto:%f", getAngle(), gpsAngle);
-    gyroSensor.setHeading(gpsAngle, degrees);
-  } else {
-    logController("NO set heading\nfrom:%f\nto:%f", getAngle(), gpsAngle);
-  }
+  while (!trap.isCompleted()) {
 
-}
+    float currDist = (leftMotorA.position(degrees) - rightMotorA.position(degrees))/2;
+    float speed = trap.get(currDist);
 
-void Robot::goForwardTimed(float duration, float speed) {
-
-  int startTime = vex::timer::system();
-
-  while (!isTimeout(startTime, duration)) {
     setLeftVelocity(forward, speed);
-    setRightVelocity(forward, speed);
+    setRightVelocity(reverse, speed);
+
+    log("Hello World!\nFinal distance: %f\nCurrent Distance: %f\nSpeed: %f", dist, currDist, speed);
+
     wait(20, msec);
   }
   stopLeft();
   stopRight();
-
 }
+
+void Robot::goForward(float distInches) {
+  resetEncoderDistance();
+  float dist = distanceToDegrees(distInches);
+
+  Trapezoid trap(dist, 100, 15, distanceToDegrees(2), distanceToDegrees(2));
+
+  while (!trap.isCompleted()) {
+
+    float currDist = (leftMotorA.position(degrees) + rightMotorA.position(degrees)) / 2;
+    float speed = trap.get(currDist);
+
+    setLeftVelocity(forward, speed);
+    setRightVelocity(forward, speed);
+
+    log("fuck you");
+
+    wait(20, msec);
+  }
+  stopLeft();
+  stopRight();
+}
+
+
+/*
 
 // Go forward a number of inches, maintaining a specific heading if angleCorrection = true
 void Robot::goForwardU(float distInches, float maxSpeed, float universalAngle, float slowDownInches, float minSpeed,
@@ -483,6 +496,7 @@ void Robot::openClaw() {
 void Robot::closeClaw() {
   clawPiston.set(false);
 }
+*/
 
 
 void Robot::setLeftVelocity(directionType d, double percent) {
@@ -491,10 +505,6 @@ void Robot::setLeftVelocity(directionType d, double percent) {
     percent = -percent;
   }
   leftMotorA.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
-  leftMotorB.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
-  leftMotorC.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
-  leftMotorD.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
-  leftMotorE.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
 }
 
 void Robot::setRightVelocity(directionType d, double percent) {
@@ -503,40 +513,21 @@ void Robot::setRightVelocity(directionType d, double percent) {
     percent = -percent;
   }
   rightMotorA.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
-  rightMotorB.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
-  rightMotorC.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
-  rightMotorD.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
-  rightMotorE.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
 }
 
 void Robot::stopLeft() {
   leftMotorA.stop();
-  leftMotorB.stop();
-  leftMotorC.stop();
-  leftMotorD.stop();
-  leftMotorE.stop();
 }
 
 void Robot::stopRight() {
   rightMotorA.stop();
-  rightMotorB.stop();
-  rightMotorC.stop();
-  rightMotorD.stop();
-  rightMotorE.stop();
 }
 
 void Robot::setBrakeType(brakeType b) {
   leftMotorA.setBrake(b);
-  leftMotorB.setBrake(b);
-  leftMotorC.setBrake(b);
-  leftMotorD.setBrake(b);
-  leftMotorE.setBrake(b);
+
 
   rightMotorA.setBrake(b);
-  rightMotorB.setBrake(b);
-  rightMotorC.setBrake(b);
-  rightMotorD.setBrake(b);
-  rightMotorE.setBrake(b);
 }
 
 void Robot::setMaxArmTorque(float c) {
