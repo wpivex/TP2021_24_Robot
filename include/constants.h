@@ -41,7 +41,7 @@ const float MAX_VOLTS = 12.0; // maximum volts for vex motors
 
 
 static const float VISION_CENTER_X = 157.0;
-static const float DIST_BETEWEEN_WHEELS = 15.0;
+static const float DIST_BETWEEN_WHEELS = 15.0;
 
 static const float FORWARD_MIN_SPEED = 15; // the robot approaches this speed at the end of going forward
 static const float TURN_MIN_SPEED = 5; // the robot approaches this speed at the end of turning
@@ -53,6 +53,9 @@ static inline float distanceToDegrees(float distInches) {
   return distInches * 360 / 2 / M_PI / (4 / 2); // 4 in diameter wheels
 }
 
+static inline float degreesToDistance(float degrees) {
+  return degrees / (360 / 2 / M_PI / (4 / 2)); // 4 in diameter wheels
+}
 
 // return distance in inches if wanting to turn turnAngle degrees
 static inline float getTurnAngle(float turnAngle) {

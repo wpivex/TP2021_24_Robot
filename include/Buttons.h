@@ -22,8 +22,8 @@ class Buttons {
 
   private:
     vex::controller* rController;
-    const vex::controller::button* getObject(Button b);
+    vex::controller::button* getObject(Button b);
     bool prevButtonState[NUM_BUTTONS] = {false}; // initalize all values to false
-    const vex::controller::axis *AXES[5];
+    vex::controller::axis *AXES[5];
 
 };

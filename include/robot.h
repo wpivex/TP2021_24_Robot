@@ -119,7 +119,7 @@ class Robot {
     void goTurnFastU(float universalAngleDegrees, float maxSpeed, float minSpeed, float slowDownDegrees, float endSlowDegrees = 0, 
     float timeout = 5, std::function<bool(void)> func = {});
 
-    void goRadiusCurve(float radius, float distAlongCircum, bool curveDirection, float maxSpeed, float rampUp, float slowDown, float timeout = 5);
+    void goRadiusCurve(float radius, float distAlongCircum, bool curveDirection, float maxSpeed, float rampUp, float slowDown, bool stopAfter = true, float timeout = 5);
 
     // -------- OLD FUNCTIONS -----------
     void smartDrive(float distInches, float speed, directionType left, directionType right, int timeout, float slowDownInches, 
@@ -148,7 +148,8 @@ class Robot {
     void armTeleop();
     void pneumaticsTeleop();
     void clawMovement();
-    
+    float getEncoderDistance();
+    void resetEncoderDistance();
 
     float fourStart, chainStart;
 

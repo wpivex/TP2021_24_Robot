@@ -298,7 +298,7 @@ void Robot::goForward(float distInches, float maxSpeed, float rampUpInches, floa
       }
     }
 
-    float speed = trap.get( (leftMotorA.position(degrees) + rightMotorA.position(degrees)) / 2 );
+    float speed = trap.tick( (leftMotorA.position(degrees) + rightMotorA.position(degrees)) / 2 );
 
     setLeftVelocity(forward, speed);
     setRightVelocity(forward, speed);
@@ -340,7 +340,7 @@ void Robot::goForwardUniversal(float distInches, float maxSpeed, float universal
     }
 
     float error = anglePID.tick(turnAngle - gyroSensor.rotation(), 1);
-    float speed = trap.get( (leftMotorA.position(degrees) + rightMotorA.position(degrees)) / 2 );
+    float speed = trap.tick( (leftMotorA.position(degrees) + rightMotorA.position(degrees)) / 2 );
     float correction = anglePID.tick(error);
 
     float left = speed + correction * (speed > 0? 1 : -1);
@@ -404,7 +404,7 @@ void Robot::gyroCurve(float distInches, float maxSpeed, float turnAngle, int tim
     float distanceError = (leftMotorA.position(degrees) + rightMotorA.position(degrees)) / 2;
     targetAngle = turnAngle * fabs(fmax(0.3, fmin(1, (distanceError + 0.3*distanceInDegrees) / (distanceInDegrees))));
 
-    float speed = fmin(100, fmax(-100, trap.get(distanceError))); 
+    float speed = fmin(100, fmax(-100, trap.tick(distanceError))); 
     float turnDifference = anglePID.tick(targetAngle - gyroSensor.rotation(), 0.5);
 
     setLeftVelocity(forward, speed * (0.5+turnDifference));
@@ -447,7 +447,7 @@ void Robot::goCurve(float distInches, float maxSpeed, float turnPercent, float r
       }
     }
 
-    float speed = trap.get( (leftMotorA.position(degrees) + rightMotorA.position(degrees) / 2) ); 
+    float speed = trap.tick( (leftMotorA.position(degrees) + rightMotorA.position(degrees) / 2) ); 
 
     setLeftVelocity(forward, speed * (1 + turnPercent));
     setRightVelocity(forward, speed * (1 + turnPercent));
@@ -505,7 +505,7 @@ void Robot::goVision(float distInches, float maxSpeed, Goal goal, directionType 
     float correction = 0; // between -1 and 1
     if(camera->largestObject.exists)  correction = vPID.tick((VISION_CENTER_X - camera->largestObject.centerX) / VISION_CENTER_X);
 
-    float speed = trap.get( (leftMotorA.position(degrees) + rightMotorA.position(degrees)) / 2 );
+    float speed = trap.tick( (leftMotorA.position(degrees) + rightMotorA.position(degrees)) / 2 );
 
     float left = speed - (fabs(speed) / 50) * correction * (cameraDir == forward? 1 : -1);
     float right =  speed + (fabs(speed) / 50) * correction * (cameraDir == forward? 1 : -1);
@@ -791,51 +791,41 @@ std::function<bool(void)> func) {
 // Will use gyro sensor *doesn't rn
 // distAlongCirc is positive if forward, negative if reverse
 // curveDirection is true for right, false for left
-void Robot::goRadiusCurve(float radius, float distAlongCircum, bool curveDirection, float maxSpeed, float rampUp, float slowDown, float timeout) {
+void Robot::goRadiusCurve(float radius, float numRotations, bool curveDirection, float maxSpeed, float rampUp, float slowDown, bool stopAfter, float timeout) {
 
-  Trapezoid trap(distAlongCircum, maxSpeed, FORWARD_MIN_SPEED,rampUp,slowDown);
+  float distAlongCircum = numRotations * 2 * M_PI;
+
+  Trapezoid trap(distAlongCircum, maxSpeed, 12, rampUp,slowDown);
   //      kp, kd, ki
-  PID anglepid(3, 0, 0); //definitely no kd imo
+  PID anglepid(0.025, 0, 0); //definitely no kd imo
 
-  // different per robot
-  float distanceBetweenWheels = 0;
 
   int startTime = vex::timer::system();
-  leftMotorA.resetPosition();
-  rightMotorA.resetPosition();
-  gyroSensor.resetRotation();
-
+  resetEncoderDistance();
 
   // Repeat until either arrived at target or timed out
   while (!trap.isCompleted() && !isTimeout(startTime, timeout)) {
 
-    // // if there is a concurrent function to run, run it
-    // if (func) {
-    //   bool done = func();
-    //   if (done) {
-    //     // if func is done, make it empty
-    //     func = {};
-    //   }
-    // }
+    float distSoFar = getEncoderDistance();
 
-    float distSoFar =  distanceToDegrees(leftMotorA.position(degrees) + rightMotorA.position(degrees) / 2);
+    float v_avg = trap.tick(distSoFar); 
+    float v_ratio = fabs((radius+DIST_BETWEEN_WHEELS)/(radius-DIST_BETWEEN_WHEELS));
 
-    float v_avg = trap.get(distSoFar); 
-    float difference = v_avg*distanceBetweenWheels/(2*radius);
+    log("V_avg: %f\nV_diff: %f", v_avg, v_ratio);
 
-    float expectedAngle = (distSoFar/radius) * 180 / (atan(1)*4);
-    float angleError = expectedAngle - gyroSensor.rotation();
-    float angleCorrection = anglepid.tick(angleError);
+    float lPower = v_avg * sqrt(curveDirection ? v_ratio:1/v_ratio);
+    float rPower =  v_avg * sqrt(curveDirection ? 1/v_ratio:v_ratio);
 
-
-    setLeftVelocity(forward, v_avg - difference*(curveDirection ? 1:-1) + angleCorrection);
-    setRightVelocity(forward, v_avg + difference*(curveDirection ? 1:-1) - angleCorrection);
+    setLeftVelocity(forward, lPower);
+    setRightVelocity(forward, rPower);
 
     wait(20, msec);
   }
-  logController("done");
-  stopLeft();
-  stopRight();
+  if (stopAfter) {
+    stopLeft();
+    stopRight();
+  }
+  log("done");
 
 }
 
@@ -932,6 +922,16 @@ void Robot::setMaxDriveTorque(float c) {
   rightMotorC.setMaxTorque(c, currentUnits::amp);
   rightMotorD.setMaxTorque(c, currentUnits::amp);
   rightMotorE.setMaxTorque(c, currentUnits::amp);
+}
+
+// return in inches
+float Robot::getEncoderDistance() {
+  return degreesToDistance((leftMotorA.rotation(deg) + rightMotorA.rotation(deg)) / 2);
+}
+
+void Robot::resetEncoderDistance() {
+  leftMotorA.resetRotation();
+  rightMotorA.resetRotation();
 }
 
 

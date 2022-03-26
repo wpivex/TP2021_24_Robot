@@ -142,38 +142,6 @@ int matchAuto() {
   return 1;
 }
 
-
-void testArmValues() {
-  // mainBot.fourBarLeft.setBrake(coast);
-  // mainBot.fourBarRight.setBrake(coast);
-  // mainBot.chainBarLeft.setBrake(coast);
-  // mainBot.chainBarRight.setBrake(coast);
-
-  // bool wasAPressed = false;
-  // bool wasClawPressed = false;
-  // bool isClawOpen = false;
-  // while (true) {
-  //   if (Controller1.ButtonUp.pressing()) {
-  //     if(!wasClawPressed) {
-  //       mainBot.claw.rotateTo(isClawOpen? 500 : -520, deg, 100, velocityUnits::pct, false);
-  //       isClawOpen = !isClawOpen;
-  //     }
-  //     wasClawPressed = true;
-  //   } else {
-  //     wasClawPressed = false;
-  //   }
-  //   if (Controller1.ButtonA.pressing()) {
-  //     if(!wasAPressed) {
-  //       printf("{%f, %f},\n",  mainBot.fourBarRight.position(degrees), mainBot.chainBarRight.position(degrees));
-  //     }
-  //     wasAPressed = true;
-  //   } else {
-  //     wasAPressed = false;
-  //   }
-  //   wait(20, msec);
-  // }
-}
-
 int concurrentTest() {
 
   mainBot.arm.initArmPosition();
@@ -330,6 +298,25 @@ int skillsAuto(void) {
   return 1;
 }
 
+int worldSkillsAuto() {
+  while (!mainBot.calibrationDone);
+  mainBot.gyroSensor.setHeading(0, degrees);
+  mainBot.setBackClamp(true);
+  mainBot.goRadiusCurve(28, -7, true, 100, 0, 0, false, 5);
+  mainBot.driveStraight(10, 100, reverse, 5, 5);
+  mainBot.setBackClamp(false);
+  mainBot.driveStraight(60, 100, reverse, 5, 5);
+  mainBot.goTurnU(310);
+  wait(2, sec);
+  mainBot.goTurnU(0);
+  mainBot.setFrontClamp(true);
+  mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_3);
+  mainBot.driveStraight(30, 100, forward, 0, 0, false);
+  mainBot.setFrontClamp(false);
+  mainBot.driveStraight(20, 100, forward, 0, 5);
+  return 1;
+}
+
 void logGyro() {
   mainBot.gyroSensor.resetRotation();
   while (true) {
@@ -339,22 +326,12 @@ void logGyro() {
 }
 
 int testing() {
-  // mainBot.driveStraight(13, 40, reverse, 2, 3, true); // move back while concurrently raising goal
-  // // mainBot.goTurnFastU(350, 50, 28, 40, 0, 5); // aim back towards platform, parallel to field
-  // mainBot.goTurn(-160);
-  // mainBot.goVision(38, 100, BLUE, forward);
-  // mainBot.goTurn(40);
-  // mainBot.goForward(26, 100);
-  // mainBot.goTurn(-33);
-  // mainBot.goForward(20, 100);
-  // mainBot.driveStraightTimed(30, forward, 3); // localize with home wall
-  mainBot.goVision(13, 30, RED, forward, 0, 5, 3, true, 120); // Approach red goal
   return 0;
 }
 
 void userControl(void) { mainBot.setBrakeType(coast); task controlLoop1(mainTeleop); }
 
-void autonomous() { mainBot.setBrakeType(hold); task auto1(skillsAuto); }
+void autonomous() { mainBot.setBrakeType(hold); task auto1(worldSkillsAuto); }
 
 int main() {
   Competition.bStopAllTasksBetweenModes = true;
