@@ -72,14 +72,14 @@ static inline bool isTimeout(int startTime, float timeout) {
 
 // log output to controller
 template <class ... Args>
-static inline void logController(const char *f, Args ... args) {
+static inline void logController(char *f, Args ... args) {
 
   char *format = (char*)f;
 
   Controller1.Screen.clearScreen();
   int row = 1;
 
-  char* pch = strtok (format,"\n");
+  char* pch = strtok (f,"\n");
   while (pch != NULL)
   {
     Controller1.Screen.setCursor(row, 1);

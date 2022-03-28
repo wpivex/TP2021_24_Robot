@@ -10,7 +10,7 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
 
   isSkills = _isSkills;
 
-  leftMotorA = motor(PORT1, ratio18_1, true); 
+  leftMotorA = motor(PORT7, ratio18_1, true); 
   leftMotorB = motor(PORT6, ratio18_1, true);
   leftMotorC = motor(PORT3, ratio18_1, true);
   leftMotorD = motor(PORT4, ratio18_1, true);
@@ -18,11 +18,11 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
   leftDrive = motor_group(leftMotorA, leftMotorB, leftMotorC, leftMotorD, leftMotorE);
 
   rightMotorA = motor(PORT16, ratio18_1, false);
-  rightMotorB = motor(PORT17, ratio18_1, false);
+  rightMotorB = motor(PORT11, ratio18_1, false);
 
-  rightMotorC = motor(PORT18, ratio18_1, false);
-  rightMotorD = motor(PORT19, ratio18_1, false);
-  rightMotorE = motor(PORT20, ratio18_1, false);
+  rightMotorC = motor(PORT12, ratio18_1, false);
+  rightMotorD = motor(PORT13, ratio18_1, false);
+  rightMotorE = motor(PORT14, ratio18_1, false);
   rightDrive = motor_group(rightMotorA, rightMotorB, rightMotorC, rightMotorD, rightMotorE);
 
   fourBarLeft = motor(PORT7, ratio36_1, false);
@@ -157,11 +157,11 @@ void Robot::teleop() {
   }
 
   driveTeleop();
-  armTeleop();
-  clawMovement();
+  // armTeleop();
+  // clawMovement();
   goalClamp();
   // log("%f %f %f", chainBarLeft.position(deg), (initPot-chainBarPot.value(deg)) * 5, chainBarPot.value(deg));
-
+  logController("%f, %f", leftMotorA.current(), rightMotorA.current());
   buttons.updateButtonState();
 
 }

@@ -15,14 +15,14 @@ Robot mainBot = Robot(&Controller1, IS_SKILLS);
 int mainTeleop() {
 
   // In teleop, arm should default to this position
-  mainBot.setMaxArmTorque(ARM_CURRENT::HIGH);
-  mainBot.arm.setArmDestination(ArmGraph::ABOVE_GOAL);
+  // mainBot.setMaxArmTorque(ARM_CURRENT::HIGH);
+  // mainBot.arm.setArmDestination(ArmGraph::ABOVE_GOAL);
 
   mainBot.setBackClamp(false);
   mainBot.setFrontClamp(false);
-  mainBot.arm.initArmPosition();
-  mainBot.initPot = mainBot.chainBarPot.value(deg);
-  mainBot.arm.setPotInit(mainBot.initPot);
+  // mainBot.arm.initArmPosition();
+  // mainBot.initPot = mainBot.chainBarPot.value(deg);
+  // mainBot.arm.setPotInit(mainBot.initPot);
 
   while (true) {
     mainBot.teleop();
