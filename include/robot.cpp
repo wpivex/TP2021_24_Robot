@@ -25,14 +25,14 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
   rightMotorE = motor(PORT14, ratio18_1, false);
   rightDrive = motor_group(rightMotorA, rightMotorB, rightMotorC, rightMotorD, rightMotorE);
 
-  fourBarLeft = motor(PORT7, ratio36_1, false);
-  fourBarRight = motor(PORT14, ratio36_1, true);
-  chainBarLeft = motor(PORT9, ratio36_1, false);
-  chainBarRight = motor(PORT8, ratio36_1, true);
+  //fourBarLeft = motor(PORT7, ratio36_1, false);
+  //fourBarRight = motor(PORT14, ratio36_1, true);
+  //chainBarLeft = motor(PORT9, ratio36_1, false);
+  //chainBarRight = motor(PORT8, ratio36_1, true);
 
-  gyroSensor = inertial(PORT11);
+  //gyroSensor = inertial(PORT11);
 
-  arm.init(&buttons, chainBarLeft, chainBarRight, fourBarLeft, fourBarRight, chainBarPot, fourBarBump);
+  //arm.init(&buttons, chainBarLeft, chainBarRight, fourBarLeft, fourBarRight, chainBarPot, fourBarBump);
 
   driveType = TWO_STICK_ARCADE;
   robotController = c; 
