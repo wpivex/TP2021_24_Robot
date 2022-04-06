@@ -376,7 +376,7 @@ void Robot::goVision(float distInches, float maxSpeed, Goal goal, directionType 
       left *= 100/max;
       right *= 100/max;
     }
-    
+
     setLeftVelocity(cameraDir, left);
     setRightVelocity(cameraDir, right);
 
@@ -537,61 +537,6 @@ void Robot::goTurnU(float universalAngleDegrees, std::function<bool(void)> func)
   goTurn(turnAngle, func);
 }
 
-// A fast but inaccurate turning function
-void Robot::goTurnFast(bool isClockwise, float turnDegrees, float maxSpeed, float minSpeed, float slowDownDegrees, float endSlowDegrees, float timeout, std::function<bool(void)> func) {
-
-  float delta;
-  int startTime = vex::timer::system();
-  leftMotorA.resetPosition();
-  rightMotorA.resetPosition();
-  gyroSensor.resetRotation();
-  slowDownDegrees = fmin(slowDownDegrees, turnDegrees);
-
-  // logController("start turn fast");
-
-  // Repeat until either arrived at target or timed out
-  while (fabs(gyroSensor.rotation()) < turnDegrees && !isTimeout(startTime, timeout)) {
-
-    if (func) {
-      if (func()) {
-        // if func is done, make it empty
-        func = {};
-      }
-    }
-
-    // logController("%f", gyroSensor.heading());
-
-    float angle = fabs(gyroSensor.rotation());
-    if (turnDegrees - angle < endSlowDegrees) delta = 0;
-    else if (turnDegrees - angle < slowDownDegrees + endSlowDegrees) delta = (turnDegrees - endSlowDegrees - angle) / slowDownDegrees;
-    else delta = 1;
-
-    float speed = minSpeed + delta * (maxSpeed - minSpeed);
-
-    setLeftVelocity(isClockwise ? forward : reverse, speed);
-    setRightVelocity(isClockwise ? reverse : forward, speed);
-
-    wait(20, msec);
-
-  }
-  // logController("finish turn fast");
-  stopLeft();
-  stopRight();
-
-}
-
-// Turn to some universal angle based on starting point. Turn direction is determined by smallest angle
-void Robot::goTurnFastU(float universalAngleDegrees, float maxSpeed, float minSpeed, float slowDownDegrees, float endSlowDegrees, float timeout, 
-std::function<bool(void)> func) {
-
-  float gyroReading = gpsSensor.heading() + 180;//gyroSensor.heading(degrees);
-  float turnAngle = universalAngleDegrees - gyroReading;
-  if (turnAngle > 180) turnAngle -= 360;
-  else if (turnAngle < -180) turnAngle += 360;
-
-  logController("%f %f", turnAngle, gyroReading);
-  goTurnFast(turnAngle > 0, fabs(turnAngle), maxSpeed, minSpeed, slowDownDegrees, endSlowDegrees, timeout, func);
-}
 
 // Trapezoidal motion profiling
 // Will use gyro sensor *doesn't rn

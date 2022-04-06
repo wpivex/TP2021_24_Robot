@@ -55,7 +55,7 @@ int matchAuto(Goal allianceColor) {
   // ~~~~~~~~~~~~~ Box Rush Right ~~~~~~~~~~~~~~~
   mainBot.openClaw();
   // Drive forwards at full speed (while adjusting towards goal if needed)
-  mainBot.goVision(54, 100, YELLOW, forward, 0,0); 
+  mainBot.goForward(54, 100); 
   mainBot.closeClaw();
   // Raise arm a bit (so that other team cannot grab it)
   mainBot.setArmPercent(forward, 30);
@@ -66,10 +66,10 @@ int matchAuto(Goal allianceColor) {
 
 
   // ~~~~~~~~~~~ Middle Goal Check ~~~~~~~~~~~~~~
-  mainBot.goTurnFastU(130, 100, 15, 10);
+  mainBot.goTurnU(130);
   mainBot.alignToGoalVision(YELLOW, true, reverse, 5);
   mainBot.setBackClamp(true);
-  mainBot.goForward(-24*sqrt(3), 100);
+  mainBot.goVision(-24*sqrt(3), 100, YELLOW, reverse, 0, 0);
   mainBot.setBackClamp(false);
 
 

@@ -103,10 +103,6 @@ class Robot {
     // Turning Functions
     void goTurnU(float universalAngleDegrees, std::function<bool(void)> func = {});
     void goTurn(float angleDegrees, std::function<bool(void)> func = {});
-    void goTurnFastU(float universalAngleDegrees, float maxSpeed, float minSpeed, float slowDownDegrees, float endSlowDegrees = 0, 
-      float timeout = 5, std::function<bool(void)> func = {});
-    void goTurnFast(bool isClockwise, float turnDegrees, float maxSpeed, float minSpeed, float slowDownDegrees, float endSlowDegrees = 0,
-      float timeout = 5, std::function<bool(void)> func = {});
 
     // Curves
     void goRadiusCurve(float radius, float distAlongCircum, bool curveDirection, float maxSpeed, float rampUp, float slowDown, 

@@ -10,9 +10,12 @@
                       float slowDownInches, bool stopAfter = true, std::function<bool(void)> func = {});
     void driveStraightTimed(float speed, directionType dir, int timeMs, bool stopAfter = true, std::function<bool(void)> func = {});
     float goTurnVision2(Goal goal, directionType cameraDir, float minSpeed, float timeout);
-
-void driveStraightTimed(float speed, directionType dir, int timeout, bool stopAfter, std::function<bool(void)> func) {
-  driveStraight(0, speed, dir, timeout, 0, stopAfter, func);
+    void driveStraightTimed(float speed, directionType dir, int timeout, bool stopAfter, std::function<bool(void)> func) {
+      driveStraight(0, speed, dir, timeout, 0, stopAfter, func);
+    void goTurnFastU(float universalAngleDegrees, float maxSpeed, float minSpeed, float slowDownDegrees, float endSlowDegrees = 0, 
+      float timeout = 5, std::function<bool(void)> func = {});
+    void goTurnFast(bool isClockwise, float turnDegrees, float maxSpeed, float minSpeed, float slowDownDegrees, float endSlowDegrees = 0,
+      float timeout = 5, std::function<bool(void)> func = {});
 }
 
 
@@ -159,3 +162,60 @@ float goTurnVision2(Goal goal, directionType cameraDir, float minSpeed, float ti
   else return -1;
 
 }
+
+// A fast but inaccurate turning function
+void Robot::goTurnFast(bool isClockwise, float turnDegrees, float maxSpeed, float minSpeed, float slowDownDegrees, float endSlowDegrees, float timeout, std::function<bool(void)> func) {
+
+  float delta;
+  int startTime = vex::timer::system();
+  leftMotorA.resetPosition();
+  rightMotorA.resetPosition();
+  gyroSensor.resetRotation();
+  slowDownDegrees = fmin(slowDownDegrees, turnDegrees);
+
+  // logController("start turn fast");
+
+  // Repeat until either arrived at target or timed out
+  while (fabs(gyroSensor.rotation()) < turnDegrees && !isTimeout(startTime, timeout)) {
+
+    if (func) {
+      if (func()) {
+        // if func is done, make it empty
+        func = {};
+      }
+    }
+
+    // logController("%f", gyroSensor.heading());
+
+    float angle = fabs(gyroSensor.rotation());
+    if (turnDegrees - angle < endSlowDegrees) delta = 0;
+    else if (turnDegrees - angle < slowDownDegrees + endSlowDegrees) delta = (turnDegrees - endSlowDegrees - angle) / slowDownDegrees;
+    else delta = 1;
+
+    float speed = minSpeed + delta * (maxSpeed - minSpeed);
+
+    setLeftVelocity(isClockwise ? forward : reverse, speed);
+    setRightVelocity(isClockwise ? reverse : forward, speed);
+
+    wait(20, msec);
+
+  }
+  // logController("finish turn fast");
+  stopLeft();
+  stopRight();
+
+}
+
+// Turn to some universal angle based on starting point. Turn direction is determined by smallest angle
+void Robot::goTurnFastU(float universalAngleDegrees, float maxSpeed, float minSpeed, float slowDownDegrees, float endSlowDegrees, float timeout, 
+std::function<bool(void)> func) {
+
+  float gyroReading = gpsSensor.heading() + 180;//gyroSensor.heading(degrees);
+  float turnAngle = universalAngleDegrees - gyroReading;
+  if (turnAngle > 180) turnAngle -= 360;
+  else if (turnAngle < -180) turnAngle += 360;
+
+  logController("%f %f", turnAngle, gyroReading);
+  goTurnFast(turnAngle > 0, fabs(turnAngle), maxSpeed, minSpeed, slowDownDegrees, endSlowDegrees, timeout, func);
+}
+
