@@ -6,7 +6,7 @@
 // gear ratio is 60/36
 Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftMotorD(0), leftMotorE(0), rightMotorA(0), rightMotorB(0), 
   rightMotorC(0), rightMotorD(0), rightMotorE(0), fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0), frontCamera(PORT10), 
-  backCamera(PORT15), gyroSensor(PORT4), arm(), buttons(c), gpsSensor(0) {
+  backCamera(PORT15), gyroSensor(PORT4), arm(), buttons(c), gpsSensor(0), rightArm1(0), rightArm2(0), leftArm1(0), leftArm2(0) {
 
   isSkills = _isSkills;
 
@@ -19,28 +19,25 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
 
   rightMotorA = motor(PORT16, ratio18_1, false);
   rightMotorB = motor(PORT11, ratio18_1, false);
-
   rightMotorC = motor(PORT12, ratio18_1, false);
   rightMotorD = motor(PORT13, ratio18_1, false);
   rightMotorE = motor(PORT14, ratio18_1, false);
   rightDrive = motor_group(rightMotorA, rightMotorB, rightMotorC, rightMotorD, rightMotorE);
 
-  //fourBarLeft = motor(PORT7, ratio36_1, false);
-  //fourBarRight = motor(PORT14, ratio36_1, true);
-  //chainBarLeft = motor(PORT9, ratio36_1, false);
-  //chainBarRight = motor(PORT8, ratio36_1, true);
+  rightArm1 = motor(PORT10, ratio36_1, true);
+  rightArm2 = motor(PORT20, ratio36_1, true);
+  leftArm1 = motor(PORT8, ratio36_1, false);
+  leftArm2 = motor(PORT18, ratio36_1, false);  
+
+  rightArm1.setBrake(hold);
+  rightArm2.setBrake(hold);
+  leftArm1.setBrake(hold);
+  leftArm2.setBrake(hold);
 
   //gyroSensor = inertial(PORT11);
 
-  //arm.init(&buttons, chainBarLeft, chainBarRight, fourBarLeft, fourBarRight, chainBarPot, fourBarBump);
-
   driveType = TWO_STICK_ARCADE;
   robotController = c; 
-
-  fourBarLeft.setBrake(hold);
-  fourBarRight.setBrake(hold);
-  chainBarLeft.setBrake(hold);
-  chainBarRight.setBrake(hold);
 
   gpsSensor = gps(PORT2);
 
@@ -118,52 +115,22 @@ void Robot::setBackClamp(bool intaking) {
 }
 
 void Robot::armTeleop() {
-
-  if (armHold) setMaxArmTorque(ARM_CURRENT::LOW);
-  else {
-    if (arm.isMoving()) setMaxArmTorque(ARM_CURRENT::HIGH);
-    else setMaxArmTorque(ARM_CURRENT::MID);
+  if (buttons.pressing(buttons.A)) {
+    setArmPercent(forward, 50);
+  } else if (buttons.pressing(buttons.B)) {
+    setArmPercent(reverse, 40);
+  } else {
+    stopArm();
   }
-  arm.armMovement(true, 100);
-
-  // if(vex::controller().ButtonY.pressing()) {
-  //   // "Disable steppers" except you gotta hold it down
-  //   fourBarLeft.setBrake(coast);
-  //   fourBarRight.setBrake(coast);
-  //   chainBarLeft.setBrake(coast);
-  //   chainBarRight.setBrake(coast);
-  //   fourBarLeft.stop();
-  //   fourBarRight.stop();
-  // } else {
-  //   fourBarLeft.setBrake(hold);
-  //   fourBarRight.setBrake(hold);
-  //   chainBarLeft.setBrake(hold);
-  //   chainBarRight.setBrake(hold);
-  //   arm.armMovement(true, 10);
-  // }
-  // const float l = fourBarLeft.rotation(vex::degrees), r = fourBarLeft.rotation(vex::degrees);
-  // const float ll = chainBarLeft.rotation(vex::degrees), rr = chainBarRight.rotation(vex::degrees);
-  // log(6, "Live Vals:");
-  // log(7, "FBL %4f   FBR: %4f",l, r);
-  // log(8, "CBL %4f   CBR: %4f",ll, rr);
-
 }
 
 // Run every tick
 void Robot::teleop() {
-
-  if (buttons.pressed(ARM_TOGGLE)) {
-      armHold = !armHold;
-  }
-
   driveTeleop();
-  // armTeleop();
-  // clawMovement();
+  armTeleop();
+  clawMovement();
   goalClamp();
-  // log("%f %f %f", chainBarLeft.position(deg), (initPot-chainBarPot.value(deg)) * 5, chainBarPot.value(deg));
-  logController("%f, %f", leftMotorA.current(), rightMotorA.current());
   buttons.updateButtonState();
-
 }
 
 
@@ -889,6 +856,24 @@ void Robot::stopRight() {
   rightMotorE.stop();
 }
 
+void Robot::stopArm() {
+  rightArm1.stop(hold);
+  rightArm2.stop(hold);
+  leftArm1.stop(hold);
+  leftArm2.stop(hold);
+}
+
+void Robot::setArmPercent(directionType d, double percent) {
+  if (percent < 0) {
+    d = (d == forward) ? reverse : forward;
+    percent = -percent;
+  }
+  rightArm1.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
+  rightArm2.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
+  leftArm1.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
+  leftArm2.spin(d, percent / 100.0 * MAX_VOLTS, voltageUnits::volt);
+}
+
 void Robot::setBrakeType(brakeType b) {
   leftMotorA.setBrake(b);
   leftMotorB.setBrake(b);
@@ -933,5 +918,3 @@ void Robot::resetEncoderDistance() {
   leftMotorA.resetRotation();
   rightMotorA.resetRotation();
 }
-
-

@@ -45,13 +45,18 @@ class Robot {
     motor chainBarLeft;
     motor chainBarRight;
 
-    pot chainBarPot = pot(Brain.ThreeWirePort.H);
-    bumper fourBarBump = bumper(Brain.ThreeWirePort.A);
+    motor rightArm1;
+    motor rightArm2;
+    motor leftArm1;
+    motor leftArm2;  
+
+    // pot chainBarPot = pot(Brain.ThreeWirePort.H);
+    // bumper fourBarBump = bumper(Brain.ThreeWirePort.A);
 
     digital_out frontGoal = digital_out(Brain.ThreeWirePort.B);
-    digital_out backGoal = digital_out(Brain.ThreeWirePort.C);
+    digital_out backGoal = digital_out(Brain.ThreeWirePort.A);
 
-    digital_out clawPiston = digital_out(Brain.ThreeWirePort.G);
+    digital_out clawPiston = digital_out(Brain.ThreeWirePort.C);
 
     controller* robotController;
 
@@ -79,6 +84,8 @@ class Robot {
     void goalClamp();
     void setFrontClamp(bool intaking);
     void setBackClamp(bool intaking);
+    void stopArm();
+    void setArmPercent(directionType d, double percent);
 
     void userControl( void );
     void teleop( void );
