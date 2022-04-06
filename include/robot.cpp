@@ -5,8 +5,8 @@
 // Motor ports Left: 1R, 2F, 3F,  20T Right: 12R, 11F, 13F
 // gear ratio is 60/36
 Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftMotorD(0), leftMotorE(0), rightMotorA(0), rightMotorB(0), 
-  rightMotorC(0), rightMotorD(0), rightMotorE(0), fourBarLeft(0), fourBarRight(0), chainBarLeft(0), chainBarRight(0), frontCamera(PORT10), 
-  backCamera(PORT15), gyroSensor(PORT4), arm(), buttons(c), gpsSensor(0), rightArm1(0), rightArm2(0), leftArm1(0), leftArm2(0) {
+  rightMotorC(0), rightMotorD(0), rightMotorE(0), frontCamera(PORT10), 
+  backCamera(PORT15), gyroSensor(PORT4), buttons(c), gpsSensor(0), rightArm1(0), rightArm2(0), leftArm1(0), leftArm2(0) {
 
   isSkills = _isSkills;
 
@@ -63,7 +63,7 @@ void Robot::setControllerMapping(ControllerMapping mapping) {
 
 void Robot::driveTeleop() {
 
-  if (armHold) setBrakeType(hold);
+  if (driveHold) setBrakeType(hold);
   else setBrakeType(coast);
 
   if(driveType == TANK) {
@@ -82,21 +82,9 @@ void Robot::driveTeleop() {
 void Robot::goalClamp() {
 
   if (buttons.pressed(FRONT_CLAMP_TOGGLE)) {
-    if(testingArm) {
-      printf("{%f, %f},\n",  fourBarRight.position(degrees), chainBarRight.position(degrees));
-    } else {
-      frontGoal.set(!frontGoal.value());
-    }
+    frontGoal.set(!frontGoal.value());
   } else if (buttons.pressed(BACK_CLAMP_TOGGLE)) {
-    if(testingArm) {
-      armCoast = !armCoast;
-      fourBarLeft.setBrake(armCoast? coast : hold);
-      fourBarRight.setBrake(armCoast? coast : hold);
-      chainBarLeft.setBrake(armCoast? coast : hold);
-      chainBarRight.setBrake(armCoast? coast : hold);
-    } else {
       backGoal.set(!backGoal.value());
-    }
   }
 }
 
@@ -797,14 +785,18 @@ void Robot::goRadiusCurve(float radius, float numRotations, bool curveDirection,
 }
 
 void Robot::driveArmDown(float timeout) {
-  fourBarLeft.spin(reverse, 10, percent);
-  fourBarRight.spin(reverse, 10, percent);
+  leftArm1.spin(reverse, 10, percent);
+  leftArm2.spin(reverse,10, percent);
+  rightArm1.spin(reverse, 10, percent);
+  rightArm2.spin(reverse, 10, percent);
   int startTime = vex::timer::system();
   while (!isTimeout(startTime, timeout)) {
     wait(20, msec);
   }
-  fourBarLeft.stop(hold);
-  fourBarRight.stop(hold);
+  leftArm1.stop(hold);
+  leftArm2.stop(hold);
+  rightArm1.stop(hold);
+  rightArm2.stop(hold);
 }
 
 void Robot::openClaw() {
@@ -889,10 +881,10 @@ void Robot::setBrakeType(brakeType b) {
 }
 
 void Robot::setMaxArmTorque(float c) {
-  fourBarLeft.setMaxTorque(c, currentUnits::amp);
-  fourBarRight.setMaxTorque(c, currentUnits::amp);
-  chainBarLeft.setMaxTorque(c, currentUnits::amp);
-  chainBarRight.setMaxTorque(c, currentUnits::amp);
+  leftArm1.setMaxTorque(c, currentUnits::amp);
+  leftArm2.setMaxTorque(c, currentUnits::amp);
+  rightArm1.setMaxTorque(c, currentUnits::amp);
+  rightArm2.setMaxTorque(c, currentUnits::amp);
 }
 
 void Robot::setMaxDriveTorque(float c) {

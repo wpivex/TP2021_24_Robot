@@ -1,6 +1,6 @@
 #pragma once
-#include "ArmGraph.cpp"
 #include "TrapezoidalController.cpp"
+#include "PIDController.cpp"
 #include "Buttons.cpp"
 #include <string>
 #include <fstream>
@@ -40,11 +40,6 @@ class Robot {
     vision backCamera;
     vision frontCamera;
 
-    motor fourBarLeft;
-    motor fourBarRight;
-    motor chainBarLeft;
-    motor chainBarRight;
-
     motor rightArm1;
     motor rightArm2;
     motor leftArm1;
@@ -63,7 +58,6 @@ class Robot {
     inertial gyroSensor;
     gps gpsSensor;
 
-    ArmGraph arm;
     Buttons buttons;
 
     bool calibrationDone = false;
@@ -158,10 +152,7 @@ class Robot {
     float getEncoderDistance();
     void resetEncoderDistance();
 
-    float fourStart, chainStart;
-
-    bool armHold = false;
+    bool driveHold = false;
 
     bool isSkills;
-    bool armCoast = false;
 };

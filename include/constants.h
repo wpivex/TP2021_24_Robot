@@ -3,16 +3,18 @@
 
 #include "vex.h"
 
+using namespace vex;
+
 const bool IS_SKILLS = false;
 const bool testingArm = false;
 
-vex::brain Brain;
-vex::controller Controller1(vex::controllerType::primary);
+brain Brain;
+controller Controller1(controllerType::primary);
 
 struct Goal {
   int id;
   int bright;
-  vex::vision::signature sig;
+  vision::signature sig;
 };
 
 // COMP FIELD
