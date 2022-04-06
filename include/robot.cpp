@@ -133,100 +133,6 @@ void Robot::callibrateGyro() {
 }
 
 
-void Robot::driveStraightTimed(float speed, directionType dir, int timeout, bool stopAfter, std::function<bool(void)> func) {
-  driveStraight(0, speed, dir, timeout, 0, stopAfter, func);
-}
-
-
-void Robot::driveStraight(float distInches, float speed, directionType dir, int timeout, 
-float slowDownInches, bool stopAfter, std::function<bool(void)> func) {
-
-  driveCurved(distInches, speed, dir, timeout, slowDownInches, 0, stopAfter, func);
-
-}
-
-void Robot::driveCurved(float distInches, float speed, directionType dir, int timeout, 
-float slowDownInches, float turnPercent, bool stopAfter, std::function<bool(void)> func) {
-
-  smartDrive(distInches, speed, dir, dir, timeout, slowDownInches, turnPercent, stopAfter, func);
-
-}
-
-void Robot::driveTurn(float degrees, float speed, bool isClockwise, int timeout, float slowDownInches, 
-bool stopAfter, std::function<bool(void)> func) {
-
-  smartDrive(getTurnAngle(degrees), speed, isClockwise ? forward : reverse, isClockwise ? reverse: forward,
-  timeout, slowDownInches, 0, stopAfter, func);
-
-}
-
-// distInches is positive distance in inches to destination. -1 means indefinite (until timeout)
-// speed is percent 1-100
-// direction is for left motor, right depends if turning
-// timeout (optional parameter defaults to -1 -> none) in ms, terminates once reached
-// slowDownInches representing from what distance to destination the robot starts slowing down with proportional speed
-//  control in relation to distInches. Set by default to 10. 0 means attempt instant stop.
-//  a higher value is more controlled/consistent, a lower value is faster/more variable
-// turnPercent (from 0-1) is percent of speed to curve (so curvature now independent from speed). optional, default to 0
-// stopAfter whether to stop motors after function call.
-// func is an optional nonblocking function you can use to run as the same time as this method. It returns true when nonblocking function is gone
-void Robot::smartDrive(float distInches, float speed, directionType left, directionType right, int timeout, 
-float slowDownInches, float turnPercent, bool stopAfter, std::function<bool(void)> func) {
-
-
-  float finalDist = distInches == 0? -1 : distanceToDegrees(distInches);
-  float slowDown = distanceToDegrees(slowDownInches);
-
-  int startTime = vex::timer::system();
-  leftMotorA.resetPosition();
-  rightMotorA.resetPosition();
-
-  // finalDist is 0 if we want driveTimed instead of drive some distance
-  float currentDist = 0;
-  while ((finalDist == -1 || currentDist < finalDist) && (timeout == -1 || vex::timer::system() < startTime + timeout*1000)) {
-
-    // if there is a concurrent function to run, run it
-    if (func) {
-      if (func()) {
-        // if func is done, make it empty
-        func = {};
-      }
-    }
-
-    currentDist = (fabs(leftMotorA.position(degrees)) + fabs(rightMotorA.position(degrees))) / 2;
-
-     // from 0 to 1 indicating proportion of velocity. Starts out constant at 1 until it hits the slowDown interval,
-     // where then it linearly decreases to 0
-    float proportion = slowDown == 0 ? 1 : fmin(1, 1 - (currentDist - (finalDist - slowDown)) / slowDown);
-    float baseSpeed = FORWARD_MIN_SPEED + (speed-FORWARD_MIN_SPEED) * proportion;
-
-    //log("%f", baseSpeed);
-
-    // turnPercent bounded between -1 (counterclockwise point turn) and 1 (clockwise point turn)
-    float lspeed, rspeed;
-    if (turnPercent >= 0) {
-      lspeed = 1;
-      rspeed = 1 - 2*turnPercent;
-    } else {
-      rspeed = 1;
-      lspeed = 1 + 2*turnPercent;
-    }
-
-    setLeftVelocity(left, lspeed * baseSpeed);
-    setRightVelocity(right, rspeed * baseSpeed);
-    
-    wait(20, msec);
-
-  }
-
-  if (stopAfter) {
-    stopLeft();
-    stopRight();
-  }
-
-  // log("done");
-
-}
 
 
 
@@ -465,14 +371,12 @@ void Robot::goVision(float distInches, float maxSpeed, Goal goal, directionType 
     float left = speed - (fabs(speed) / 50) * correction * (cameraDir == forward? 1 : -1);
     float right =  speed + (fabs(speed) / 50) * correction * (cameraDir == forward? 1 : -1);
 
-    if (fabs(left) > 100) {
-      right = right * fabs(100 / left);
-      left = fmin(100, fmax(-100, left));
-    } else if (fabs(right) > 100) {
-      left = left * fabs(100 / right);
-      right = fmin(100, fmax(-100, right));
+    float max = std::max(fabs(left),fabs(right));
+    if(max > 100){
+      left *= 100/max;
+      right *= 100/max;
     }
-
+    
     setLeftVelocity(cameraDir, left);
     setRightVelocity(cameraDir, right);
 
@@ -583,59 +487,6 @@ void Robot::alignToGoalVision(Goal goal, bool clockwise, directionType cameraDir
   stopRight();
 }
 
-float Robot::goTurnVision2(Goal goal, directionType cameraDir, float minSpeed, float timeout) {
-
-  const float END_SLOW_DEGREES = 0.5;
-  const float SLOW_DOWN_DEGREES = 1; 
-  const int MIN_SPEED = minSpeed;
-  const int MAX_SPEED = 70;
-
-  float delta, offset;
-  int startTime = vex::timer::system();
-  updateCamera(goal);
-
-  vision *camera = (cameraDir == forward) ? &frontCamera : &backCamera;
-  camera->takeSnapshot(goal.sig);
-
-  while(!camera->largestObject.exists) {
-    logController("Waiting for camera\n for %d seconds", vex::timer::system() - startTime);
-    if(!isTimeout(startTime, timeout)) return -1;
-    camera->takeSnapshot(goal.sig);
-    wait(50, msec);
-  }
-
-  // false if overshooting to the right, true if overshooting to the left
-  bool clockwise = camera->largestObject.centerX > VISION_CENTER_X;
-
-  offset = 1;
-  while (offset > 0.01 && !isTimeout(startTime, timeout)) {
-    camera->takeSnapshot(goal.sig);
-    if (camera->largestObject.exists)
-       offset = (clockwise ? 1 : -1) * ((camera->largestObject.centerX - VISION_CENTER_X) / VISION_CENTER_X);
-    if (offset < END_SLOW_DEGREES) delta = 0;
-    else if (offset < SLOW_DOWN_DEGREES + END_SLOW_DEGREES) delta = (offset - END_SLOW_DEGREES) / SLOW_DOWN_DEGREES;
-    else delta = 1;
-
-    float speed = MIN_SPEED + delta * (MAX_SPEED - MIN_SPEED);
-
-    logController("%f %f %f", offset, delta, speed);
-    if (camera->largestObject.exists) {
-      setLeftVelocity(clockwise ? forward : reverse, speed);
-      setRightVelocity(clockwise ? reverse : forward, speed);
-    }
-
-    wait(20, msec);
-
-  }
-
-  stopLeft();
-  stopRight();
-  camera->takeSnapshot(goal.sig);
-  if (camera->largestObject.exists)
-    return (clockwise ? 1 : -1) * ((camera->largestObject.centerX - VISION_CENTER_X) / VISION_CENTER_X);
-  else return -1;
-
-}
 
 // angleDegrees is positive if clockwise, negative if counterclockwise
 void Robot::goTurn(float angleDegrees, std::function<bool(void)> func) {
