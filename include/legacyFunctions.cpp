@@ -1,4 +1,4 @@
-#include "robot.h";
+#include "robot.h"
     // -------- Headers -----------
     void smartDrive(float distInches, float speed, directionType left, directionType right, int timeout, float slowDownInches, 
                     float turnPercent, bool stopAfter, std::function<bool(void)> func);
@@ -164,7 +164,7 @@ float goTurnVision2(Goal goal, directionType cameraDir, float minSpeed, float ti
 }
 
 // A fast but inaccurate turning function
-void Robot::goTurnFast(bool isClockwise, float turnDegrees, float maxSpeed, float minSpeed, float slowDownDegrees, float endSlowDegrees, float timeout, std::function<bool(void)> func) {
+void goTurnFast(bool isClockwise, float turnDegrees, float maxSpeed, float minSpeed, float slowDownDegrees, float endSlowDegrees, float timeout, std::function<bool(void)> func) {
 
   float delta;
   int startTime = vex::timer::system();
@@ -207,7 +207,7 @@ void Robot::goTurnFast(bool isClockwise, float turnDegrees, float maxSpeed, floa
 }
 
 // Turn to some universal angle based on starting point. Turn direction is determined by smallest angle
-void Robot::goTurnFastU(float universalAngleDegrees, float maxSpeed, float minSpeed, float slowDownDegrees, float endSlowDegrees, float timeout, 
+void goTurnFastU(float universalAngleDegrees, float maxSpeed, float minSpeed, float slowDownDegrees, float endSlowDegrees, float timeout, 
 std::function<bool(void)> func) {
 
   float gyroReading = gpsSensor.heading() + 180;//gyroSensor.heading(degrees);
