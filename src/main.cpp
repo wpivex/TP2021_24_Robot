@@ -13,16 +13,8 @@ Robot mainBot = Robot(&Controller1, IS_SKILLS);
 
 
 int mainTeleop() {
-
-  // In teleop, arm should default to this position
-  // mainBot.setMaxArmTorque(ARM_CURRENT::HIGH);
-  // mainBot.arm.setArmDestination(ArmGraph::ABOVE_GOAL);
-
   mainBot.setBackClamp(false);
   mainBot.setFrontClamp(false);
-  // mainBot.arm.initArmPosition();
-  // mainBot.initPot = mainBot.chainBarPot.value(deg);
-  // mainBot.arm.setPotInit(mainBot.initPot);
 
   while (true) {
     mainBot.teleop();
@@ -34,7 +26,6 @@ int mainTeleop() {
 
 
 /*
-
 void middleFirst(void) {
   int color = 1; //red is 1, blue is 2
   mainBot.setBackClamp(true);
@@ -59,21 +50,40 @@ void middleFirst(void) {
 }
 */
 
-int matchAuto() {
-  // Box Rush
-  mainBot.openClaw();
-  mainBot.goVision(54, 100, YELLOW, forward, 0,0);
-  mainBot.closeClaw();
-  mainBot.setArmPercent(forward, 30);
-  mainBot.goForward(-48, 100);
+int matchAuto(Goal allianceColor) {
 
-  // Everything else
-  // mainBot.turnToAngle(100, 90, true, reverse);
-  // mainBot.moveArmToPosition(mainBot.ABOVE_MIDDLE, 100);
-  // mainBot.turnAndAlignVision(true, color, 0.1, true);
-  // mainBot.moveArmToPosition(mainBot.INTAKING, 100);
-  // mainBot.openClaw();
-  // mainBot.driveStraight(20, 13);
+  // ~~~~~~~~~~~~~ Box Rush Right ~~~~~~~~~~~~~~~
+  mainBot.openClaw();
+  // Drive forwards at full speed (while adjusting towards goal if needed)
+  mainBot.goVision(54, 100, YELLOW, forward, 0,0); 
+  mainBot.closeClaw();
+  // Raise arm a bit (so that other team cannot grab it)
+  mainBot.setArmPercent(forward, 30);
+  // Maybe use concurrency to raise arm while reversing
+  // Maybe another driveForward variety with a method that triggers after a certain distance
+  // RETREAT
+  mainBot.goForward(-24, 100, 0, 8); 
+
+
+  // ~~~~~~~~~~~ Middle Goal Check ~~~~~~~~~~~~~~
+  mainBot.goTurnFastU(130, 100, 15, 10);
+  mainBot.alignToGoalVision(YELLOW, true, reverse, 5);
+  mainBot.setBackClamp(true);
+  mainBot.goForward(-24*sqrt(3), 100);
+  mainBot.setBackClamp(false);
+
+
+  // ~~~~~~~~~~~~~~ Alliance Goal ~~~~~~~~~~~~~~~~
+  mainBot.goForward(24*sqrt(3), 100);
+  mainBot.alignToGoalVision(allianceColor,true, forward, 5);
+  mainBot.setFrontClamp(true);
+  mainBot.goForward(24, 50);
+  mainBot.setFrontClamp(false);
+
+  // ~~~~~~~~~~~ Get out of the 15's way~~~~~~~~~~~
+  mainBot.goTurnU(0);
+  mainBot.goForward(-24,30);
+
   return 1;
 }
 
@@ -101,17 +111,16 @@ int worldSkillsAuto() {
   mainBot.gyroSensor.setHeading(0, degrees);
   mainBot.setBackClamp(true);
   mainBot.goRadiusCurve(28, -7, true, 100, 0, 0, false, 5);
-  mainBot.driveStraight(10, 100, reverse, 5, 5);
+  mainBot.goForward(-10, 100);
   mainBot.setBackClamp(false);
-  mainBot.driveStraight(60, 100, reverse, 5, 5);
+  mainBot.goForward(-60, 100);
   mainBot.goTurnU(310);
   wait(2, sec);
   mainBot.goTurnU(0);
   mainBot.setFrontClamp(true);
-  //mainBot.arm.moveArmToPosition(ArmGraph::INTAKE_TO_PLACE_INTER_3);
-  mainBot.driveStraight(30, 100, forward, 0, 0, false);
+  mainBot.goForward(30, 100, 0, 0, false); //add stopAfter if this is intended behavior
   mainBot.setFrontClamp(false);
-  mainBot.driveStraight(20, 100, forward, 0, 5);
+  mainBot.goForward(20, 100,0,5,5);
   return 1;
 }
 
