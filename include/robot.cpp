@@ -43,6 +43,10 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
 
   setControllerMapping(DEFAULT_MAPPING);
 
+  globalEncoderLeft = 0;
+  globalEncoderRight = 0;
+
+
 }
 
 void Robot::setControllerMapping(ControllerMapping mapping) {
@@ -132,10 +136,6 @@ void Robot::callibrateGyro() {
   calibrationDone = true;
 }
 
-
-
-
-
 // Go forward in whatever direction it was already in
 // Trapezoidal motion profiling
 void Robot::goForward(float distInches, float maxSpeed, float rampUpInches, float slowDownInches, int timeout, std::function<bool(void)> func) {
@@ -143,8 +143,7 @@ void Robot::goForward(float distInches, float maxSpeed, float rampUpInches, floa
   Trapezoid trap(distInches, maxSpeed, FORWARD_MIN_SPEED, rampUpInches, slowDownInches);
 
   int startTime = vex::timer::system();
-  leftMotorA.resetPosition();
-  rightMotorA.resetPosition();
+  resetEncoderDistance();
   gyroSensor.resetRotation();
 
   // finalDist is 0 if we want driveTimed instead of drive some distance
@@ -159,7 +158,7 @@ void Robot::goForward(float distInches, float maxSpeed, float rampUpInches, floa
       }
     }
 
-    float speed = trap.tick( (leftMotorA.position(degrees) + rightMotorA.position(degrees)) / 2 );
+    float speed = trap.tick(degreesToDistance((leftMotorA.position(degrees) + rightMotorA.position(degrees)) / 2));
 
     setLeftVelocity(forward, speed);
     setRightVelocity(forward, speed);
@@ -184,8 +183,7 @@ void Robot::goForwardUniversal(float distInches, float maxSpeed, float universal
   else if (turnAngle < -180) turnAngle += 360;
 
   int startTime = vex::timer::system();
-  leftMotorA.resetPosition();
-  rightMotorA.resetPosition();
+  resetEncoderDistance();
   gyroSensor.resetRotation();
 
   // finalDist is 0 if we want driveTimed instead of drive some distance
@@ -201,7 +199,7 @@ void Robot::goForwardUniversal(float distInches, float maxSpeed, float universal
     }
 
     float error = anglePID.tick(turnAngle - gyroSensor.rotation(), 1);
-    float speed = trap.tick( (leftMotorA.position(degrees) + rightMotorA.position(degrees)) / 2 );
+    float speed = trap.tick(degreesToDistance((leftMotorA.position(degrees) + rightMotorA.position(degrees)) / 2));
     float correction = anglePID.tick(error);
 
     float left = speed + correction * (speed > 0? 1 : -1);
@@ -226,6 +224,98 @@ void Robot::goForwardUniversal(float distInches, float maxSpeed, float universal
 
 }
 
+// angleDegrees is positive if clockwise, negative if counterclockwise
+void Robot::goTurn(float angleDegrees, std::function<bool(void)> func) {
+
+  PID anglePID(3, 0.00, 0.05, 2, 3, 25);
+  //PID anglePID(GTURN_24);
+
+  float timeout = 5;
+  float speed;
+
+  // log("initing");
+  int startTime = vex::timer::system();
+  resetEncoderDistance();
+  gyroSensor.resetRotation();
+  // log("about to loop");
+
+  while (!anglePID.isCompleted() && !isTimeout(startTime, timeout)) {
+
+    if (func) {
+      if (func()) {
+        // if func is done, make it empty
+        func = {};
+      }
+    }
+
+    speed = anglePID.tick(angleDegrees - gyroSensor.rotation());
+
+    //logController("wtf %f", speed);
+
+    setLeftVelocity(forward, speed);
+    setRightVelocity(reverse, speed);
+
+    wait(20, msec);
+  }
+  logController("wtf done");
+
+  stopLeft();
+  stopRight();
+}
+
+// Turn to some universal angle based on starting point. Turn direction is determined by smallest angle
+void Robot::goTurnU(float universalAngleDegrees, std::function<bool(void)> func) {
+
+  float turnAngle = universalAngleDegrees - gyroSensor.heading(degrees);
+  if (turnAngle > 180) turnAngle -= 360;
+  else if (turnAngle < -180) turnAngle += 360;
+
+  goTurn(turnAngle, func);
+}
+
+void Robot::encoderTurn(float angle) {
+  resetEncoderDistance();
+  float inches = DIST_BETWEEN_WHEELS*M_PI*(angle/360); // angle/360 is the proportion of a circle to turn
+  float dist = distanceToDegrees(inches);
+
+  float MAX_SPEED = 70;
+  
+  Trapezoid trap(dist, MAX_SPEED, 15, distanceToDegrees(3), distanceToDegrees(3));
+  PID turnPID(1, 0, 0);
+
+  while (!trap.isCompleted()) {
+
+    float left = (leftMotorA.rotation(degrees) + leftMotorB.rotation(degrees)) / 2;
+    float right = (rightMotorA.rotation(degrees) + rightMotorB.rotation(degrees)) / 2;
+
+    float currDist = (right - left) / 2;
+    float speed = trap.tick(currDist);
+    float correction = turnPID.tick(right + left);
+
+    setLeftVelocity(forward, speed + correction * (speed / MAX_SPEED));
+    setRightVelocity(forward, speed - correction * (speed / MAX_SPEED));
+
+    setLeftVelocity(forward, speed);
+    setRightVelocity(reverse, speed);
+
+    //log("lets goooo\nFinal distance: %f\nCurrent Distance: %f\nSpeed: %f", dist, currDist, speed);
+
+    wait(20, msec);
+  }
+  stopLeft();
+  stopRight();
+}
+
+// Turn to some universal angle based on starting point. Turn direction is determined by smallest angle
+void Robot::encoderTurnU(float universalAngleDegrees) {
+  float currentAngle = 2*degreesToDistance(globalEncoderLeft-globalEncoderRight)/(DIST_BETWEEN_WHEELS*M_PI);
+  float turnAngle = universalAngleDegrees - currentAngle;
+  if (turnAngle > 180) turnAngle -= 360;
+  else if (turnAngle < -180) turnAngle += 360;
+
+  encoderTurn(turnAngle);
+}
+
 // PID gyro sensor-based curving 
 // distInches is positive if forward, negative if reverse
 void Robot::gyroCurve(float distInches, float maxSpeed, float turnAngle, int timeout, bool stopAfter, std::function<bool(void)> func) {
@@ -244,8 +334,7 @@ void Robot::gyroCurve(float distInches, float maxSpeed, float turnAngle, int tim
   float targetAngle = 0;
 
   int startTime = vex::timer::system();
-  leftMotorA.resetPosition();
-  rightMotorA.resetPosition();
+  resetEncoderDistance();
   gyroSensor.resetRotation();
 
 
@@ -292,8 +381,7 @@ void Robot::goCurve(float distInches, float maxSpeed, float turnPercent, float r
 
 
   int startTime = vex::timer::system();
-  leftMotorA.resetPosition();
-  rightMotorA.resetPosition();
+  resetEncoderDistance();
 
 
   // Repeat until either arrived at target or timed out
@@ -346,8 +434,7 @@ void Robot::goVision(float distInches, float maxSpeed, Goal goal, directionType 
   Trapezoid trap(distInches, maxSpeed, FORWARD_MIN_SPEED, rampUpInches, slowDownInches);
 
   int startTime = vex::timer::system();
-  leftMotorA.resetPosition();
-  rightMotorA.resetPosition();
+  resetEncoderDistance();
 
   PID vPID(K_P, 0, 0.2, 0.1, 10, 10);
   logController("start vision");
@@ -443,8 +530,7 @@ void Robot::alignToGoalVision(Goal goal, bool clockwise, directionType cameraDir
   vision *camera = (cameraDirection == forward) ? &frontCamera : &backCamera;
 
   int startTime = vex::timer::system();
-  leftMotorA.resetPosition();
-  rightMotorA.resetPosition();
+  resetEncoderDistance();
 
   // // At the initial snapshot we check where goal is seen. If so, we set our direction to be towards the goal and stop when we pass the center.
   // // Otherwise, the spin will default to the direction specified by the 'clockwise' parameter
@@ -486,57 +572,6 @@ void Robot::alignToGoalVision(Goal goal, bool clockwise, directionType cameraDir
   stopLeft();
   stopRight();
 }
-
-
-// angleDegrees is positive if clockwise, negative if counterclockwise
-void Robot::goTurn(float angleDegrees, std::function<bool(void)> func) {
-
-  PID anglePID(3, 0.00, 0.05, 2, 3, 25);
-  //PID anglePID(GTURN_24);
-
-  float timeout = 5;
-  float speed;
-
-  // log("initing");
-  int startTime = vex::timer::system();
-  leftMotorA.resetPosition();
-  rightMotorA.resetPosition();
-  gyroSensor.resetRotation();
-  // log("about to loop");
-
-  while (!anglePID.isCompleted() && !isTimeout(startTime, timeout)) {
-
-    if (func) {
-      if (func()) {
-        // if func is done, make it empty
-        func = {};
-      }
-    }
-
-    speed = anglePID.tick(angleDegrees - gyroSensor.rotation());
-
-    //logController("wtf %f", speed);
-
-    setLeftVelocity(forward, speed);
-    setRightVelocity(reverse, speed);
-
-    wait(20, msec);
-  }
-  logController("wtf done");
-
-  stopLeft();
-  stopRight();
-}
-// Turn to some universal angle based on starting point. Turn direction is determined by smallest angle
-void Robot::goTurnU(float universalAngleDegrees, std::function<bool(void)> func) {
-
-  float turnAngle = universalAngleDegrees - gyroSensor.heading(degrees);
-  if (turnAngle > 180) turnAngle -= 360;
-  else if (turnAngle < -180) turnAngle += 360;
-
-  goTurn(turnAngle, func);
-}
-
 
 // Trapezoidal motion profiling
 // Will use gyro sensor *doesn't rn
@@ -703,6 +738,8 @@ float Robot::getEncoderDistance() {
 }
 
 void Robot::resetEncoderDistance() {
+  globalEncoderLeft += leftMotorA.rotation(degrees);
+  globalEncoderRight += rightMotorA.rotation(degrees);
   leftMotorA.resetRotation();
   rightMotorA.resetRotation();
 }

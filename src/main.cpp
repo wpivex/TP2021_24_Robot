@@ -23,8 +23,6 @@ int mainTeleop() {
   return 0;
 }
 
-
-
 /*
 void middleFirst(void) {
   int color = 1; //red is 1, blue is 2
@@ -45,44 +43,48 @@ void middleFirst(void) {
   wait(250, msec);
 
   //Go back 2 ft
-  mainBot.driveStraight(100, -15);
+  mainBot.driveStraight(100, -15);  
   mainBot.intakeOverGoal(color);
 }
 */
 
-int matchAuto(Goal allianceColor) {
+int matchAuto() {
+  Goal allianceColor = RED;
+  mainBot.setBrakeType(hold);
 
   // ~~~~~~~~~~~~~ Box Rush Right ~~~~~~~~~~~~~~~
+  mainBot.setArmPercent(reverse, 65);
+
   mainBot.openClaw();
   // Drive forwards at full speed (while adjusting towards goal if needed)
-  mainBot.goForward(54, 100); 
+  mainBot.goForward(37, 100, 3, 5); 
   mainBot.closeClaw();
   // Raise arm a bit (so that other team cannot grab it)
-  mainBot.setArmPercent(forward, 30);
+  mainBot.setArmPercent(forward, 50);
   // Maybe use concurrency to raise arm while reversing
   // Maybe another driveForward variety with a method that triggers after a certain distance
   // RETREAT
-  mainBot.goForward(-24, 100, 0, 8); 
+  mainBot.goForward(-24, 100); 
   
   mainBot.setArmPercent(forward, 0);
 
   // // ~~~~~~~~~~~ Middle Goal Check ~~~~~~~~~~~~~~
-  // mainBot.goTurnU(130);
+  mainBot.encoderTurnU(120);
   // mainBot.setBackClamp(true);
   // mainBot.goVision(-24*sqrt(3), 100, YELLOW, reverse, 0, 0);
   // mainBot.setBackClamp(false);
 
 
   // // ~~~~~~~~~~~~~~ Alliance Goal ~~~~~~~~~~~~~~~~
-  // mainBot.goTurnU(130);
+  // mainBot.encoderTurnU(130);
   // mainBot.goForward(24*sqrt(3), 100);
-  // mainBot.goTurnU(135);
+  // mainBot.encoderTurnU(90);
   // mainBot.setFrontClamp(true);
   // mainBot.goForward(24, 50);
   // mainBot.setFrontClamp(false);
 
   // // ~~~~~~~~~~~ Get out of the 15's way~~~~~~~~~~~
-  // mainBot.goTurnU(0);
+  // mainBot.encoderTurnU(0);
   // mainBot.goForward(-24,30);
 
   return 1;
@@ -139,7 +141,7 @@ int testing() {
 
 void userControl(void) { mainBot.setBrakeType(coast); task controlLoop1(mainTeleop); }
 
-void autonomous() { mainBot.setBrakeType(hold); task auto1(worldSkillsAuto); }
+void autonomous() { mainBot.setBrakeType(hold); task auto1(matchAuto); }
 
 int main() {
   Competition.bStopAllTasksBetweenModes = true;
@@ -148,9 +150,9 @@ int main() {
   mainBot.setBackClamp(false);
   mainBot.setFrontClamp(false);
 
-  // Reset location of arm
+  // Callibrate Gyro
   mainBot.callibrateGyro();
-
+  
   Competition.autonomous(autonomous);
   Competition.drivercontrol(userControl);
   // testArmValues();

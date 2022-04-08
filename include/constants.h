@@ -50,13 +50,14 @@ static const float TURN_MIN_SPEED = 5; // the robot approaches this speed at the
 
 static const int ARM_TIMEOUT = 300000;
 
+static const float SPEED_RATIO = 1.5;
 
 static inline float distanceToDegrees(float distInches) {
-  return distInches * 360 / 2 / M_PI / (4 / 2); // 4 in diameter wheels
+  return distInches * 360 / 2 / M_PI / (4 / 2) / SPEED_RATIO; // 4 in diameter wheels
 }
 
 static inline float degreesToDistance(float degrees) {
-  return degrees / (360 / 2 / M_PI / (4 / 2)); // 4 in diameter wheels
+  return SPEED_RATIO * degrees / (360 / 2 / M_PI / (4 / 2)); // 4 in diameter wheels
 }
 
 // return distance in inches if wanting to turn turnAngle degrees

@@ -103,6 +103,8 @@ class Robot {
     // Turning Functions
     void goTurnU(float universalAngleDegrees, std::function<bool(void)> func = {});
     void goTurn(float angleDegrees, std::function<bool(void)> func = {});
+    void encoderTurn(float angle);
+    void encoderTurnU(float universalAngleDegrees);
 
     // Curves
     void goRadiusCurve(float radius, float distAlongCircum, bool curveDirection, float maxSpeed, float rampUp, float slowDown, 
@@ -117,7 +119,6 @@ class Robot {
     bool goTurnVision(Goal goal, bool defaultClockwise, directionType cameraDir, float maxTurnAngle);
     void alignToGoalVision(Goal goal, bool clockwise, directionType cameraDirection, int timeout, float maxSpeed = 40);
     void updateCamera(Goal goal);
-
     
     // Misc.
     void driveArmDown(float timeout);
@@ -125,7 +126,8 @@ class Robot {
 
   private:
 
-
+    float globalEncoderLeft;
+    float globalEncoderRight;
     void driveTeleop();
     void armTeleop();
     void pneumaticsTeleop();
