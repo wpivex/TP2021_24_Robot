@@ -63,26 +63,27 @@ int matchAuto(Goal allianceColor) {
   // Maybe another driveForward variety with a method that triggers after a certain distance
   // RETREAT
   mainBot.goForward(-24, 100, 0, 8); 
+  
+  mainBot.setArmPercent(forward, 0);
+
+  // // ~~~~~~~~~~~ Middle Goal Check ~~~~~~~~~~~~~~
+  // mainBot.goTurnU(130);
+  // mainBot.setBackClamp(true);
+  // mainBot.goVision(-24*sqrt(3), 100, YELLOW, reverse, 0, 0);
+  // mainBot.setBackClamp(false);
 
 
-  // ~~~~~~~~~~~ Middle Goal Check ~~~~~~~~~~~~~~
-  mainBot.goTurnU(130);
-  mainBot.alignToGoalVision(YELLOW, true, reverse, 5);
-  mainBot.setBackClamp(true);
-  mainBot.goVision(-24*sqrt(3), 100, YELLOW, reverse, 0, 0);
-  mainBot.setBackClamp(false);
+  // // ~~~~~~~~~~~~~~ Alliance Goal ~~~~~~~~~~~~~~~~
+  // mainBot.goTurnU(130);
+  // mainBot.goForward(24*sqrt(3), 100);
+  // mainBot.goTurnU(135);
+  // mainBot.setFrontClamp(true);
+  // mainBot.goForward(24, 50);
+  // mainBot.setFrontClamp(false);
 
-
-  // ~~~~~~~~~~~~~~ Alliance Goal ~~~~~~~~~~~~~~~~
-  mainBot.goForward(24*sqrt(3), 100);
-  mainBot.alignToGoalVision(allianceColor,true, forward, 5);
-  mainBot.setFrontClamp(true);
-  mainBot.goForward(24, 50);
-  mainBot.setFrontClamp(false);
-
-  // ~~~~~~~~~~~ Get out of the 15's way~~~~~~~~~~~
-  mainBot.goTurnU(0);
-  mainBot.goForward(-24,30);
+  // // ~~~~~~~~~~~ Get out of the 15's way~~~~~~~~~~~
+  // mainBot.goTurnU(0);
+  // mainBot.goForward(-24,30);
 
   return 1;
 }
