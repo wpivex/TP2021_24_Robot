@@ -6,7 +6,7 @@
 // gear ratio is 60/36
 Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftMotorD(0), leftMotorE(0), rightMotorA(0), rightMotorB(0), 
   rightMotorC(0), rightMotorD(0), rightMotorE(0), frontCamera(PORT10), 
-  backCamera(PORT15), gyroSensor(PORT1), buttons(c), gpsSensor(0), rightArm1(0), rightArm2(0), leftArm1(0), leftArm2(0) {
+  backCamera(PORT15), gyroSensor(PORT2), buttons(c), gpsSensor(0), rightArm1(0), rightArm2(0), leftArm1(0), leftArm2(0) {
 
   isSkills = _isSkills;
 
@@ -227,7 +227,7 @@ void Robot::goForwardUniversal(float distInches, float maxSpeed, float universal
 // angleDegrees is positive if clockwise, negative if counterclockwise
 void Robot::goTurn(float angleDegrees, std::function<bool(void)> func) {
 
-  PID anglePID(2, 0.00, 0.05, 3, 3, 30);
+  PID anglePID(2, 0.00, 0.05, 4, 3, 37);
   //PID anglePID(GTURN_24);
 
   float timeout = 5;
@@ -480,15 +480,15 @@ void Robot::goVision(float distInches, float maxSpeed, Goal goal, directionType 
     float correction = 0; // between -1 and 1
     if(camera->largestObject.exists)  correction = anglePID.tick(camera->largestObject.centerX - VISION_CENTER_X);
 
-    float distInDegrees = (leftMotorA.position(degrees) + rightMotorA.position(degrees))/2;
+    float distInDegrees = fabs((leftMotorA.position(degrees) + rightMotorA.position(degrees))/2);
     float speed = trap.tick(degreesToDistance(distInDegrees));
 
     float left = speed  * (cameraDir == forward? 1 : -1) + correction;
     float right =  speed * (cameraDir == forward? 1 : -1) - correction;
 
 
-    setLeftVelocity(cameraDir, left);
-    setRightVelocity(cameraDir, right);
+    setLeftVelocity(forward, left);
+    setRightVelocity(forward, right);
 
     wait(20, msec);
   }
