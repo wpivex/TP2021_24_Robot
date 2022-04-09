@@ -145,7 +145,7 @@ void Robot::callibrateGyro() {
 
 // Go forward in whatever direction it was already in
 // Trapezoidal motion profiling
-void Robot::goForward(float distInches, float maxSpeed, float rampUpInches, float slowDownInches, int timeout, std::function<bool(void)> func) {
+void Robot::goForward(float distInches, float maxSpeed, float rampUpInches, float slowDownInches, int timeout, std::function<bool(void)> func, bool stopAfter) {
 
   Trapezoid trap(distInches, maxSpeed, FORWARD_MIN_SPEED, rampUpInches, slowDownInches);
 
@@ -172,9 +172,11 @@ void Robot::goForward(float distInches, float maxSpeed, float rampUpInches, floa
     
     wait(20, msec);
   }
-
-  stopLeft();
-  stopRight();
+  if (stopAfter) {
+    stopLeft();
+    stopRight();
+  }
+ 
 
 }
 

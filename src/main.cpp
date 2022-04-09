@@ -72,7 +72,8 @@ int matchAuto() {
   mainBot.setBackClamp(false);
   wait(200, msec);
 
-  mainBot.goCurve(30, 100, 0.1, 5, 10); // get back to base
+  mainBot.goForward(40, 100, 5, 0, 5, {}, false);
+  mainBot.goCurve(20, 100, 0.2, 0, 10); // get back to base
 
 
   // // ~~~~~~~~~~~~~~ Alliance Goal ~~~~~~~~~~~~~~~~
