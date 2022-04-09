@@ -53,28 +53,22 @@ int matchAuto() {
   mainBot.setBrakeType(hold);
 
   // ~~~~~~~~~~~~~ Box Rush Right ~~~~~~~~~~~~~~~
-  // mainBot.setArmPercent(reverse, 65);
-  mainBot.setArmDegrees(25);
-
   mainBot.openClaw();
   // Drive forwards at full speed (while adjusting towards goal if needed)
-  mainBot.goForward(34, 100, 3, 20); 
+  std::function<bool(void)> armFunc = std::bind(&Robot::startArmFunc, &mainBot);
+  mainBot.goForward(36, 100, 3, 20, 5, armFunc); 
   mainBot.closeClaw();
   wait(200, msec);
   // Raise arm a bit (so that other team cannot grab it)
-  // mainBot.setArmPercent(forward, 50);
   mainBot.setArmDegrees(215);
-  // Maybe use concurrency to raise arm while reversing
-  // Maybe another driveForward variety with a method that triggers after a certain distance
   // RETREAT
-  mainBot.goForward(-24, 100); 
-  
-  // mainBot.setArmPercent(forward, 0);
+  mainBot.goForward(-8, 100, 0, 10); 
 
   // // ~~~~~~~~~~~ Middle Goal Check ~~~~~~~~~~~~~~
-  mainBot.encoderTurnU(120);
+  //mainBot.cursedTurn(150,70);
+  mainBot.goTurn(150);
   mainBot.setBackClamp(true);
-  mainBot.goVision(-24*sqrt(3), 100, YELLOW, forward, 0, 0);
+  mainBot.goVision(50, 65, YELLOW, reverse, 0, 0);
   mainBot.setBackClamp(false);
 
 
@@ -139,6 +133,11 @@ void logGyro() {
 }
 
 int testing() {
+  mainBot.cursedTurn(90,50);
+  wait(2000,msec);
+  mainBot.cursedTurn(180,50);
+  wait(2000,msec);
+  mainBot.cursedTurn(360,50);
   return 0;
 }
 

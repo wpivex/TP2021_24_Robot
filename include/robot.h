@@ -105,6 +105,7 @@ class Robot {
     void goTurn(float angleDegrees, std::function<bool(void)> func = {});
     void encoderTurn(float angle);
     void encoderTurnU(float universalAngleDegrees);
+    void cursedTurn(float angle, float speed);
 
     // Curves
     void goRadiusCurve(float radius, float distAlongCircum, bool curveDirection, float maxSpeed, float rampUp, float slowDown, 
@@ -123,8 +124,8 @@ class Robot {
     // Misc.
     void driveArmDown(float timeout);
     void resetArmRotation();
-    void setArmDegrees(float degrees);
-
+    bool setArmDegrees(float degrees, float speed = 100);
+    bool startArmFunc();
 
   private:
 

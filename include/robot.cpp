@@ -6,7 +6,7 @@
 // gear ratio is 60/36
 Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftMotorD(0), leftMotorE(0), rightMotorA(0), rightMotorB(0), 
   rightMotorC(0), rightMotorD(0), rightMotorE(0), frontCamera(PORT10), 
-  backCamera(PORT15), gyroSensor(PORT4), buttons(c), gpsSensor(0), rightArm1(0), rightArm2(0), leftArm1(0), leftArm2(0) {
+  backCamera(PORT15), gyroSensor(PORT1), buttons(c), gpsSensor(0), rightArm1(0), rightArm2(0), leftArm1(0), leftArm2(0) {
 
   isSkills = _isSkills;
 
@@ -20,7 +20,7 @@ Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), left
   rightMotorA = motor(PORT16, ratio18_1, false);
   rightMotorB = motor(PORT11, ratio18_1, false);
   rightMotorC = motor(PORT12, ratio18_1, false);
-  rightMotorD = motor(PORT13, ratio18_1, false);
+  rightMotorD = motor(PORT15, ratio18_1, false);
   rightMotorE = motor(PORT14, ratio18_1, false);
   rightDrive = motor_group(rightMotorA, rightMotorB, rightMotorC, rightMotorD, rightMotorE);
 
@@ -227,7 +227,7 @@ void Robot::goForwardUniversal(float distInches, float maxSpeed, float universal
 // angleDegrees is positive if clockwise, negative if counterclockwise
 void Robot::goTurn(float angleDegrees, std::function<bool(void)> func) {
 
-  PID anglePID(3, 0.00, 0.05, 2, 3, 25);
+  PID anglePID(2, 0.00, 0.05, 2, 3, 25);
   //PID anglePID(GTURN_24);
 
   float timeout = 5;
@@ -273,32 +273,66 @@ void Robot::goTurnU(float universalAngleDegrees, std::function<bool(void)> func)
   goTurn(turnAngle, func);
 }
 
+//useful constants and conversion factors
+const double driveGearRatio = 1.0;
+const double pi = 3.141592;
+// gear_ratio * 360deg / wheel_diameter*pi
+const double drive_inches_to_degrees = driveGearRatio * 360.0 / (4.0 * pi);
+// pivot_diameter * pi / 360 degrees
+const double turn_degrees_to_inches = ((15 * pi)/ 360.0);
+// Trivial Math
+const double turn_degrees_to_motor_rotation = turn_degrees_to_inches * drive_inches_to_degrees;
+// default move speed for auto functions
+
+void Robot::cursedTurn(float angle, float s){
+  resetEncoderDistance();
+
+  float degrees = turn_degrees_to_motor_rotation * angle;//distanceToDegrees(DIST_BETWEEN_WHEELS*M_PI*(angle/360)); // angle/360 is the proportion of a circle to turn
+  float speed = 100;
+  
+  leftMotorA.startRotateTo(degrees, deg, 2*speed, rpm);
+  leftMotorB.startRotateTo(degrees, deg, 2*speed, rpm);
+  leftMotorC.startRotateTo(degrees, deg, 2*speed, rpm);
+  leftMotorD.startRotateTo(degrees, deg, 2*speed, rpm);
+  leftMotorE.startRotateTo(degrees, deg, 2*speed, rpm);
+  rightMotorA.startRotateTo(-degrees, deg, 2*speed, rpm);
+  rightMotorB.startRotateTo(-degrees, deg, 2*speed, rpm);
+  rightMotorC.startRotateTo(-degrees, deg, 2*speed, rpm);
+  rightMotorD.startRotateTo(-degrees, deg, 2*speed, rpm);
+  rightMotorE.startRotateTo(-degrees, deg, 2*speed, rpm);
+
+  while(!rightMotorA.isDone()&&!leftMotorA.isDone());
+
+  stopLeft();
+  stopRight();
+}
+
 void Robot::encoderTurn(float angle) {
   resetEncoderDistance();
-  float inches = DIST_BETWEEN_WHEELS*M_PI*(angle/360); // angle/360 is the proportion of a circle to turn
-  float dist = distanceToDegrees(inches);
+  float dist = DIST_BETWEEN_WHEELS*M_PI*(angle/360); // angle/360 is the proportion of a circle to turn
+  //float dist = distanceToDegrees(inches);
 
-  float MAX_SPEED = 100;
+  float MAX_SPEED = 70;
   
-  Trapezoid trap(dist, MAX_SPEED, 15, distanceToDegrees(3), distanceToDegrees(3));
-  PID turnPID(1, 0, 0);
+  Trapezoid trap(dist, MAX_SPEED, 15, 0, 0);
+  PID turnPID(.5, 0, 0);
 
   while (!trap.isCompleted()) {
 
-    float left = (leftMotorA.rotation(degrees) + leftMotorB.rotation(degrees)) / 2;
-    float right = (rightMotorA.rotation(degrees) + rightMotorB.rotation(degrees)) / 2;
+    float left = degreesToDistance((leftMotorA.rotation(degrees) + leftMotorB.rotation(degrees)) / 2);
+    float right = degreesToDistance((rightMotorA.rotation(degrees) + rightMotorB.rotation(degrees)) / 2);
 
-    float currDist = (right - left) / 2;
+    float currDist = (-right + left) / 2;
     float speed = trap.tick(currDist);
     float correction = turnPID.tick(right + left);
 
-    setLeftVelocity(forward, speed + correction * (speed / MAX_SPEED));
-    setRightVelocity(forward, speed - correction * (speed / MAX_SPEED));
+    //setLeftVelocity(forward, speed + correction * (speed / MAX_SPEED));
+    //setRightVelocity(forward, speed - correction * (speed / MAX_SPEED));
 
     setLeftVelocity(forward, speed);
     setRightVelocity(reverse, speed);
 
-    //log("lets goooo\nFinal distance: %f\nCurrent Distance: %f\nSpeed: %f", dist, currDist, speed);
+    log("lets goooo\nFinal distance: %f\nCurrent Distance: %f\nSpeed: %f", dist, currDist, speed);
 
     wait(20, msec);
   }
@@ -396,7 +430,7 @@ void Robot::goCurve(float distInches, float maxSpeed, float turnPercent, float r
       }
     }
 
-    float speed = trap.tick( (leftMotorA.position(degrees) + rightMotorA.position(degrees) / 2) ); 
+    float speed = trap.tick(degreesToDistance(leftMotorA.position(degrees) + rightMotorA.position(degrees) / 2) ); 
 
     setLeftVelocity(forward, speed * (1 + turnPercent));
     setRightVelocity(forward, speed * (1 + turnPercent));
@@ -453,7 +487,7 @@ void Robot::goVision(float distInches, float maxSpeed, Goal goal, directionType 
     float correction = 0; // between -1 and 1
     if(camera->largestObject.exists)  correction = vPID.tick((VISION_CENTER_X - camera->largestObject.centerX) / VISION_CENTER_X);
 
-    float speed = trap.tick( (leftMotorA.position(degrees) + rightMotorA.position(degrees)) / 2 );
+    float speed = trap.tick(degreesToDistance((leftMotorA.position(degrees) + rightMotorA.position(degrees)/2)));
 
     float left = speed - (fabs(speed) / 50) * correction * (cameraDir == forward? 1 : -1);
     float right =  speed + (fabs(speed) / 50) * correction * (cameraDir == forward? 1 : -1);
@@ -693,15 +727,15 @@ void Robot::resetArmRotation() {
   leftArm2.resetRotation();
 }
 
-void Robot::setArmDegrees(float degrees) {
-  rightArm1.spinTo(degrees, deg, 100, velocityUnits::pct, false);
-  rightArm2.spinTo(degrees, deg, 100, velocityUnits::pct, false);
-  leftArm1.spinTo(degrees, deg, 100, velocityUnits::pct, false);
-  leftArm2.spinTo(degrees, deg, 100, velocityUnits::pct);
-  // rightArm1.rotateTo(degrees, deg, false);
-  // rightArm2.rotateTo(degrees, deg, false);
-  // leftArm1.rotateTo(degrees, deg, false);
-  // leftArm2.rotateTo(degrees, deg);
+bool Robot::startArmFunc() {
+  return setArmDegrees(5, 50);
+}
+
+bool Robot::setArmDegrees(float degrees, float speed) {
+  rightArm1.spinTo(degrees, deg, speed, velocityUnits::pct, false);
+  rightArm2.spinTo(degrees, deg, speed, velocityUnits::pct, false);
+  leftArm1.spinTo(degrees, deg, speed, velocityUnits::pct, false);
+  return leftArm2.spinTo(degrees, deg, speed, velocityUnits::pct, false);
 }
 
 void Robot::setArmPercent(directionType d, double percent) {
@@ -760,4 +794,12 @@ void Robot::resetEncoderDistance() {
   globalEncoderRight += rightMotorA.rotation(degrees);
   leftMotorA.resetRotation();
   rightMotorA.resetRotation();
+  leftMotorB.resetRotation();
+  rightMotorB.resetRotation();
+  leftMotorC.resetRotation();
+  rightMotorC.resetRotation();
+  leftMotorD.resetRotation();
+  rightMotorD.resetRotation();
+  leftMotorE.resetRotation();
+  rightMotorE.resetRotation();
 }
