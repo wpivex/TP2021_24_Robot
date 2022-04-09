@@ -58,8 +58,7 @@ void Robot::setControllerMapping(ControllerMapping mapping) {
 
     FRONT_CLAMP_TOGGLE = Buttons::L1;
     BACK_CLAMP_TOGGLE = Buttons::R1;
-    CLAW_TOGGLE = Buttons::UP;
-    ARM_TOGGLE = Buttons::R2;
+    CLAW_TOGGLE = Buttons::A;
   } 
 
 }
@@ -107,12 +106,19 @@ void Robot::setBackClamp(bool intaking) {
 }
 
 void Robot::armTeleop() {
-  if (buttons.pressing(buttons.A)) {
+  if (buttons.pressing(buttons.L2)) {
     setArmPercent(forward, 50);
-  } else if (buttons.pressing(buttons.B)) {
+  } else if (buttons.pressing(buttons.R2)) {
     setArmPercent(reverse, 40);
   } else {
     stopArm();
+  }
+
+  // Toggle limiting arm current
+  if (buttons.pressed(buttons.X)) {
+    teleopArmLimited = !teleopArmLimited;
+    if (teleopArmLimited) setMaxArmTorque(ARM_CURRENT::MID);
+    else setMaxArmTorque(ARM_CURRENT::HIGH);
   }
 }
 

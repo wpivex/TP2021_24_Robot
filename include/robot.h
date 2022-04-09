@@ -67,7 +67,7 @@ class Robot {
 
     enum ControllerMapping {DEFAULT_MAPPING};
     ControllerMapping cMapping;
-    Buttons::Button FRONT_CLAMP_TOGGLE, BACK_CLAMP_TOGGLE, CLAW_TOGGLE, ARM_TOGGLE; 
+    Buttons::Button FRONT_CLAMP_TOGGLE, BACK_CLAMP_TOGGLE, CLAW_TOGGLE; 
 
     void setControllerMapping(ControllerMapping mapping);
 
@@ -139,6 +139,8 @@ class Robot {
     void resetEncoderDistance();
 
     bool driveHold = false;
+
+    bool teleopArmLimited = false;
 
     bool isSkills;
 };
