@@ -5,6 +5,7 @@
 // DigitalInE           digital_in    E               
 // ---- END VEXCODE CONFIGURED DEVICES ----
 #include "../include/robot.cpp"
+#include "VisualGraph.cpp"
 
 competition Competition;
 
@@ -88,7 +89,32 @@ int matchAuto() {
   // mainBot.encoderTurnU(0);
   // mainBot.goForward(-24,30);
 
-  return 1;
+  return 0;
+}
+
+int testCurrent() {
+
+  mainBot.setMaxArmTorque(ARM_CURRENT::MID);
+  mainBot.setLeftVelocity(reverse, 100);
+  mainBot.setRightVelocity(reverse, 100);
+  int startTime = timer::system();
+  VisualGraph g(0, 3, 10, 200);
+  int a = 0;
+  while (!isTimeout(startTime, 2.5)) {
+    
+    float curr = (mainBot.leftMotorA.current() + mainBot.rightMotorA.current()) / 2;
+    g.push(curr);
+
+    a = (a + 1) % 10;
+    if (a == 0) g.display();
+
+    wait(20, msec);
+
+  }
+  mainBot.stopLeft();
+  mainBot.stopRight();
+
+  return 0;
 }
 
 

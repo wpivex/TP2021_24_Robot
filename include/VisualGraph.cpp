@@ -37,7 +37,7 @@ void VisualGraph::display() {
     int ypos = TOP_Y + (BOTTOM_Y - TOP_Y) * ((float) i) / (numMarkersY + 1);
 
     Brain.Screen.setPenColor(white);
-    Brain.Screen.printAt(0, ypos, "%.1f", label);
+    Brain.Screen.printAt(0, ypos, "%.2f", label);
     Brain.Screen.setPenColor(grey);
     Brain.Screen.drawLine(Y_AXIS_XPOS, ypos, RIGHT_X, ypos);
   }
