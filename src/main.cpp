@@ -72,7 +72,7 @@ int matchAuto() {
   mainBot.setBackClamp(false);
   wait(200, msec);
 
-  mainBot.goForward(-30, 100, 5, 10);
+  mainBot.goForward(-30, 100, 5, 10); // get back to base
 
 
   // // ~~~~~~~~~~~~~~ Alliance Goal ~~~~~~~~~~~~~~~~
@@ -90,59 +90,6 @@ int matchAuto() {
   return 1;
 }
 
-int concurrentTest() {
-
-  // mainBot.arm.initArmPosition();
-  // mainBot.arm.moveArmToPosition(ArmGraph::PLATFORM_HEIGHT);
-  wait(250, msec);
-  mainBot.driveArmDown(2);
-  logController("Go down done");
-
-  return 0;
-
-}
-
-void logHeading(std::string label) {
-  static int l = 1;
-  log(l, "%s: %f", label.c_str(), mainBot.gyroSensor.heading());
-  l = (l > 9 ? 1 : l + 1);
-  // printf("%s: %f", label.c_str(), mainBot.gyroSensor.heading());
-}
-
-int worldSkillsAuto() {
-  while (!mainBot.calibrationDone);
-  mainBot.gyroSensor.setHeading(0, degrees);
-  mainBot.setBackClamp(true);
-  mainBot.goRadiusCurve(28, -7, true, 100, 0, 0, false, 5);
-  mainBot.goForward(-10, 100);
-  mainBot.setBackClamp(false);
-  mainBot.goForward(-60, 100);
-  mainBot.goTurnU(310);
-  wait(2, sec);
-  mainBot.goTurnU(0);
-  mainBot.setFrontClamp(true);
-  mainBot.goForward(30, 100, 0, 0, false); //add stopAfter if this is intended behavior
-  mainBot.setFrontClamp(false);
-  mainBot.goForward(20, 100,0,5,5);
-  return 1;
-}
-
-void logGyro() {
-  mainBot.gyroSensor.resetRotation();
-  while (true) {
-    log("%f", mainBot.gyroSensor.rotation());
-    wait(20, msec);
-  }
-}
-
-int testing() {
-  mainBot.cursedTurn(90,50);
-  wait(2000,msec);
-  mainBot.cursedTurn(180,50);
-  wait(2000,msec);
-  mainBot.cursedTurn(360,50);
-  return 0;
-}
 
 void userControl(void) { mainBot.setBrakeType(coast); task controlLoop1(mainTeleop); }
 

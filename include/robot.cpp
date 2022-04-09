@@ -6,7 +6,7 @@
 // gear ratio is 60/36
 Robot::Robot(controller* c, bool _isSkills) : leftMotorA(0), leftMotorB(0), leftMotorC(0), leftMotorD(0), leftMotorE(0), rightMotorA(0), rightMotorB(0), 
   rightMotorC(0), rightMotorD(0), rightMotorE(0), frontCamera(PORT10), 
-  backCamera(PORT15), gyroSensor(PORT2), buttons(c), gpsSensor(0), rightArm1(0), rightArm2(0), leftArm1(0), leftArm2(0) {
+  backCamera(PORT9), gyroSensor(PORT2), buttons(c), gpsSensor(0), rightArm1(0), rightArm2(0), leftArm1(0), leftArm2(0) {
 
   isSkills = _isSkills;
 
@@ -134,6 +134,7 @@ void Robot::callibrateGyro() {
   wait(1000, msec);
   gyroSensor.resetHeading();
   calibrationDone = true;
+  log("calibrated");
 }
 
 // Go forward in whatever direction it was already in
@@ -444,7 +445,7 @@ vision Robot::getCamera(directionType dir, Goal goal) {
 }
 
 void Robot::updateCamera(Goal goal) {
-  backCamera = vision(PORT15, goal.bright, goal.sig);
+  backCamera = vision(PORT9, goal.bright, goal.sig);
   frontCamera = vision(PORT10, goal.bright, goal.sig);
 }
 
