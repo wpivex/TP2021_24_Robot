@@ -122,6 +122,8 @@ class Robot {
     
     // Misc.
     void driveArmDown(float timeout);
+    void resetArmRotation();
+    void setArmDegrees(float degrees);
 
 
   private:

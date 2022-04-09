@@ -53,26 +53,29 @@ int matchAuto() {
   mainBot.setBrakeType(hold);
 
   // ~~~~~~~~~~~~~ Box Rush Right ~~~~~~~~~~~~~~~
-  mainBot.setArmPercent(reverse, 65);
+  // mainBot.setArmPercent(reverse, 65);
+  mainBot.setArmDegrees(25);
 
   mainBot.openClaw();
   // Drive forwards at full speed (while adjusting towards goal if needed)
-  mainBot.goForward(37, 100, 3, 5); 
+  mainBot.goForward(34, 100, 3, 20); 
   mainBot.closeClaw();
+  wait(200, msec);
   // Raise arm a bit (so that other team cannot grab it)
-  mainBot.setArmPercent(forward, 50);
+  // mainBot.setArmPercent(forward, 50);
+  mainBot.setArmDegrees(215);
   // Maybe use concurrency to raise arm while reversing
   // Maybe another driveForward variety with a method that triggers after a certain distance
   // RETREAT
   mainBot.goForward(-24, 100); 
   
-  mainBot.setArmPercent(forward, 0);
+  // mainBot.setArmPercent(forward, 0);
 
   // // ~~~~~~~~~~~ Middle Goal Check ~~~~~~~~~~~~~~
   mainBot.encoderTurnU(120);
-  // mainBot.setBackClamp(true);
-  // mainBot.goVision(-24*sqrt(3), 100, YELLOW, reverse, 0, 0);
-  // mainBot.setBackClamp(false);
+  mainBot.setBackClamp(true);
+  mainBot.goVision(-24*sqrt(3), 100, YELLOW, forward, 0, 0);
+  mainBot.setBackClamp(false);
 
 
   // // ~~~~~~~~~~~~~~ Alliance Goal ~~~~~~~~~~~~~~~~
@@ -153,6 +156,7 @@ int main() {
   // Callibrate Gyro
   mainBot.callibrateGyro();
   
+  mainBot.resetArmRotation();
   Competition.autonomous(autonomous);
   Competition.drivercontrol(userControl);
   // testArmValues();

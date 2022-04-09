@@ -278,7 +278,7 @@ void Robot::encoderTurn(float angle) {
   float inches = DIST_BETWEEN_WHEELS*M_PI*(angle/360); // angle/360 is the proportion of a circle to turn
   float dist = distanceToDegrees(inches);
 
-  float MAX_SPEED = 70;
+  float MAX_SPEED = 100;
   
   Trapezoid trap(dist, MAX_SPEED, 15, distanceToDegrees(3), distanceToDegrees(3));
   PID turnPID(1, 0, 0);
@@ -684,6 +684,24 @@ void Robot::stopArm() {
   rightArm2.stop(hold);
   leftArm1.stop(hold);
   leftArm2.stop(hold);
+}
+
+void Robot::resetArmRotation() {
+  rightArm1.resetRotation();
+  rightArm2.resetRotation();
+  leftArm1.resetRotation();
+  leftArm2.resetRotation();
+}
+
+void Robot::setArmDegrees(float degrees) {
+  rightArm1.spinTo(degrees, deg, 100, velocityUnits::pct, false);
+  rightArm2.spinTo(degrees, deg, 100, velocityUnits::pct, false);
+  leftArm1.spinTo(degrees, deg, 100, velocityUnits::pct, false);
+  leftArm2.spinTo(degrees, deg, 100, velocityUnits::pct);
+  // rightArm1.rotateTo(degrees, deg, false);
+  // rightArm2.rotateTo(degrees, deg, false);
+  // leftArm1.rotateTo(degrees, deg, false);
+  // leftArm2.rotateTo(degrees, deg);
 }
 
 void Robot::setArmPercent(directionType d, double percent) {
