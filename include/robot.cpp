@@ -106,9 +106,9 @@ void Robot::setBackClamp(bool intaking) {
 }
 
 void Robot::armTeleop() {
-  if (buttons.pressing(buttons.L2)) {
+  if (buttons.pressing(buttons.R2)) {
     setArmPercent(forward, 50);
-  } else if (buttons.pressing(buttons.R2)) {
+  } else if (buttons.pressing(buttons.L2)) {
     setArmPercent(reverse, 40);
   } else {
     stopArm();

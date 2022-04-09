@@ -62,7 +62,7 @@ int matchAuto() {
   // Raise arm a bit (so that other team cannot grab it)
   mainBot.setArmDegrees(215);
   // RETREAT
-  mainBot.goForward(-8, 100, 0, 10); 
+  mainBot.goForward(-8, 100, 0, 5); 
 
   // // ~~~~~~~~~~~ Middle Goal Check ~~~~~~~~~~~~~~
   //mainBot.cursedTurn(150,70);
