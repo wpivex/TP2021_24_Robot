@@ -56,8 +56,8 @@ int matchAuto() {
   // ~~~~~~~~~~~~~ Box Rush Right ~~~~~~~~~~~~~~~
   mainBot.openClaw();
   // Drive forwards at full speed (while adjusting towards goal if needed)
-  std::function<bool(void)> armFunc = std::bind(&Robot::startArmFunc, &mainBot);
-  mainBot.goForward(36, 100, 3, 20, 5, armFunc); 
+  mainBot.setArmDegrees(5, 50, false);
+  mainBot.goForward(36, 100, 3, 20, 5); 
   mainBot.closeClaw();
   wait(200, msec);
   // Raise arm a bit (so that other team cannot grab it)

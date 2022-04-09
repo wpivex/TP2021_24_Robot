@@ -729,11 +729,11 @@ bool Robot::startArmFunc() {
   return setArmDegrees(5, 50);
 }
 
-bool Robot::setArmDegrees(float degrees, float speed) {
+void Robot::setArmDegrees(float degrees, float speed, bool blocking) {
   rightArm1.spinTo(degrees, deg, speed, velocityUnits::pct, false);
   rightArm2.spinTo(degrees, deg, speed, velocityUnits::pct, false);
   leftArm1.spinTo(degrees, deg, speed, velocityUnits::pct, false);
-  return leftArm2.spinTo(degrees, deg, speed, velocityUnits::pct, false);
+  leftArm2.spinTo(degrees, deg, speed, velocityUnits::pct, blocking);
 }
 
 void Robot::setArmPercent(directionType d, double percent) {
