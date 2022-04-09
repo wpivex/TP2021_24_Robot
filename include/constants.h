@@ -34,7 +34,9 @@ namespace ARM_CURRENT {
 // const struct Goal RED = {1, 50, vex::vision::signature (1, 7787, 9783, 8785, -773, -457, -615, 3.000, 0)};
 // const struct Goal BLUE = {2, 102, vex::vision::signature (1, -2617, -1735, -2176, 6659, 12361, 9510, 3.000, 0)};
 
-const struct Goal YELLOW = {0, 28, vex::vision::signature (1, 2069, 3277, 2673, -3269, -2915, -3092, 2.500, 0)};
+
+
+const struct Goal YELLOW = {0, 28, vex::vision::signature (1, 1033, 2345, 1689, -3779, -3477, -3628, 4.400, 0)};
 // const struct Goal RED = {1, 56, vex::vision::signature (1, 5767, 9395, 7581, -685, 1, -342, 3.000, 0)};
 const struct Goal RED = {1, 49, vex::vision::signature (1, 7951, 10657, 9304, -1067, -549, -808, 3.000, 0)}; // I added this feb 22
 const struct Goal BLUE = {2, 80, vex::vision::signature (1, -3063, -1681, -2372, 6893, 12701, 9797, 3.000, 0)};

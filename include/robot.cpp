@@ -234,7 +234,7 @@ void Robot::goForwardUniversal(float distInches, float maxSpeed, float universal
 // angleDegrees is positive if clockwise, negative if counterclockwise
 void Robot::goTurn(float angleDegrees, std::function<bool(void)> func) {
 
-  PID anglePID(2, 0.00, 0.05, 4, 3, 37);
+  PID anglePID(2, 0.00, 0.05, 5, 1, 35);
   //PID anglePID(GTURN_24);
 
   float timeout = 5;
