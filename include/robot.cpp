@@ -227,7 +227,7 @@ void Robot::goForwardUniversal(float distInches, float maxSpeed, float universal
 // angleDegrees is positive if clockwise, negative if counterclockwise
 void Robot::goTurn(float angleDegrees, std::function<bool(void)> func) {
 
-  PID anglePID(2, 0.00, 0.05, 2, 3, 25);
+  PID anglePID(2, 0.00, 0.05, 3, 3, 30);
   //PID anglePID(GTURN_24);
 
   float timeout = 5;
@@ -241,12 +241,6 @@ void Robot::goTurn(float angleDegrees, std::function<bool(void)> func) {
 
   while (!anglePID.isCompleted() && !isTimeout(startTime, timeout)) {
 
-    if (func) {
-      if (func()) {
-        // if func is done, make it empty
-        func = {};
-      }
-    }
 
     speed = anglePID.tick(angleDegrees - gyroSensor.rotation());
 
@@ -257,7 +251,6 @@ void Robot::goTurn(float angleDegrees, std::function<bool(void)> func) {
 
     wait(20, msec);
   }
-  logController("wtf done");
 
   stopLeft();
   stopRight();
@@ -470,7 +463,7 @@ void Robot::goVision(float distInches, float maxSpeed, Goal goal, directionType 
   int startTime = vex::timer::system();
   resetEncoderDistance();
 
-  PID vPID(K_P, 0, 0.2, 0.1, 10, 10);
+  PID anglePID(0.5, 0, 0);
   logController("start vision");
 
   while (!trap.isCompleted() && !isTimeout(startTime, timeout)) {
@@ -485,18 +478,14 @@ void Robot::goVision(float distInches, float maxSpeed, Goal goal, directionType 
     camera->takeSnapshot(goal.sig);
     
     float correction = 0; // between -1 and 1
-    if(camera->largestObject.exists)  correction = vPID.tick((VISION_CENTER_X - camera->largestObject.centerX) / VISION_CENTER_X);
+    if(camera->largestObject.exists)  correction = anglePID.tick(camera->largestObject.centerX - VISION_CENTER_X);
 
-    float speed = trap.tick(degreesToDistance((leftMotorA.position(degrees) + rightMotorA.position(degrees)/2)));
+    float distInDegrees = (leftMotorA.position(degrees) + rightMotorA.position(degrees))/2;
+    float speed = trap.tick(degreesToDistance(distInDegrees));
 
-    float left = speed - (fabs(speed) / 50) * correction * (cameraDir == forward? 1 : -1);
-    float right =  speed + (fabs(speed) / 50) * correction * (cameraDir == forward? 1 : -1);
+    float left = speed  * (cameraDir == forward? 1 : -1) + correction;
+    float right =  speed * (cameraDir == forward? 1 : -1) - correction;
 
-    float max = std::max(fabs(left),fabs(right));
-    if(max > 100){
-      left *= 100/max;
-      right *= 100/max;
-    }
 
     setLeftVelocity(cameraDir, left);
     setRightVelocity(cameraDir, right);

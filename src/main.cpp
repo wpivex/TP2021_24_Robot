@@ -66,10 +66,13 @@ int matchAuto() {
 
   // // ~~~~~~~~~~~ Middle Goal Check ~~~~~~~~~~~~~~
   //mainBot.cursedTurn(150,70);
-  mainBot.goTurn(150);
+  mainBot.goTurn(120);
   mainBot.setBackClamp(true);
   mainBot.goVision(50, 65, YELLOW, reverse, 0, 0);
   mainBot.setBackClamp(false);
+  wait(200, msec);
+
+  mainBot.goForward(-30, 100, 5, 10);
 
 
   // // ~~~~~~~~~~~~~~ Alliance Goal ~~~~~~~~~~~~~~~~

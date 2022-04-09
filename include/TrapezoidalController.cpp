@@ -35,6 +35,6 @@ float Trapezoid::tick(float currDistance) {
 }
 
 bool Trapezoid::isCompleted() {
-  logController("%f %f", dist, finalDist);
+  //logController("%f %f", dist, finalDist);
   return dist >= finalDist;
 }
