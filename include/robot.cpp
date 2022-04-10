@@ -725,9 +725,7 @@ void Robot::resetArmRotation() {
   leftArm2.resetRotation();
 }
 
-bool Robot::startArmFunc() {
-  return setArmDegrees(5, 50);
-}
+
 
 void Robot::setArmDegrees(float degrees, float speed, bool blocking) {
   rightArm1.spinTo(degrees, deg, speed, velocityUnits::pct, false);

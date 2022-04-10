@@ -125,7 +125,6 @@ class Robot {
     void driveArmDown(float timeout);
     void resetArmRotation();
     void setArmDegrees(float degrees, float speed = 100, bool blocking = true);
-    bool startArmFunc();
 
   private:
 
