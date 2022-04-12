@@ -3,16 +3,18 @@
 
 #include "vex.h"
 
-const bool IS_SKILLS = false;
-const bool testingArm = true;
+using namespace vex;
 
-vex::brain Brain;
-vex::controller Controller1(vex::controllerType::primary);
+const bool IS_SKILLS = false;
+const bool testingArm = false;
+
+brain Brain;
+controller Controller1(controllerType::primary);
 
 struct Goal {
   int id;
   int bright;
-  vex::vision::signature sig;
+  vision::signature sig;
 };
 
 // COMP FIELD
@@ -21,7 +23,8 @@ struct Goal {
 // const struct Goal BLUE = {2, 52, vex::vision::signature (1, -2657, -1837, -2247, 7385, 11983, 9684, 3.000, 0)};
 
 namespace ARM_CURRENT {
-  const static float LOW = 0;
+  const static float OFF = 0.0;
+  const static float LOW = 0.1;
   const static float MID = 1.0;
   const static float HIGH = 10.0;
 }
@@ -31,32 +34,38 @@ namespace ARM_CURRENT {
 // const struct Goal RED = {1, 50, vex::vision::signature (1, 7787, 9783, 8785, -773, -457, -615, 3.000, 0)};
 // const struct Goal BLUE = {2, 102, vex::vision::signature (1, -2617, -1735, -2176, 6659, 12361, 9510, 3.000, 0)};
 
-const struct Goal YELLOW = {0, 13, vex::vision::signature (1, 1849, 2799, 2324, -3795, -3261, -3528, 2.500, 0)};
+
+
+const struct Goal YELLOW = {0, 28, vex::vision::signature (1, 1033, 2345, 1689, -3779, -3477, -3628, 4.400, 0)};
 // const struct Goal RED = {1, 56, vex::vision::signature (1, 5767, 9395, 7581, -685, 1, -342, 3.000, 0)};
-const struct Goal RED = {1, 59, vex::vision::signature (1, 5541, 11481, 8511, -1105, -601, -853, 2.500, 0)}; // I added this feb 22
-const struct Goal BLUE = {2, 67, vex::vision::signature (1, -2675, -1975, -2324, 8191, 14043, 11116, 3.000, 0)};
+const struct Goal RED = {1, 49, vex::vision::signature (1, 7951, 10657, 9304, -1067, -549, -808, 3.000, 0)}; // I added this feb 22
+const struct Goal BLUE = {2, 80, vex::vision::signature (1, -3063, -1681, -2372, 6893, 12701, 9797, 3.000, 0)};
 
 const float MAX_VOLTS = 12.0; // maximum volts for vex motors
 
 
 static const float VISION_CENTER_X = 157.0;
-static const float DIST_BETEWEEN_WHEELS = 15.0;
+static const float DIST_BETWEEN_WHEELS = 15.0;
 
-static const float FORWARD_MIN_SPEED = 15; // the robot approaches this speed at the end of going forward
-static const float TURN_MIN_SPEED = 5; // the robot approaches this speed at the end of turning
+static const float FORWARD_MIN_SPEED = 15.0; // the robot approaches this speed at the end of going forward
+static const float TURN_MIN_SPEED = 5.0; // the robot approaches this speed at the end of turning
 
 static const int ARM_TIMEOUT = 300000;
 
+static const float SPEED_RATIO = 1.5;
 
 static inline float distanceToDegrees(float distInches) {
-  return distInches * 360 / 2 / M_PI / (4 / 2); // 4 in diameter wheels
+  return 2* (distInches * 360.0 / 2.0 / M_PI / (4.0 / 2.0) / SPEED_RATIO); // 4 in diameter wheels
 }
 
+static inline float degreesToDistance(float degrees) {
+  return SPEED_RATIO * degrees / (360.0 / 2.0 / M_PI / (4.0 / 2.0)); // 4 in diameter wheels
+}
 
 // return distance in inches if wanting to turn turnAngle degrees
 static inline float getTurnAngle(float turnAngle) {
 
-  return fabs(distanceToDegrees(turnAngle / 360 * 2 * M_PI * (15.125 / 2)));
+  return fabs(distanceToDegrees(turnAngle / 360.0 * 2.0 * M_PI * (15.125 / 2.0)));
 }
 
 // timeout in seconds
@@ -68,14 +77,14 @@ static inline bool isTimeout(int startTime, float timeout) {
 
 // log output to controller
 template <class ... Args>
-static inline void logController(const char *f, Args ... args) {
+static inline void logController(char *f, Args ... args) {
 
   char *format = (char*)f;
 
   Controller1.Screen.clearScreen();
   int row = 1;
 
-  char* pch = strtok (format,"\n");
+  char* pch = strtok (f,"\n");
   while (pch != NULL)
   {
     Controller1.Screen.setCursor(row, 1);

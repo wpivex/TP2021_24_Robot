@@ -1,6 +1,6 @@
 #pragma once
-#include "ArmGraph.cpp"
 #include "TrapezoidalController.cpp"
+#include "PIDController.cpp"
 #include "Buttons.cpp"
 #include <string>
 #include <fstream>
@@ -9,6 +9,7 @@
 #include <stdexcept> // std::runtime_error
 #include <sstream> // std::stringstream
 #include <string>
+#include <functional>
 #include <iostream>
 #include <sstream>
 #include <stdlib.h>     /* atof */
@@ -39,32 +40,34 @@ class Robot {
     vision backCamera;
     vision frontCamera;
 
-    motor fourBarLeft;
-    motor fourBarRight;
-    motor chainBarLeft;
-    motor chainBarRight;
+    motor rightArm1;
+    motor rightArm2;
+    motor leftArm1;
+    motor leftArm2;  
 
-    pot chainBarPot = pot(Brain.ThreeWirePort.H);
-    bumper fourBarBump = bumper(Brain.ThreeWirePort.A);
+    // pot chainBarPot = pot(Brain.ThreeWirePort.H);
+    // bumper fourBarBump = bumper(Brain.ThreeWirePort.A);
 
     digital_out frontGoal = digital_out(Brain.ThreeWirePort.B);
-    digital_out backGoal = digital_out(Brain.ThreeWirePort.C);
+    digital_out backGoal = digital_out(Brain.ThreeWirePort.A);
 
-    digital_out clawPiston = digital_out(Brain.ThreeWirePort.G);
+    digital_out clawPiston = digital_out(Brain.ThreeWirePort.C);
 
     controller* robotController;
 
     inertial gyroSensor;
+    gps gpsSensor;
 
-    ArmGraph arm;
     Buttons buttons;
+
+    bool calibrationDone = false;
 
     enum DriveType { ONE_STICK_ARCADE, TWO_STICK_ARCADE, TANK };
     DriveType driveType;
 
     enum ControllerMapping {DEFAULT_MAPPING};
     ControllerMapping cMapping;
-    Buttons::Button FRONT_CLAMP_TOGGLE, BACK_CLAMP_TOGGLE, CLAW_TOGGLE, ARM_TOGGLE; 
+    Buttons::Button FRONT_CLAMP_TOGGLE, BACK_CLAMP_TOGGLE, CLAW_TOGGLE; 
 
     void setControllerMapping(ControllerMapping mapping);
 
@@ -75,6 +78,8 @@ class Robot {
     void goalClamp();
     void setFrontClamp(bool intaking);
     void setBackClamp(bool intaking);
+    void stopArm();
+    void setArmPercent(directionType d, double percent);
 
     void userControl( void );
     void teleop( void );
@@ -84,65 +89,57 @@ class Robot {
     void stopRight();
     void setBrakeType(brakeType b);
     void setMaxArmTorque(float c);
+    void setMaxDriveTorque(float c);
 
     vision getCamera(directionType dir, Goal goal);
 
-    // --------- NEW FUNCTIONS -----------
 
+    // Drive Functions
     void goForward(float distInches, float maxSpeed, float rampUpInches = 0, float slowDownInches = 5,
-      int timeout = 5, std::function<bool(void)> func = {});
+      int timeout = 5, std::function<bool(void)> func = {}, bool stopAfter = true);
+    void goForwardUniversal(float distInches, float maxSpeed, float universalAngle, float rampUpInches = 0, 
+      float slowDownInches = 5, int timeout = 5, std::function<bool(void)> func = {});
 
-    void goForwardUniversal(float distInches, float maxSpeed, float universalAngle, float rampUpInches = 0, float slowDownInches = 5,
-      int timeout = 5, std::function<bool(void)> func = {});
+    // Turning Functions
+    void goTurnU(float universalAngleDegrees, std::function<bool(void)> func = {});
+    void goTurn(float angleDegrees, std::function<bool(void)> func = {});
+    void encoderTurn(float angle);
+    void encoderTurnU(float universalAngleDegrees);
+    void cursedTurn(float angle, float speed);
 
+    // Curves
+    void goRadiusCurve(float radius, float distAlongCircum, bool curveDirection, float maxSpeed, float rampUp, float slowDown, 
+      bool stopAfter = true, float timeout = 5);
     void goCurve(float distInches, float maxSpeed, float turnPercent, float rampUpInches = 0, float slowDownInches = 5,
       int timeout = 5, std::function<bool(void)> func = {});
-
+    void gyroCurve(float distInches, float maxSpeed, float turnAngle, int timeout, bool stopAfter = true, std::function<bool(void)> func = {});
+    
+    // Vision Functions
     void goVision(float distInches, float maxSpeed, Goal goal, directionType cameraDir, 
-    float rampUpInches = 0, float slowDownInches = 5, int timeout = 5, bool stopAfter = true, float K_P = 70, std::function<bool(void)> func = {});
-
-    void goTurn(float angleDegrees, std::function<bool(void)> func = {});
-    void goTurnU(float universalAngleDegrees, std::function<bool(void)> func = {});
+      float rampUpInches = 0, float slowDownInches = 5, int timeout = 5, bool stopAfter = true, float K_P = 70, std::function<bool(void)> func = {});
     bool goTurnVision(Goal goal, bool defaultClockwise, directionType cameraDir, float maxTurnAngle);
-    float goTurnVision2(Goal goal, directionType cameraDir, float minSpeed, float timeout);
     void alignToGoalVision(Goal goal, bool clockwise, directionType cameraDirection, int timeout, float maxSpeed = 40);
-    
-    void goTurnFast(bool isClockwise, float turnDegrees, float maxSpeed, float minSpeed, float slowDownDegrees, float endSlowDegrees = 0,
-    float timeout = 5, std::function<bool(void)> func = {});
-
-    void goTurnFastU(float universalAngleDegrees, float maxSpeed, float minSpeed, float slowDownDegrees, float endSlowDegrees = 0, 
-    float timeout = 5, std::function<bool(void)> func = {});
-
-    // -------- OLD FUNCTIONS -----------
-    void smartDrive(float distInches, float speed, directionType left, directionType right, int timeout, float slowDownInches, 
-                    float turnPercent, bool stopAfter, std::function<bool(void)> func);
-    void driveTurn(float degrees, float speed, bool isClockwise, int timeout, float slowDownInches = 10, 
-                    bool stopAfter = true, std::function<bool(void)> func = {});
-    void driveCurved(float distInches, float speed, directionType dir, int timeout, 
-                      float slowDownInches, float turnPercent, bool stopAfter = true, std::function<bool(void)> func = {});
-    void driveStraight(float distInches, float speed, directionType dir, int timeout, 
-                      float slowDownInches, bool stopAfter = true, std::function<bool(void)> func = {});
-    void driveStraightTimed(float speed, directionType dir, int timeMs, bool stopAfter = true, std::function<bool(void)> func = {});
-
     void updateCamera(Goal goal);
-
-    float initPot;
-
     
+    // Misc.
+    void driveArmDown(float timeout);
+    void resetArmRotation();
+    void setArmDegrees(float degrees, float speed = 100, bool blocking = true);
 
   private:
 
-
+    float globalEncoderLeft;
+    float globalEncoderRight;
     void driveTeleop();
     void armTeleop();
     void pneumaticsTeleop();
     void clawMovement();
-    
+    float getEncoderDistance();
+    void resetEncoderDistance();
 
-    float fourStart, chainStart;
+    bool driveHold = false;
 
-    bool armHold = false;
+    bool teleopArmLimited = false;
 
     bool isSkills;
-    bool armCoast = false;
 };
