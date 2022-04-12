@@ -1,0 +1,3 @@
+[submodule "src/shared"]
+	path = src/shared
+	url = ssh://git@github.com/wpivex/TP2021_Shared.git
