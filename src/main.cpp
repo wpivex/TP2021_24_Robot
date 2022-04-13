@@ -57,7 +57,8 @@ int matchAuto() {
   mainBot.openClaw();
   // Drive forwards at full speed (while adjusting towards goal if needed)
   mainBot.setArmDegrees(5, 50, false);
-  mainBot.goForward(36, 100, 3, 20, 5); 
+  // mainBot.goForward(36, 100, 3, 20, 5); 
+  mainBot.goForwardUntilSensor(36, 100, 3, 5);
   mainBot.closeClaw();
   wait(200, msec);
   // Raise arm a bit (so that other team cannot grab it)
@@ -67,14 +68,15 @@ int matchAuto() {
 
   // // ~~~~~~~~~~~ Middle Goal Check ~~~~~~~~~~~~~~
   //mainBot.cursedTurn(150,70);
-  mainBot.goTurn(120);
-  mainBot.setBackClamp(true);
-  mainBot.goVision(50, 65, YELLOW, reverse, 0, 0);
-  mainBot.setBackClamp(false);
-  wait(200, msec);
 
-  mainBot.goForward(40, 100, 5, 0, 5, {}, false);
-  mainBot.goCurve(20, 100, 0.2, 0, 10); // get back to base
+  // mainBot.goTurn(120);
+  // mainBot.setBackClamp(true);
+  // mainBot.goVision(50, 65, YELLOW, reverse, 0, 0);
+  // mainBot.setBackClamp(false);
+  // wait(200, msec);
+
+  // mainBot.goForward(40, 100, 5, 0, 5, {}, false);
+  // mainBot.goCurve(20, 100, 0.2, 0, 10); // get back to base
 
 
   // // ~~~~~~~~~~~~~~ Alliance Goal ~~~~~~~~~~~~~~~~

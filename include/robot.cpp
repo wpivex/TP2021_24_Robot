@@ -180,6 +180,41 @@ void Robot::goForward(float distInches, float maxSpeed, float rampUpInches, floa
 
 }
 
+void Robot::goForwardUntilSensor(float maxDistance, float speed, float rampUpInches, int timeout, std::function<bool(void)> func, bool stopAfter) {
+
+  Trapezoid trap(maxDistance, speed, speed, rampUpInches, 0);
+
+  int startTime = vex::timer::system();
+  resetEncoderDistance();
+  gyroSensor.resetRotation();
+
+  // finalDist is 0 if we want driveTimed instead of drive some distance
+  while (!trap.isCompleted() && !isTimeout(startTime, timeout) && clawSensor.value()) {
+
+    // if there is a concurrent function to run, run it
+    if (func) {
+      bool done = func();
+      if (done) {
+        // if func is done, make it empty
+        func = {};
+      }
+    }
+
+    float speed = trap.tick(degreesToDistance((leftMotorA.position(degrees) + rightMotorA.position(degrees)) / 2));
+
+    setLeftVelocity(forward, speed);
+    setRightVelocity(forward, speed);
+    
+    wait(20, msec);
+  }
+  if (stopAfter) {
+    stopLeft();
+    stopRight();
+  }
+ 
+
+}
+
 // Go forward in whatever direction it was already in
 // Trapezoidal motion profiling
 void Robot::goForwardUniversal(float distInches, float maxSpeed, float universalAngle, float rampUpInches, float slowDownInches, int timeout, 

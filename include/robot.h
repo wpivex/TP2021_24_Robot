@@ -50,8 +50,8 @@ class Robot {
 
     digital_out frontGoal = digital_out(Brain.ThreeWirePort.B);
     digital_out backGoal = digital_out(Brain.ThreeWirePort.A);
-
     digital_out clawPiston = digital_out(Brain.ThreeWirePort.C);
+    digital_in clawSensor = digital_in(Brain.ThreeWirePort.D);
 
     controller* robotController;
 
@@ -97,6 +97,7 @@ class Robot {
     // Drive Functions
     void goForward(float distInches, float maxSpeed, float rampUpInches = 0, float slowDownInches = 5,
       int timeout = 5, std::function<bool(void)> func = {}, bool stopAfter = true);
+    void goForwardUntilSensor(float maxDistance, float speed, float rampUpInches = 0, int timeout = 5, std::function<bool(void)> func = {}, bool stopAfter = true);
     void goForwardUniversal(float distInches, float maxSpeed, float universalAngle, float rampUpInches = 0, 
       float slowDownInches = 5, int timeout = 5, std::function<bool(void)> func = {});
 
