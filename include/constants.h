@@ -2,106 +2,81 @@
 #define MYLIB_CONSTANTS_H 1
 
 #include "vex.h"
+#include <string>
+#include <queue>
 
-using namespace vex;
+vex::brain Brain;
+vex::controller Controller1(vex::controllerType::primary);
+vex::competition Competition;
 
-const bool IS_SKILLS = false;
-const bool testingArm = false;
-
-brain Brain;
-controller Controller1(controllerType::primary);
 
 struct Goal {
   int id;
   int bright;
-  vision::signature sig;
+  vex::vision::signature sig;
 };
 
-// COMP FIELD
-// const struct Goal YELLOW = {0, 21, vex::vision::signature (1, 2023, 3393, 2708, -3631, -3185, -3408, 2.500, 0)};
-// const struct Goal RED = {1, 41, vex::vision::signature (1, 8435, 10495, 9464, -1029, -641, -836, 3.000, 0)};
-// const struct Goal BLUE = {2, 52, vex::vision::signature (1, -2657, -1837, -2247, 7385, 11983, 9684, 3.000, 0)};
 
-namespace ARM_CURRENT {
-  const static float OFF = 0.0;
-  const static float LOW = 0.1;
-  const static float MID = 1.0;
-  const static float HIGH = 10.0;
-}
-
-// // SKILLS
-// const struct Goal YELLOW = {0, 25, vex::vision::signature (1, 2401, 3421, 2911, -3187, -2789, -2988, 2.500, 0)};
-// const struct Goal RED = {1, 50, vex::vision::signature (1, 7787, 9783, 8785, -773, -457, -615, 3.000, 0)};
-// const struct Goal BLUE = {2, 102, vex::vision::signature (1, -2617, -1735, -2176, 6659, 12361, 9510, 3.000, 0)};
-
-
-
-const struct Goal YELLOW = {0, 28, vex::vision::signature (1, 1033, 2345, 1689, -3779, -3477, -3628, 4.400, 0)};
-// const struct Goal RED = {1, 56, vex::vision::signature (1, 5767, 9395, 7581, -685, 1, -342, 3.000, 0)};
-const struct Goal RED = {1, 49, vex::vision::signature (1, 7951, 10657, 9304, -1067, -549, -808, 3.000, 0)}; // I added this feb 22
-const struct Goal BLUE = {2, 80, vex::vision::signature (1, -3063, -1681, -2372, 6893, 12701, 9797, 3.000, 0)};
-
-const float MAX_VOLTS = 12.0; // maximum volts for vex motors
+const struct Goal YELLOW = {0, 13, vex::vision::signature (1, 979, 1701, 1340, -4143, -3541, -3842, 6.000, 0)};
+const struct Goal RED = {1, 56, vex::vision::signature (1, 5767, 9395, 7581, -685, 1, -342, 3.000, 0)};
+const struct Goal BLUE = {2, 67, vex::vision::signature (1, -2675, -1975, -2324, 8191, 14043, 11116, 3.000, 0)};
 
 
 static const float VISION_CENTER_X = 157.0;
-static const float DIST_BETWEEN_WHEELS = 15.0;
+const float MAX_VOLTS = 12.0; // maximum volts for vex motors
 
-static const float FORWARD_MIN_SPEED = 15.0; // the robot approaches this speed at the end of going forward
-static const float TURN_MIN_SPEED = 5.0; // the robot approaches this speed at the end of turning
-
-static const int ARM_TIMEOUT = 300000;
-
-static const float SPEED_RATIO = 1.5;
-
-static inline float distanceToDegrees(float distInches) {
-  return 2* (distInches * 360.0 / 2.0 / M_PI / (4.0 / 2.0) / SPEED_RATIO); // 4 in diameter wheels
+float oArea(vex::vision::object o) {
+  return o.width * o.height;
 }
 
-static inline float degreesToDistance(float degrees) {
-  return SPEED_RATIO * degrees / (360.0 / 2.0 / M_PI / (4.0 / 2.0)); // 4 in diameter wheels
+static inline float distanceFormula(float dx, float dy) {
+  return sqrt(dx*dx + dy*dy);
 }
 
-// return distance in inches if wanting to turn turnAngle degrees
-static inline float getTurnAngle(float turnAngle) {
+// Bound angle to between -180 and 180
+static inline float bound180(float angle) {
+  if (angle < -180) angle += 360;
+  else if (angle > 180) angle -= 360;
+  return angle;
+}
 
-  return fabs(distanceToDegrees(turnAngle / 360.0 * 2.0 * M_PI * (15.125 / 2.0)));
+// Find the closest angle between two universal angles
+static inline float getAngleDiff(float targetAngle, float currentAngle) {
+  return bound180(targetAngle - currentAngle);
 }
 
 // timeout in seconds
 static inline bool isTimeout(int startTime, float timeout) {
-  return timeout != -1 && vex::timer::system() >= startTime + (int) (timeout*1000.0);
+  return timeout != -1 && vex::timer::system() >= startTime + timeout*1000;
 }
-
-
 
 // log output to controller
 template <class ... Args>
-static inline void logController(char *f, Args ... args) {
-
-  char *format = (char*)f;
+static inline void logController(const char *f, Args ... args) {
 
   Controller1.Screen.clearScreen();
   int row = 1;
 
-  char* pch = strtok (f,"\n");
+  char buffer[200];
+  sprintf(buffer, f, args...);
+
+  char* pch = strtok (buffer,"\n");
   while (pch != NULL)
   {
     Controller1.Screen.setCursor(row, 1);
-    Controller1.Screen.print(pch, args...);
+    Controller1.Screen.print(pch);
     pch = strtok (NULL, "\n");
     row++;
   }
-
 }
 
 // log output to brain display the way you would with printf
-// log output to brain display the way you would with printf
-// DO NOT LOG WITH TRAILING NEWLINE OR YOU GET MEM PERM ERR
 template <class ... Args>
-static inline void log(int line, const char *f, Args ... args) {
-  Brain.Screen.clearLine(line);
-  int row = line;
+static inline void log(const char *f, Args ... args) {
+
+  Brain.Screen.clearScreen();
+  Brain.Screen.setFont(vex::mono20);
+  int row = 1;
 
   char buffer[200];
   sprintf(buffer, f, args...);
@@ -114,11 +89,6 @@ static inline void log(int line, const char *f, Args ... args) {
     pch = strtok (NULL, "\n");
     row++;
   }
-}
-
-template <class ... Args>
-static inline void log(const char *f, Args ... args) {
-  log(1, f, args ...);
 }
 
 #endif

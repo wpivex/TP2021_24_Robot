@@ -1,7 +1,12 @@
 #include "PIDController.h"
 #include "constants.h"
 
-PID::PID(float kp, float ki, float kd, float TOLERANCE, int REPEATED, float minimum) {
+/*
+A PID controller with configurable parameters. An optional isCompleted() returns whether PID has "settled" to a value, set with a tolerance
+and the number of times in a row needed to be in that tolerance.
+You may set a minimum and maximum output
+*/
+PID::PID(float kp, float ki, float kd, float TOLERANCE, int REPEATED, float minimum, float maximum) {
 
   TOLERANCE_THRESHOLD = TOLERANCE; // the error threshold to be considered "done"
   REPEATED_THRESHOLD = REPEATED; // the number of times the threshold must be reached in a row to be considered "done"
@@ -11,14 +16,10 @@ PID::PID(float kp, float ki, float kd, float TOLERANCE, int REPEATED, float mini
   K_i = ki;
   K_d = kd;
   min = minimum;
+  max = maximum;
 }
 
-PID::PID(PID_STRUCT data) {
-  PID(data.p, data.i, data.d, data.t, data.r);
-}
-
-// bound is // max/min value of output. Useful for stuff like capping speed
-float PID::tick(float error, float bound) {
+float PID::tick(float error) {
   float integral = prevIntegral + error * 0.02;
   float derivative = (error - prevError) / 0.02;
 
@@ -29,23 +30,20 @@ float PID::tick(float error, float bound) {
   if (fabs(error) < TOLERANCE_THRESHOLD) repeated++;
   else repeated = 0;
 
-  // If bound is not 0 (meaning unbounded), output should be clamped between -bound and +bound
-  if (bound != UNBOUNDED) output = fmax(-bound, fmin(bound, output));
-
   // Set mininum output value
   if (output > 0) {
     output = fmax(min, output);
   } else {
     output = fmin(-min, output);
   }
+  if (max != -1) output = fmax(-max, fmin(max, output));
 
-  logController("%f | %d | %d %d %d | %d", (float) error, (int) output, (int) (K_p * error), (int) (K_i * integral), (int) (K_d * derivative), repeated);
+  //logController("Error: %f \n Output: %f \n P: %f \n D: %f", error, output, (K_p * error), (K_d * derivative));
   return output;
 }
 
-// Call to check whether PID has converged to a value. Use with stuff like arm movement and aligns/turns but not with stuff like driving straight
+// Call to check whether PID has converged to a value. Useful with stuff like arm movement and aligns/turns but not with stuff like driving straight
 bool PID::isCompleted() {
-  //return false;
   //logController("asdf %d %d", repeated, REPEATED_THRESHOLD);
   return repeated >= REPEATED_THRESHOLD;
 }
