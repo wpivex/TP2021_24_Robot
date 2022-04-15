@@ -1,1 +1,1 @@
-This will be a shared code library for both 2021-2022 robots.
+This is a shared code library for the 2021-2022 WPI robots.
