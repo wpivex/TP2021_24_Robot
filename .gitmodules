@@ -1,6 +1,0 @@
-[submodule "include/shared"]
-	path = include/shared
-	url = https://github.com/wpivex/TP2021_Shared.git
-[submodule "include"]
-	path = include
-	url = https://github.com/wpivex/TP2021_Shared.git
